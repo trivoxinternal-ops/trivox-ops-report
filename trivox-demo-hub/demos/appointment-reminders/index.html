@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Appointment Reminder Bot — TRIVOX Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#070b18;--bg2:#0d1426;--surface:#121b30;--surface2:#16203a;--border:#1e2a44;--text:#eaf0ff;--muted:#8a97b5;--brand:#2e61fe;--brand2:#00f0ff;--grad:linear-gradient(135deg,#2e61fe,#00f0ff);--good:#22c55e;--warn:#fbbf24;--bad:#ef4444;--radius:16px;--shadow:0 10px 40px rgba(0,0,0,.45);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(7,11,24,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;}
+.nav-brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.nav-pill{background:var(--grad);color:#fff;font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;-webkit-text-fill-color:#fff;letter-spacing:.05em;}
+.nav-back{color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;transition:color .2s;}
+.nav-back:hover{color:var(--text);}
+
+/* HERO */
+.hero{padding:64px 32px 48px;max-width:1100px;margin:0 auto;}
+.eyebrow{font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px;}
+h1{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.02em;line-height:1.15;margin-bottom:16px;font-family:'Sora',sans-serif;}
+.nav-brand{font-family:'Sora',sans-serif;}
+.eyebrow{font-family:'Sora',sans-serif;}
+.subhead{color:var(--muted);font-size:16px;line-height:1.6;max-width:640px;margin-bottom:36px;}
+.stats{display:flex;gap:12px;flex-wrap:wrap;}
+.stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:40px;padding:8px 20px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;}
+.stat-chip span{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+/* MAIN GRID */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:1100px;margin:0 auto;padding:0 32px 64px;}
+@media(max-width:900px){.grid{grid-template-columns:1fr;}}
+
+/* PANELS */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);}
+.panel-title{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:20px;}
+
+/* APPOINTMENTS */
+.appt-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;}
+.appt-card:last-of-type{margin-bottom:0;}
+.appt-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.appt-name{font-weight:600;font-size:15px;}
+.appt-channel{font-size:11px;padding:3px 10px;border-radius:20px;font-weight:600;}
+.ch-whatsapp{background:rgba(34,197,94,.15);color:#22c55e;border:1px solid rgba(34,197,94,.3);}
+.ch-sms{background:rgba(46,97,254,.15);color:#7aa2ff;border:1px solid rgba(46,97,254,.3);}
+.appt-meta{color:var(--muted);font-size:13px;display:flex;gap:16px;}
+.appt-meta strong{color:var(--text);}
+
+/* BUTTON */
+.btn-grad{width:100%;margin-top:24px;padding:14px;background:var(--grad);border:none;border-radius:12px;color:#fff;font-family:'Sora',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:opacity .2s,transform .1s;}
+.btn-grad:hover{opacity:.9;}
+.btn-grad:active{transform:scale(.98);}
+.btn-grad:disabled{opacity:.5;cursor:not-allowed;}
+
+/* RIGHT PANEL */
+.right-panel{min-height:480px;display:flex;flex-direction:column;}
+
+/* ORB */
+.orb-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;}
+.orb{width:72px;height:72px;border-radius:50%;background:var(--grad);box-shadow:0 0 40px rgba(46,97,254,.5);animation:pulse 1.4s ease-in-out infinite;}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.12);opacity:.8;}}
+.orb-label{color:var(--muted);font-size:14px;}
+.checklist{list-style:none;display:flex;flex-direction:column;gap:10px;min-width:220px;}
+.checklist li{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted);}
+.checklist li.done{color:var(--text);}
+.check-icon{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.check-icon.filled{background:var(--good);border-color:var(--good);}
+.check-icon.filled::after{content:'✓';font-size:10px;color:#fff;font-weight:700;}
+
+/* EMPTY */
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--muted);}
+.empty-icon{font-size:40px;opacity:.35;}
+.empty-text{font-size:14px;text-align:center;max-width:240px;line-height:1.5;}
+
+/* RESULTS */
+.result-state{display:flex;flex-direction:column;gap:16px;}
+.section-label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.timeline{display:flex;flex-direction:column;gap:0;}
+.tl-appt-block{margin-bottom:18px;}
+.tl-appt-name{font-size:13px;font-weight:600;color:var(--brand2);margin-bottom:8px;}
+.tl-item{display:flex;gap:14px;align-items:flex-start;position:relative;padding-bottom:12px;}
+.tl-item:last-child{padding-bottom:0;}
+.tl-dot{width:10px;height:10px;border-radius:50%;background:var(--grad);flex-shrink:0;margin-top:4px;}
+.tl-line{position:absolute;left:4px;top:14px;width:2px;height:calc(100% - 6px);background:var(--border);}
+.tl-item:last-child .tl-line{display:none;}
+.tl-content{flex:1;}
+.tl-when{font-size:12px;color:var(--muted);margin-bottom:3px;}
+.tl-msg{font-size:13px;line-height:1.5;color:var(--text);background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;}
+.tl-footer{display:flex;justify-content:space-between;align-items:center;margin-top:6px;}
+.tl-channel{font-size:11px;font-weight:600;}
+.tl-status{font-size:11px;font-weight:600;color:var(--good);background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.25);padding:2px 8px;border-radius:20px;}
+
+/* METRIC TILE */
+.metric-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:4px;}
+.metric-tile{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.metric-label{font-size:11px;color:var(--muted);margin-bottom:6px;}
+.metric-val{font-size:22px;font-weight:700;}
+.metric-val.bad{color:var(--bad);}
+.metric-val.good{color:var(--good);}
+.metric-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* FOOTER */
+footer{text-align:center;padding:28px;color:var(--muted);font-size:13px;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">TRIVOX <span class="nav-pill">AI</span></div>
+  <a class="nav-back" href="../../portfolio.html">← All Demos</a>
+</nav>
+
+<section class="hero">
+  <div class="eyebrow">Operations / Customer Care</div>
+  <h1>Appointment Reminder Bot</h1>
+  <p class="subhead">Automated SMS &amp; WhatsApp reminders that slash no-shows. Two-touch sequences fire 24h and 2h before every appointment, with zero manual effort.</p>
+  <div class="stats">
+    <div class="stat-chip"><span>-62%</span> no-shows</div>
+    <div class="stat-chip"><span>Auto-sent</span> reminders</div>
+    <div class="stat-chip"><span>2-touch</span> per appointment</div>
+  </div>
+</section>
+
+<div class="grid">
+  <!-- LEFT -->
+  <div class="panel">
+    <div class="panel-title">Upcoming Appointments</div>
+
+    <div class="appt-card">
+      <div class="appt-header">
+        <div class="appt-name">Sofia Reyes</div>
+        <div class="appt-channel ch-whatsapp">WhatsApp</div>
+      </div>
+      <div class="appt-meta">
+        <span><strong>Thu Jun 19</strong> at 10:00 AM</span>
+        <span>Consultation</span>
+      </div>
+    </div>
+
+    <div class="appt-card">
+      <div class="appt-header">
+        <div class="appt-name">Marcus Delgado</div>
+        <div class="appt-channel ch-sms">SMS</div>
+      </div>
+      <div class="appt-meta">
+        <span><strong>Thu Jun 19</strong> at 2:30 PM</span>
+        <span>Follow-up</span>
+      </div>
+    </div>
+
+    <div class="appt-card">
+      <div class="appt-header">
+        <div class="appt-name">Priya Nair</div>
+        <div class="appt-channel ch-whatsapp">WhatsApp</div>
+      </div>
+      <div class="appt-meta">
+        <span><strong>Fri Jun 20</strong> at 9:00 AM</span>
+        <span>Initial Assessment</span>
+      </div>
+    </div>
+
+    <button class="btn-grad" id="scheduleBtn" onclick="runDemo()">Schedule Reminders</button>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="panel right-panel" id="rightPanel">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">📅</div>
+      <div class="empty-text">Click "Schedule Reminders" to generate the automated sequence</div>
+    </div>
+    <div class="orb-state" id="orbState" style="display:none;">
+      <div class="orb"></div>
+      <ul class="checklist" id="checklist">
+        <li id="ck1"><div class="check-icon"></div>Reading appointment list…</li>
+        <li id="ck2"><div class="check-icon"></div>Building reminder sequences…</li>
+        <li id="ck3"><div class="check-icon"></div>Scheduling 24h messages…</li>
+        <li id="ck4"><div class="check-icon"></div>Scheduling 2h messages…</li>
+        <li id="ck5"><div class="check-icon"></div>Confirming delivery queue…</li>
+      </ul>
+    </div>
+    <div class="result-state" id="resultState" style="display:none;"></div>
+  </div>
+</div>
+
+<footer>Built by TRIVOX · AI automation that runs your business</footer>
+
+<script>
+const appts = [
+  {
+    name: "Sofia Reyes",
+    channel: "WhatsApp",
+    date: "Thu Jun 19",
+    time: "10:00 AM",
+    type: "Consultation",
+    msg24: "Hi Sofia! Just a reminder that your Consultation is tomorrow at 10:00 AM. Reply CONFIRM to lock your spot or CANCEL to reschedule. See you soon! 🌟",
+    msg2: "Sofia, your Consultation starts in 2 hours (10:00 AM today). We are ready for you. See you shortly! Reply HELP if you need anything."
+  },
+  {
+    name: "Marcus Delgado",
+    channel: "SMS",
+    date: "Thu Jun 19",
+    time: "2:30 PM",
+    type: "Follow-up",
+    msg24: "Hi Marcus, reminder: your Follow-up appt is tomorrow at 2:30 PM. Reply YES to confirm or CANCEL to reschedule. Thanks!",
+    msg2: "Marcus, your Follow-up is in 2 hours at 2:30 PM today. See you then! Reply STOP to opt out."
+  },
+  {
+    name: "Priya Nair",
+    channel: "WhatsApp",
+    date: "Fri Jun 20",
+    time: "9:00 AM",
+    type: "Initial Assessment",
+    msg24: "Hello Priya! Your Initial Assessment is tomorrow at 9:00 AM. Please arrive 5 min early. Confirm with YES or reply to reschedule. 🙏",
+    msg2: "Good morning Priya! Your Initial Assessment is at 9:00 AM, just 2 hours away. We are looking forward to seeing you!"
+  }
+];
+
+function tick(id, delay) {
+  return new Promise(r => setTimeout(() => {
+    const el = document.getElementById(id);
+    el.classList.add('done');
+    el.querySelector('.check-icon').classList.add('filled');
+    r();
+  }, delay));
+}
+
+async function runDemo() {
+  const btn = document.getElementById('scheduleBtn');
+  btn.disabled = true;
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('resultState').style.display = 'none';
+  document.getElementById('orbState').style.display = 'flex';
+
+  await tick('ck1', 320);
+  await tick('ck2', 680);
+  await tick('ck3', 1050);
+  await tick('ck4', 1380);
+  await tick('ck5', 1750);
+
+  await new Promise(r => setTimeout(r, 200));
+
+  document.getElementById('orbState').style.display = 'none';
+  const result = document.getElementById('resultState');
+  result.style.display = 'flex';
+
+  let html = `<div class="panel-title">Reminder Sequence: Scheduled</div>`;
+
+  appts.forEach(a => {
+    const chClass = a.channel === 'WhatsApp' ? 'ch-whatsapp' : 'ch-sms';
+    html += `
+    <div class="tl-appt-block">
+      <div class="tl-appt-name">${a.name} · ${a.date} ${a.time} · ${a.type}</div>
+      <div class="timeline">
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-line"></div>
+          <div class="tl-content">
+            <div class="tl-when">24 hours before</div>
+            <div class="tl-msg">${a.msg24}</div>
+            <div class="tl-footer">
+              <span class="tl-channel ${chClass}">${a.channel}</span>
+              <span class="tl-status">Queued</span>
+            </div>
+          </div>
+        </div>
+        <div class="tl-item">
+          <div class="tl-dot"></div>
+          <div class="tl-content">
+            <div class="tl-when">2 hours before</div>
+            <div class="tl-msg">${a.msg2}</div>
+            <div class="tl-footer">
+              <span class="tl-channel ${chClass}">${a.channel}</span>
+              <span class="tl-status">Queued</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  });
+
+  html += `
+  <div>
+    <div class="section-label">No-Show Rate Impact</div>
+    <div class="metric-row">
+      <div class="metric-tile">
+        <div class="metric-label">Before Automation</div>
+        <div class="metric-val bad">34%</div>
+        <div class="metric-sub">no-show rate</div>
+      </div>
+      <div class="metric-tile">
+        <div class="metric-label">After Automation</div>
+        <div class="metric-val good">13%</div>
+        <div class="metric-sub">no-show rate · -62%</div>
+      </div>
+    </div>
+  </div>`;
+
+  result.innerHTML = html;
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WhatsApp Sales Agent — TRIVOX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070b18;--bg2:#0d1426;--surface:#121b30;--surface2:#16203a;--border:#1e2a44;--text:#eaf0ff;--muted:#8a97b5;--brand:#2e61fe;--brand2:#00f0ff;--grad:linear-gradient(135deg,#2e61fe,#00f0ff);--good:#22c55e;--warn:#fbbf24;--bad:#ef4444;--radius:16px;--shadow:0 10px 40px rgba(0,0,0,.45);}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(7,11,24,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.nav-brand span{font-size:18px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-.02em;}
+.ai-pill{background:var(--grad);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.08em;}
+.nav-back{color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;transition:color .2s;}
+.nav-back:hover{color:var(--text);}
+
+/* HERO */
+.hero{padding:64px 32px 48px;max-width:1100px;margin:0 auto;}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--brand2);margin-bottom:14px;}
+.hero h1{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.02em;line-height:1.15;margin-bottom:14px;}
+.hero-sub{color:var(--muted);font-size:16px;max-width:640px;line-height:1.6;margin-bottom:40px;}
+.stats{display:flex;gap:20px;flex-wrap:wrap;}
+.stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 24px;display:flex;flex-direction:column;gap:4px;}
+.stat-num{font-size:24px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;}
+.stat-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+
+/* DEMO */
+.demo-section{max-width:1100px;margin:0 auto;padding:0 32px 80px;}
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+@media(max-width:900px){.demo-grid{grid-template-columns:1fr;}}
+
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);}
+.panel-heading{font-size:15px;font-weight:600;margin-bottom:6px;}
+.panel-sub{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.5;}
+
+/* INPUTS */
+.form-group{margin-bottom:16px;}
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;}
+input,textarea,select{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Sora',sans-serif;font-size:14px;padding:12px 14px;outline:none;transition:border-color .2s;resize:none;}
+input:focus,textarea:focus,select:focus{border-color:var(--brand);}
+textarea{min-height:90px;}
+.btn-primary{width:100%;background:var(--grad);border:none;border-radius:10px;color:#fff;font-family:'Sora',sans-serif;font-size:14px;font-weight:700;padding:14px;cursor:pointer;letter-spacing:.02em;transition:opacity .2s;margin-top:4px;}
+.btn-primary:hover{opacity:.88;}
+.btn-primary:active{opacity:.75;}
+
+/* RIGHT PANEL STATES */
+.output-panel{min-height:480px;display:flex;flex-direction:column;}
+.state{display:none;}
+.state.active{display:flex;flex-direction:column;}
+
+/* EMPTY STATE */
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--muted);text-align:center;padding:40px;}
+.empty-icon{opacity:.35;}
+.empty-hint{font-size:13px;line-height:1.6;}
+
+/* WORKING STATE */
+.working-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding:40px;}
+.orb-wrap{position:relative;width:56px;height:56px;}
+.orb{width:56px;height:56px;border-radius:50%;background:var(--grad);}
+.orb-ring{position:absolute;inset:-8px;border-radius:50%;border:2px solid var(--brand2);opacity:0;animation:pulse-ring 1.4s ease-out infinite;}
+@keyframes pulse-ring{0%{transform:scale(.85);opacity:.7;}100%{transform:scale(1.4);opacity:0;}}
+.checklist{list-style:none;display:flex;flex-direction:column;gap:12px;width:100%;max-width:280px;}
+.check-item{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--muted);opacity:.35;transition:opacity .3s;}
+.check-item.done{opacity:1;color:var(--text);}
+.check-dot{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .3s;}
+.check-item.done .check-dot{background:var(--good);border-color:var(--good);}
+.check-dot svg{opacity:0;transition:opacity .3s;}
+.check-item.done .check-dot svg{opacity:1;}
+
+/* RESULT STATE */
+.result-state{flex:1;display:flex;flex-direction:column;gap:16px;overflow:auto;}
+.wa-header{display:flex;align-items:center;gap:12px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.wa-avatar{width:40px;height:40px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;flex-shrink:0;}
+.wa-contact{display:flex;flex-direction:column;gap:2px;}
+.wa-name{font-size:14px;font-weight:600;}
+.wa-status{font-size:11px;color:var(--good);}
+.messages{display:flex;flex-direction:column;gap:10px;padding:6px 0;}
+.msg{max-width:82%;padding:10px 14px;border-radius:14px;font-size:13px;line-height:1.55;}
+.msg-in{background:var(--surface2);border-bottom-left-radius:4px;align-self:flex-start;color:var(--text);}
+.msg-out{background:linear-gradient(135deg,rgba(46,97,254,.35),rgba(0,240,255,.2));border:1px solid rgba(0,240,255,.15);border-bottom-right-radius:4px;align-self:flex-end;color:var(--text);}
+.msg-time{font-size:10px;color:var(--muted);margin-top:3px;text-align:right;}
+.msg-in .msg-time{text-align:left;}
+.lead-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.lead-card-title{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--brand2);margin-bottom:12px;}
+.lead-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid rgba(30,42,68,.6);font-size:13px;}
+.lead-row:last-child{border-bottom:none;}
+.lead-key{color:var(--muted);}
+.lead-val{font-weight:600;}
+.badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.06em;}
+.badge-hot{background:rgba(239,68,68,.18);color:#ef4444;}
+.badge-next{background:rgba(34,197,94,.15);color:var(--good);font-size:11px;}
+
+/* FOOTER */
+footer{text-align:center;padding:28px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="#">
+    <span>TRIVOX</span>
+    <span class="ai-pill">AI</span>
+  </a>
+  <a class="nav-back" href="../../portfolio.html">← All Demos</a>
+</nav>
+
+<section class="hero">
+  <div class="eyebrow">Sales &amp; Customer Care</div>
+  <h1>WhatsApp Sales Agent</h1>
+  <p class="hero-sub">An AI agent that replies to inbound WhatsApp leads in under 30 seconds, qualifies them with smart questions, and books test-drives automatically — around the clock.</p>
+  <div class="stats">
+    <div class="stat-chip">
+      <span class="stat-num">&lt;30s</span>
+      <span class="stat-label">Avg Reply Time</span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-num">3.2x</span>
+      <span class="stat-label">More Booked Appts</span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-num">24/7</span>
+      <span class="stat-label">Always On</span>
+    </div>
+  </div>
+</section>
+
+<section class="demo-section">
+  <div class="demo-grid">
+
+    <!-- LEFT INPUT -->
+    <div class="panel">
+      <div class="panel-heading">Incoming WhatsApp Lead</div>
+      <div class="panel-sub">Simulate an inbound message from a prospect. The AI agent replies instantly, qualifies, and books.</div>
+
+      <div class="form-group">
+        <label>Customer Name</label>
+        <input type="text" id="cust-name" value="Miguel Torres">
+      </div>
+      <div class="form-group">
+        <label>Phone Number</label>
+        <input type="text" id="cust-phone" value="+52 55 3841 7720">
+      </div>
+      <div class="form-group">
+        <label>Incoming Message</label>
+        <textarea id="cust-msg">Hola, vi su anuncio del Toyota Corolla 2021, ¿todavía está disponible? Quisiera saber el precio y si puedo verlo esta semana.</textarea>
+      </div>
+      <div class="form-group">
+        <label>Dealership / Brand</label>
+        <input type="text" id="brand" value="AutoPremium MX">
+      </div>
+
+      <button class="btn-primary" id="generate-btn" onclick="runDemo()">Generate AI Reply</button>
+    </div>
+
+    <!-- RIGHT OUTPUT -->
+    <div class="panel output-panel">
+
+      <!-- EMPTY -->
+      <div class="state active" id="state-empty">
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+              <rect width="56" height="56" rx="16" fill="#1e2a44"/>
+              <path d="M28 14C20.268 14 14 19.82 14 27c0 2.9.94 5.6 2.55 7.82L14 42l7.5-2.5A14.9 14.9 0 0028 40c7.732 0 14-5.82 14-13S35.732 14 28 14z" stroke="#2e61fe" stroke-width="1.6" stroke-linejoin="round"/>
+              <circle cx="22" cy="27" r="1.8" fill="#00f0ff"/>
+              <circle cx="28" cy="27" r="1.8" fill="#00f0ff"/>
+              <circle cx="34" cy="27" r="1.8" fill="#00f0ff"/>
+            </svg>
+          </div>
+          <p class="empty-hint">Click "Generate AI Reply" to see the agent qualify the lead and book an appointment in real time.</p>
+        </div>
+      </div>
+
+      <!-- WORKING -->
+      <div class="state" id="state-working">
+        <div class="working-state">
+          <div class="orb-wrap">
+            <div class="orb"></div>
+            <div class="orb-ring"></div>
+          </div>
+          <ul class="checklist" id="checklist">
+            <li class="check-item" id="c1">
+              <div class="check-dot"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              Analyzing lead message
+            </li>
+            <li class="check-item" id="c2">
+              <div class="check-dot"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              Generating qualifying questions
+            </li>
+            <li class="check-item" id="c3">
+              <div class="check-dot"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              Proposing appointment slot
+            </li>
+            <li class="check-item" id="c4">
+              <div class="check-dot"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              Saving lead to CRM
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- RESULT -->
+      <div class="state" id="state-result">
+        <div class="result-state">
+          <div class="wa-header">
+            <div class="wa-avatar">MT</div>
+            <div class="wa-contact">
+              <span class="wa-name" id="r-name">Miguel Torres</span>
+              <span class="wa-status">Online</span>
+            </div>
+          </div>
+
+          <div class="messages">
+            <div class="msg msg-in">
+              <span id="r-msg">Hola, vi su anuncio del Toyota Corolla 2021, ¿todavía está disponible? Quisiera saber el precio y si puedo verlo esta semana.</span>
+              <div class="msg-time">2:14 PM</div>
+            </div>
+            <div class="msg msg-out">
+              ¡Hola Miguel! Soy el asistente virtual de <span id="r-brand">AutoPremium MX</span>. 🚗 El Toyota Corolla 2021 sigue disponible — está en perfectas condiciones, 38,000 km, color blanco perla.<br><br>
+              Para ayudarte mejor, ¿cuál es tu rango de presupuesto aproximado? ¿Estás considerando financiamiento o pago de contado?
+              <div class="msg-time">2:14 PM · AI Agent</div>
+            </div>
+            <div class="msg msg-in">
+              Presupuesto entre $280,000 y $320,000 MXN, sí quiero financiamiento. ¿Cuándo puedo verlo?
+              <div class="msg-time">2:16 PM</div>
+            </div>
+            <div class="msg msg-out">
+              Perfecto Miguel, ¡tu presupuesto encaja muy bien! Tenemos opciones de financiamiento desde el 8.9% anual con aprobación el mismo día.<br><br>
+              ¿Te funciona el <strong>martes a las 3:00 PM</strong> para una prueba de manejo? Te reservo el lugar ahora mismo — solo confirma y nuestro asesor Luis te esperará en sucursal Polanco. 🤝
+              <div class="msg-time">2:16 PM · AI Agent</div>
+            </div>
+            <div class="msg msg-in">
+              Sí perfecto, ahí estaré.
+              <div class="msg-time">2:17 PM</div>
+            </div>
+            <div class="msg msg-out">
+              ¡Excelente! Cita confirmada para el <strong>martes 24 de junio a las 3:00 PM</strong> en AutoPremium MX Polanco. Te enviaremos recordatorio 1 hora antes. ¡Hasta el martes! 🎉
+              <div class="msg-time">2:17 PM · AI Agent</div>
+            </div>
+          </div>
+
+          <div class="lead-card">
+            <div class="lead-card-title">Lead Captured</div>
+            <div class="lead-row"><span class="lead-key">Name</span><span class="lead-val" id="lc-name">Miguel Torres</span></div>
+            <div class="lead-row"><span class="lead-key">Phone</span><span class="lead-val">+52 55 3841 7720</span></div>
+            <div class="lead-row"><span class="lead-key">Vehicle Interest</span><span class="lead-val">Toyota Corolla 2021</span></div>
+            <div class="lead-row"><span class="lead-key">Budget</span><span class="lead-val">$280k–$320k MXN</span></div>
+            <div class="lead-row"><span class="lead-key">Financing</span><span class="lead-val">Yes</span></div>
+            <div class="lead-row"><span class="lead-key">Status</span><span class="lead-val"><span class="badge badge-hot">HOT</span></span></div>
+            <div class="lead-row"><span class="lead-key">Next Action</span><span class="lead-val"><span class="badge badge-next">Booked Tue 3:00 PM</span></span></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer>Built by TRIVOX · AI automation that runs your business</footer>
+
+<script>
+function runDemo() {
+  const name = document.getElementById('cust-name').value || 'Miguel Torres';
+  const msg = document.getElementById('cust-msg').value;
+  const brand = document.getElementById('brand').value || 'AutoPremium MX';
+
+  // Update result fields
+  document.getElementById('r-name').textContent = name;
+  document.getElementById('r-brand').textContent = brand;
+  document.getElementById('r-msg').textContent = msg;
+  document.getElementById('lc-name').textContent = name;
+  const initials = name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  document.querySelector('.wa-avatar').textContent = initials;
+  document.querySelector('.wa-name').textContent = name;
+
+  showState('working');
+
+  const checks = ['c1','c2','c3','c4'];
+  checks.forEach(id => document.getElementById(id).classList.remove('done'));
+
+  const delays = [300, 700, 1200, 1700];
+  checks.forEach((id, i) => {
+    setTimeout(() => document.getElementById(id).classList.add('done'), delays[i]);
+  });
+
+  setTimeout(() => showState('result'), 2200);
+}
+
+function showState(name) {
+  ['empty','working','result'].forEach(s => {
+    document.getElementById('state-' + s).classList.remove('active');
+  });
+  document.getElementById('state-' + name).classList.add('active');
+}
+</script>
+</body>
+</html>

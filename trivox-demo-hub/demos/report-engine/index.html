@@ -1,0 +1,1015 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <title>Trivox AI — Financial Report Engine</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <!-- PDF.js for reading PDFs client-side -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <!-- Mammoth.js for reading DOCX client-side -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+  <!-- jsPDF for generating PDF downloads -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+  <style>
+    :root{--blue:#2E61FE;--cyan:#00F0FF;--bg:#050508;--card:rgba(255,255,255,0.04);--border:rgba(0,240,255,0.25);--border-dim:#1a1a1a;--text:#E8E8E8;--text-muted:#777;--text-dim:#999;--success:#22C55E;--danger:#EF4444;--warning:#F59E0B;--gradient:linear-gradient(135deg,#2E61FE 0%,#00F0FF 100%);--radius:14px;--radius-lg:24px;--radius-sm:8px}
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    html,body{height:100%;font-family:'Sora',system-ui,sans-serif;background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+    #bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none}
+    .shell{min-height:100vh;display:flex;flex-direction:column;position:relative;z-index:1}
+
+    /* Header */
+    .header{display:flex;align-items:center;justify-content:space-between;padding:18px 32px;position:relative;z-index:50}
+    .header img{height:26px;width:auto}
+    .header-badge{font-size:10px;font-weight:600;color:var(--cyan);letter-spacing:0.06em;text-transform:uppercase;padding:5px 14px;border:1px solid rgba(0,240,255,0.15);border-radius:20px;background:rgba(0,240,255,0.04)}
+
+    /* Upload Screen */
+    .upload-screen{flex:1;display:flex;align-items:center;justify-content:center;padding:24px 24px 60px;background:radial-gradient(ellipse at 50% 40%,rgba(46,97,254,0.1) 0%,rgba(0,240,255,0.04) 40%,transparent 70%)}
+    .upload-card{width:100%;max-width:620px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:44px 40px;backdrop-filter:blur(16px);box-shadow:0 0 80px rgba(46,97,254,0.1),inset 0 1px 0 rgba(255,255,255,0.06)}
+    .upload-title{font-size:1.5rem;font-weight:800;background:linear-gradient(135deg,#fff 60%,#00F0FF);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.25;margin-bottom:4px}
+    .upload-sub{color:var(--text-muted);font-size:0.85rem;margin-bottom:28px;line-height:1.6}
+
+    /* Drop zone */
+    .drop-zone{border:2px dashed rgba(0,240,255,0.25);border-radius:16px;padding:48px 24px;text-align:center;cursor:pointer;transition:all 0.3s ease;background:rgba(0,0,0,0.2);margin-bottom:20px}
+    .drop-zone:hover,.drop-zone.dragover{border-color:var(--cyan);background:rgba(0,240,255,0.04);box-shadow:0 0 40px rgba(0,240,255,0.08)}
+    .drop-icon{width:48px;height:48px;border-radius:50%;background:rgba(46,97,254,0.1);border:1px solid rgba(46,97,254,0.2);display:flex;align-items:center;justify-content:center;margin:0 auto 14px}
+    .drop-icon svg{width:22px;height:22px}
+    .drop-text{font-size:0.9rem;font-weight:600;color:var(--text);margin-bottom:4px}
+    .drop-hint{font-size:0.78rem;color:#555}
+
+    /* File list */
+    .file-list{list-style:none;margin-bottom:20px}
+    .file-item{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;background:rgba(0,0,0,0.3);border:1px solid var(--border-dim);border-radius:10px;margin-bottom:8px;font-size:13px}
+    .file-info{display:flex;align-items:center;gap:10px;color:var(--text);min-width:0}
+    .file-info .name{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .file-info .size{color:#555;flex-shrink:0}
+    .file-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;font-weight:700;text-transform:uppercase}
+    .file-icon.pdf{background:rgba(239,68,68,0.1);color:var(--danger);border:1px solid rgba(239,68,68,0.2)}
+    .file-icon.docx{background:rgba(46,97,254,0.1);color:var(--blue);border:1px solid rgba(46,97,254,0.2)}
+    .file-icon.txt{background:rgba(0,240,255,0.08);color:var(--cyan);border:1px solid rgba(0,240,255,0.2)}
+    .file-remove{background:none;border:none;color:#555;cursor:pointer;padding:4px;transition:color 0.2s;font-size:16px}
+    .file-remove:hover{color:var(--danger)}
+
+    /* Demo link */
+    .demo-link{display:block;text-align:center;color:#555;font-size:0.78rem;margin-bottom:20px;cursor:pointer;transition:color 0.2s;text-decoration:underline;text-underline-offset:3px;background:none;border:none;font-family:'Sora',sans-serif;width:100%}
+    .demo-link:hover{color:var(--cyan)}
+
+    .btn-gen{width:100%;padding:15px;background:var(--gradient);border:none;border-radius:12px;font-family:'Sora',sans-serif;font-size:15px;font-weight:700;color:#fff;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 20px rgba(46,97,254,0.25)}
+    .btn-gen:hover{opacity:0.92;transform:translateY(-1px);box-shadow:0 8px 30px rgba(46,97,254,0.35)}
+    .btn-gen:disabled{opacity:0.3;cursor:not-allowed;transform:none;box-shadow:none}
+
+    /* Loading */
+    .loading-overlay{position:fixed;inset:0;z-index:200;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 24px}
+    .scan-lines{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+    .scan-line{position:absolute;left:0;width:100%;height:1px;background:linear-gradient(90deg,transparent 0%,rgba(0,240,255,0.08) 50%,transparent 100%);animation:scanMove 3s ease-in-out infinite}
+    .scan-line:nth-child(1){top:25%;animation-delay:0s}
+    .scan-line:nth-child(2){top:50%;animation-delay:0.8s}
+    .scan-line:nth-child(3){top:75%;animation-delay:1.6s}
+    @keyframes scanMove{0%,100%{opacity:0;transform:translateX(-100%)}50%{opacity:1;transform:translateX(100%)}}
+    .ld-pulse{width:72px;height:72px;border-radius:50%;position:relative;margin-bottom:36px}
+    .ld-pulse::before,.ld-pulse::after{content:'';position:absolute;inset:0;border-radius:50%;border:2px solid transparent}
+    .ld-pulse::before{border-top-color:var(--cyan);border-right-color:var(--cyan);animation:spin 1.2s linear infinite}
+    .ld-pulse::after{border-bottom-color:var(--blue);border-left-color:var(--blue);animation:spin 1.2s linear infinite reverse;inset:8px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .ld-pulse .dot{position:absolute;top:50%;left:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:var(--cyan);box-shadow:0 0 16px rgba(0,240,255,0.4);animation:pulse 1.5s ease-in-out infinite}
+    @keyframes pulse{0%,100%{opacity:0.5;transform:scale(0.8)}50%{opacity:1;transform:scale(1.2)}}
+    .ld-status{font-size:1rem;font-weight:600;color:#fff;margin-bottom:6px;text-align:center;position:relative;z-index:1}
+    .ld-sub{font-size:13px;color:#444;text-align:center;position:relative;z-index:1}
+
+    /* Error */
+    .error-screen{flex:1;display:flex;align-items:center;justify-content:center;padding:40px 24px}
+    .error-card{text-align:center;max-width:420px;background:var(--card);backdrop-filter:blur(24px);border:1px solid var(--border);border-radius:var(--radius-lg);padding:40px 32px}
+    .error-icon{width:48px;height:48px;border-radius:50%;background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.2);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:20px;color:var(--danger)}
+    .error-card h2{font-size:1rem;font-weight:700;margin-bottom:6px}
+    .error-card p{color:var(--text-muted);font-size:0.85rem;margin-bottom:20px;line-height:1.6}
+
+    /* ── REPORT ─────────────────────────────── */
+    .report{max-width:860px;width:100%;margin:0 auto;padding:32px 24px 60px}
+
+    .rpt-header{margin-bottom:32px;padding-bottom:24px;border-bottom:1px solid var(--border-dim);animation:fadeUp 0.5s both}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    .rpt-label{font-size:10px;font-weight:700;color:var(--cyan);letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px}
+    .rpt-client-name{font-size:1.6rem;font-weight:800;color:#fff;margin-bottom:4px}
+    .rpt-meta{font-size:0.82rem;color:var(--text-muted);line-height:1.6}
+    .rpt-meta span{color:var(--text-dim)}
+
+    /* Metrics row */
+    .metrics-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:28px;animation:fadeUp 0.5s 0.05s both}
+    .metric-card{background:var(--card);border:1px solid var(--border-dim);border-radius:var(--radius);padding:16px 18px;text-align:center}
+    .metric-val{font-size:1.3rem;font-weight:800;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+    .metric-lbl{font-size:10px;color:#555;text-transform:uppercase;letter-spacing:0.05em;margin-top:2px}
+
+    /* Section */
+    .rpt-section{margin-bottom:28px}
+    .rpt-section-title{font-size:0.8rem;font-weight:700;color:var(--cyan);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+    .rpt-section-title .bar{flex:1;height:1px;background:var(--border-dim)}
+
+    /* KV rows */
+    .kv-grid{background:var(--card);border:1px solid var(--border-dim);border-radius:var(--radius);padding:18px 20px;font-size:13px}
+    .kv-row{display:flex;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.03)}
+    .kv-row:last-child{border-bottom:none}
+    .kv-key{color:#555;min-width:200px;flex-shrink:0;font-size:12px}
+    .kv-val{color:var(--text);font-weight:500}
+
+    /* Tables */
+    .rpt-table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--border-dim);border-radius:var(--radius);overflow:hidden;font-size:12.5px}
+    .rpt-table th{color:var(--cyan);font-size:10px;text-transform:uppercase;letter-spacing:0.06em;text-align:left;padding:10px 14px;border-bottom:1px solid var(--border-dim);font-weight:600}
+    .rpt-table td{color:var(--text-dim);padding:10px 14px;border-bottom:1px solid rgba(255,255,255,0.02)}
+    .rpt-table tr:last-child td{border-bottom:none}
+
+    /* Gap / step cards */
+    .item-card{background:var(--card);border:1px solid var(--border-dim);border-radius:var(--radius-sm);padding:14px 18px;margin-bottom:8px}
+    .item-title{font-size:13px;font-weight:600;color:var(--text);line-height:1.5}
+    .item-detail{font-size:12px;color:#555;line-height:1.6;margin-top:3px}
+
+    /* Priority badges */
+    .badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;margin-right:6px;vertical-align:middle}
+    .badge-urgent{background:rgba(239,68,68,0.1);color:var(--danger);border:1px solid rgba(239,68,68,0.25)}
+    .badge-high{background:rgba(245,158,11,0.1);color:var(--warning);border:1px solid rgba(245,158,11,0.25)}
+    .badge-medium{background:rgba(0,240,255,0.08);color:var(--cyan);border:1px solid rgba(0,240,255,0.2)}
+    .badge-low{background:rgba(34,197,94,0.08);color:var(--success);border:1px solid rgba(34,197,94,0.2)}
+
+    /* Conflict cards */
+    .conflict-card{background:rgba(245,158,11,0.04);border:1px solid rgba(245,158,11,0.15);border-radius:var(--radius-sm);padding:14px 18px;margin-bottom:8px}
+    .conflict-field{font-size:13px;font-weight:700;color:var(--warning);margin-bottom:4px}
+    .conflict-detail{font-size:12px;color:#666;line-height:1.6}
+
+    /* Confidence note */
+    .confidence-box{background:var(--card);border:1px solid var(--border-dim);border-radius:var(--radius);padding:18px 20px;font-size:13px;color:var(--text-dim);line-height:1.7}
+
+    /* Action bar */
+    .rpt-actions{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:28px;animation:fadeUp 0.5s 0.1s both}
+    .btn-action{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:10px;font-family:'Sora',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all 0.2s;border:none;text-decoration:none}
+    .btn-primary{background:var(--gradient);color:#fff;box-shadow:0 3px 14px rgba(46,97,254,0.25)}
+    .btn-primary:hover{opacity:0.92;transform:translateY(-1px);box-shadow:0 6px 22px rgba(46,97,254,0.35)}
+    .btn-secondary{background:rgba(0,0,0,0.4);color:var(--text);border:1px solid var(--border-dim)}
+    .btn-secondary:hover{border-color:var(--cyan);color:var(--cyan)}
+
+    /* CTA */
+    .rpt-cta{text-align:center;padding:36px 24px;background:var(--card);border:1px solid var(--border-dim);border-radius:var(--radius);margin-top:8px;animation:fadeUp 0.5s 0.6s both}
+    .rpt-cta h3{font-size:1.05rem;font-weight:700;margin-bottom:6px}
+    .rpt-cta p{color:var(--text-muted);font-size:0.82rem;margin-bottom:20px;line-height:1.5}
+
+    .btn-new{display:inline-flex;align-items:center;gap:6px;margin-top:12px;background:none;border:none;color:#555;font-family:'Sora',sans-serif;font-size:12px;cursor:pointer;transition:color 0.2s}
+    .btn-new:hover{color:var(--cyan)}
+
+    /* Footer */
+    .footer{text-align:center;padding:16px 24px;font-size:10px;color:#333;position:relative;z-index:1}
+
+    /* Print */
+    @media print{
+      body{background:#fff;color:#111}
+      #bgCanvas,.header,.footer,.rpt-cta,.rpt-actions,.btn-new{display:none!important}
+      .report{padding:0;max-width:100%}
+      .rpt-header{border-color:#ddd}
+      .rpt-label{color:#2E61FE}
+      .rpt-client-name{color:#111}
+      .rpt-meta,.rpt-meta span{color:#555}
+      .rpt-section-title{color:#2E61FE}
+      .rpt-section-title .bar{background:#ddd}
+      .kv-grid,.item-card,.metric-card,.rpt-table,.confidence-box{background:#f9f9f9;border-color:#ddd}
+      .kv-val,.item-title,.rpt-table td{color:#222}
+      .metric-val{-webkit-text-fill-color:#2E61FE}
+    }
+
+    /* Responsive */
+    @media(max-width:600px){
+      .header{padding:16px 18px}
+      .upload-card{padding:32px 22px}
+      .report{padding:20px 14px 40px}
+      .header-badge{display:none}
+      .kv-row{flex-direction:column;gap:2px}
+      .kv-key{min-width:0}
+      .metrics-row{grid-template-columns:1fr 1fr}
+    }
+  </style>
+</head>
+<body>
+  <canvas id="bgCanvas"></canvas>
+  <div class="shell">
+    <header class="header">
+      <img src="./assets/logo-white.png" alt="Trivox AI"/>
+      <div class="header-badge">Financial Report Engine</div>
+    </header>
+    <div id="app"></div>
+    <div class="footer">Trivox AI &middot; Financial Report Engine &middot; Confidential</div>
+  </div>
+
+<script>
+// ── PDF.js worker ─────────────────────────
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ── State ─────────────────────────────────
+let uploadedFiles = [];
+let reportData = null;
+let docCount = 0;
+const app = document.getElementById('app');
+
+const LOADING_MSGS = [
+  'Extracting document contents',
+  'Cross-referencing data sources',
+  'Identifying coverage gaps',
+  'Reconciling conflicting data',
+  'Generating structured report'
+];
+
+// ── Sample Documents ─────────────────────
+const SAMPLE_DOCS = [
+  {
+    label: 'KYC Client Intake Form',
+    source: 'Wealthbridge Financial Group — New Client Onboarding Portal',
+    text: `=== WEALTHBRIDGE FINANCIAL GROUP ===
+NEW CLIENT INTAKE — KNOW YOUR CLIENT (KYC)
+Completed: 2026-01-18   Branch: Toronto — Bay St.
+Advisor: Priya Ranganathan, CFP
+
+CLIENT INFORMATION
+  Full Name: Desmond K. Okafor-Tremblay
+  DOB: June 14 1983          SIN: *** *** 847 (on file)
+  Citizenship: Canadian       Resident since: birth
+  Marital Stat: Married — common law? no, legal marriage (2012)
+  Spouse: Chloé Tremblay, age 39 — works in healthcare admin
+  Dependents: Elijah (age 9), Nadia (age 5)
+
+  Address: 73 Ravina Cres., Toronto ON  M4J 3L9
+  Phone: 647-555-0193        Email: desmond.okafor.t@gmail.com
+
+EMPLOYMENT
+  Employer: NovaTech Solutions Inc.
+  Title: Director, Infrastructure Engineering
+  Years: approx 8 years (joined ~2018)
+  Income: base $174,000 + annual bonus (usually around 12-15%)
+  Spouse income: $68,000 salary (full-time, Sunnybrook Health Sciences)
+
+FINANCIAL SNAPSHOT (self-reported, approx.)
+  Chequing + savings: ~$38,000 (TD Bank)
+  RRSP: $285,000 — mostly in employer group RRSP (Sun Life)
+  TFSA: $52,000 — opened 2020, Wealthsimple, "tech stocks mostly"
+  RESP: has one open for Elijah, ~$14,000. Nothing for Nadia yet.
+  Home: purchased 2019, current value est. $1,150,000
+        mortgage: ~$640,000 remaining, variable rate (prime - 0.45%)
+  Vehicles: 2023 Hyundai Tucson (financed, ~$18k owing)
+            2021 Mazda CX-5 (owned outright)
+
+LIABILITIES
+  - Mortgage (see above)
+  - Car loan: ~$18k at 4.9%
+  - Line of credit: $15,000 limit, current balance $6,200
+  - Student loans: fully paid off
+
+RISK TOLERANCE
+  Questionnaire score: 62/100 → "Moderate Growth"
+  but in conversation he said he "doesn't want to lose sleep over the
+  markets" — noted as potentially more conservative than score suggests.`
+  },
+  {
+    label: 'Advisor Meeting Notes',
+    source: 'Priya Ranganathan, CFP — Internal CRM (Salesforce)',
+    text: `ADVISOR NOTES — Desmond Okafor-Tremblay
+Follow-up meeting #2 | Feb 6 2026 | 50 min video call via Teams
+Advisor: Priya Ranganathan
+
+GROUP BENEFITS (NovaTech Solutions — Sun Life plan)
+  - Life insurance: 2.5x salary = $435,000
+  - AD&D: 1x salary = $174,000
+  - STD: 70% of salary, 17 weeks
+  - LTD: 66.7% of salary, starts wk 18, to age 65
+  - He has NOT opted into supplemental/optional life
+
+GOALS (in his words, prioritized):
+  1. "If I get hit by a bus, Chloé and the kids need to be fine for
+      at least 10-15 years — mortgage paid, kids through school"
+  2. Wants both kids' education funded — targeting $120k each
+  3. Retirement at 58-60
+  4. "We should probably have real wills" — wills from 2019 but not updated
+
+INVESTMENT DISCUSSION
+  - Group RRSP is in Sun Life "Milestone 2050" fund — MER 1.8%
+  - TFSA in Wealthsimple: ~$52k, heavily weighted in Shopify, NVDA,
+    and cannabis stocks from 2021 (down significantly). Needs rebalancing.
+  - No RESP for Nadia — wants to open one ASAP
+
+INSURANCE GAPS IDENTIFIED
+  - $435k group life is NOT enough — need at least $1.5M total
+  - Chloé has ZERO life insurance
+  - No individual disability beyond group
+  - No critical illness coverage
+  - Home dwelling coverage at $780k but replacement cost is $950-1,050k
+
+ESTATE PLANNING
+  - Wills from 2019, before second child
+  - No POA for property or personal care
+  - Beneficiary designations on RRSP/TFSA: unknown`
+  },
+  {
+    label: 'Existing Insurance & Benefits Summary',
+    source: 'Sun Life Financial — Group Benefits Statement (NovaTech Solutions Inc.)',
+    text: `SUN LIFE FINANCIAL — GROUP BENEFITS STATEMENT
+Plan Sponsor: NovaTech Solutions Inc.  | Plan #: 87432-G
+Member: Desmond Okafor-Tremblay       | Employee ID: NT-20184451
+Effective Date: September 1, 2018      | Statement as of: Dec 31, 2025
+
+LIFE & ACCIDENT
+  Basic Life Insurance .... 2.5 x annual earnings ... $435,000.00
+  Basic AD&D .............. 1 x annual earnings ..... $174,000.00
+  Optional Life (member) .. NOT ENROLLED
+  Optional Life (spouse) .. NOT ENROLLED
+
+DISABILITY
+  Short-Term Disability ... 70% of weekly earnings, 17 weeks
+  Long-Term Disability .... 66.67% of monthly earnings (max $11,000/mo)
+                            Benefit period: to age 65, 24 months own occ then any occ
+                            ** Note: benefit is TAXABLE (premiums employer-paid)
+
+HEALTH & DENTAL
+  Extended Health ......... Sun Life — Group Plan (family)
+                            Drug: pay-direct, 80% reimbursement
+                            Employee contribution: $221.50/month
+  Dental .................. Basic 100%, Major 50% to $2,000/yr
+
+RETIREMENT SAVINGS
+  Group RRSP .............. Employer match: 100% on first 4% of salary
+                            Current balance: $291,340.12
+                            Investment: Sun Life Milestone 2050 Fund (100%)
+                            MER: 1.78%
+  DPSP .................... Current balance: $47,891.03 (VESTED)
+
+BENEFICIARY INFORMATION
+  Life/AD&D ............... Chloé Tremblay (spouse) — 100%
+  Group RRSP .............. ** NO BENEFICIARY DESIGNATED — defaults to estate **
+  DPSP .................... ** NO BENEFICIARY DESIGNATED — defaults to estate **
+
+AUTO & HOME INSURANCE (from client file)
+  Auto: Intact Insurance — $2M liability, $500 ded, annual prem: $3,410
+  Home: Intact Insurance — Dwelling: $780,000, annual prem: $2,870
+    ** FLAGGED: dwelling coverage at $780k — replacement cost $950-1,050k. UNDERINSURED.
+  Umbrella / Excess Liability: NONE ON FILE`
+  }
+];
+
+// ── File Parsing ──────────────────────────
+async function parsePDF(file) {
+  const arrayBuffer = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  let text = '';
+  for (let i = 1; i <= pdf.numPages; i++) {
+    const page = await pdf.getPage(i);
+    const content = await page.getTextContent();
+    text += content.items.map(item => item.str).join(' ') + '\n';
+  }
+  return text;
+}
+
+async function parseDOCX(file) {
+  const arrayBuffer = await file.arrayBuffer();
+  const result = await mammoth.extractRawText({ arrayBuffer });
+  return result.value;
+}
+
+async function parseTXT(file) {
+  return await file.text();
+}
+
+async function parseFile(file) {
+  const name = file.name.toLowerCase();
+  if (name.endsWith('.pdf')) return await parsePDF(file);
+  if (name.endsWith('.docx')) return await parseDOCX(file);
+  if (name.endsWith('.txt')) return await parseTXT(file);
+  return await file.text();
+}
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function getExt(name) {
+  const ext = name.split('.').pop().toLowerCase();
+  if (ext === 'pdf') return 'pdf';
+  if (ext === 'docx') return 'docx';
+  return 'txt';
+}
+
+// ── Upload Screen ─────────────────────────
+function renderUpload() {
+  reportData = null;
+  app.innerHTML = `
+    <div class="upload-screen">
+      <div class="upload-card" style="animation:fadeUp 0.45s both">
+        <div class="upload-title">Financial Report Engine</div>
+        <div class="upload-sub">Upload client documents (.pdf, .docx, .txt) and get a structured financial summary report powered by AI. Replaces 40+ minutes of manual work.</div>
+
+        <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+          <div class="drop-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--blue)"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          </div>
+          <div class="drop-text">Drop files here or click to browse</div>
+          <div class="drop-hint">PDF, DOCX, or TXT — up to 10 files</div>
+        </div>
+        <input type="file" id="fileInput" multiple accept=".pdf,.docx,.txt" style="display:none" onchange="handleFiles(this.files)"/>
+
+        <ul class="file-list" id="fileList"></ul>
+
+        <button class="demo-link" onclick="runDemo()">No files? Run demo with sample documents</button>
+
+        <button class="btn-gen" id="btnGenerate" onclick="generateReport()" disabled>Generate Report</button>
+      </div>
+    </div>
+  `;
+  uploadedFiles = [];
+  setupDragDrop();
+  updateFileList();
+}
+
+function setupDragDrop() {
+  const dz = document.getElementById('dropZone');
+  if (!dz) return;
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault();
+    dz.classList.remove('dragover');
+    handleFiles(e.dataTransfer.files);
+  });
+}
+
+function handleFiles(fileListObj) {
+  const allowed = ['pdf', 'docx', 'txt'];
+  for (const file of fileListObj) {
+    const ext = getExt(file.name);
+    if (allowed.includes(ext) && uploadedFiles.length < 10) {
+      uploadedFiles.push(file);
+    }
+  }
+  updateFileList();
+}
+
+function removeFile(idx) {
+  uploadedFiles.splice(idx, 1);
+  updateFileList();
+}
+
+function updateFileList() {
+  const list = document.getElementById('fileList');
+  const btn = document.getElementById('btnGenerate');
+  if (!list || !btn) return;
+
+  if (uploadedFiles.length === 0) {
+    list.innerHTML = '';
+    btn.disabled = true;
+    return;
+  }
+
+  list.innerHTML = uploadedFiles.map((f, i) => {
+    const ext = getExt(f.name);
+    return `
+      <li class="file-item">
+        <div class="file-info">
+          <div class="file-icon ${ext}">${ext}</div>
+          <span class="name">${esc(f.name)}</span>
+          <span class="size">${formatSize(f.size)}</span>
+        </div>
+        <button class="file-remove" onclick="removeFile(${i})">&times;</button>
+      </li>
+    `;
+  }).join('');
+  btn.disabled = false;
+}
+
+// ── Generate ──────────────────────────────
+async function generateReport() {
+  const documents = [];
+  for (const file of uploadedFiles) {
+    const text = await parseFile(file);
+    const label = file.name.replace(/\.[^.]+$/, '').replace(/[_-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    documents.push({ label, source: file.name, text });
+  }
+  docCount = documents.length;
+  renderLoading();
+  fetchReport(documents);
+}
+
+async function runDemo() {
+  docCount = SAMPLE_DOCS.length;
+  renderLoading();
+  fetchReport(SAMPLE_DOCS);
+}
+
+async function fetchReport(documents) {
+  const start = Date.now();
+  try {
+    const res = await fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ documents })
+    });
+    if (!res.ok) {
+      const e = await res.json().catch(() => ({}));
+      throw new Error(e.error || `Error ${res.status}`);
+    }
+    const data = await res.json();
+    const elapsed = ((Date.now() - start) / 1000).toFixed(1);
+    renderReport(data, elapsed);
+  } catch (err) {
+    renderError(err.message);
+  }
+}
+
+// ── Loading ───────────────────────────────
+function renderLoading() {
+  app.innerHTML = `
+    <div class="loading-overlay" style="animation:fadeUp 0.3s both">
+      <div class="scan-lines"><div class="scan-line"></div><div class="scan-line"></div><div class="scan-line"></div></div>
+      <div class="ld-pulse"><div class="dot"></div></div>
+      <div class="ld-status" id="ldStatus">${LOADING_MSGS[0]}</div>
+      <div class="ld-sub">Analyzing ${docCount} document${docCount !== 1 ? 's' : ''} with Claude AI</div>
+    </div>
+  `;
+  let i = 0;
+  window._ldInt = setInterval(() => {
+    i++;
+    if (i < LOADING_MSGS.length) document.getElementById('ldStatus').textContent = LOADING_MSGS[i];
+    else clearInterval(window._ldInt);
+  }, 3500);
+}
+
+// ── Error ─────────────────────────────────
+function renderError(msg) {
+  if (window._ldInt) clearInterval(window._ldInt);
+  app.innerHTML = `
+    <div class="error-screen" style="animation:fadeUp 0.4s both">
+      <div class="error-card">
+        <div class="error-icon">!</div>
+        <h2>Something went wrong</h2>
+        <p>${esc(msg)}</p>
+        <button class="btn-gen" onclick="renderUpload()">Try Again</button>
+      </div>
+    </div>
+  `;
+}
+
+// ── Report ────────────────────────────────
+function renderReport(r, elapsed) {
+  if (window._ldInt) clearInterval(window._ldInt);
+  reportData = r;
+
+  const now = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  const cp = r.client_profile || {};
+  const fs = r.financial_situation || {};
+  const ic = r.insurance_coverage || {};
+  const gaps = r.identified_gaps || [];
+  const steps = r.recommended_next_steps || [];
+  const ep = r.estate_planning || {};
+  const conflicts = r.data_conflicts || [];
+  const missing = r.missing_information || [];
+  const confidence = r.analyst_confidence_notes || '';
+  const inc = cp.annual_income || {};
+  const sp = cp.spouse || {};
+  const re = fs.real_estate || {};
+
+  // Spouse string
+  let spouseStr = sp.name || 'N/A';
+  if (sp.age) spouseStr += `, age ${sp.age}`;
+  if (sp.employer) spouseStr += ` — ${sp.employer}`;
+  if (sp.income) spouseStr += ` (${fmtCur(sp.income)}/yr)`;
+
+  // Dependents
+  const deps = (cp.dependents || []).map(d => `${d.name || '?'} (age ${d.age || '?'})`).join(', ') || 'None';
+
+  let html = `<div class="report">`;
+
+  // ── Header
+  html += `
+    <div class="rpt-header">
+      <div class="rpt-label">Trivox AI — Client Summary Report</div>
+      <div class="rpt-client-name">${esc(cp.full_name || 'Client Report')}</div>
+      <div class="rpt-meta">
+        Generated ${now} &nbsp;&middot;&nbsp; ${elapsed}s processing &nbsp;&middot;&nbsp; ${docCount} document${docCount !== 1 ? 's' : ''} analyzed
+      </div>
+    </div>
+  `;
+
+  // ── Actions
+  html += `
+    <div class="rpt-actions">
+      <button class="btn-action btn-primary" onclick="downloadPDF()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Download PDF
+      </button>
+      <button class="btn-action btn-secondary" onclick="window.print()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Print
+      </button>
+    </div>
+  `;
+
+  // ── Metrics
+  const netWorth = fs.estimated_net_worth;
+  const gapCount = gaps.length;
+  const urgentCount = gaps.filter(g => g.priority === 'urgent').length;
+  html += `
+    <div class="metrics-row">
+      <div class="metric-card"><div class="metric-val">${netWorth ? fmtCur(netWorth) : 'N/A'}</div><div class="metric-lbl">Est. Net Worth</div></div>
+      <div class="metric-card"><div class="metric-val">${fmtCur(inc.total_household || 0)}</div><div class="metric-lbl">Household Income</div></div>
+      <div class="metric-card"><div class="metric-val">${gapCount}</div><div class="metric-lbl">Gaps Identified</div></div>
+      <div class="metric-card"><div class="metric-val">${urgentCount}</div><div class="metric-lbl">Urgent Items</div></div>
+    </div>
+  `;
+
+  // ── Client Profile
+  html += section('Client Profile', 0.1);
+  html += `<div class="kv-grid">`;
+  html += kv('Full Name', cp.full_name);
+  html += kv('Date of Birth', cp.date_of_birth);
+  html += kv('Age', cp.age);
+  html += kv('Citizenship', cp.citizenship);
+  html += kv('Marital Status', cp.marital_status);
+  html += kv('Spouse', spouseStr);
+  html += kv('Dependents', deps);
+  html += kv('Address', cp.address);
+  html += kv('Phone', cp.phone);
+  html += kv('Email', cp.email);
+  html += kv('Preferred Contact', cp.preferred_contact);
+  html += kv('Employer', cp.employer);
+  html += kv('Title', cp.job_title);
+  html += kv('Years at Employer', cp.years_at_employer);
+  html += kv('Base Salary', fmtCur(inc.base_salary));
+  html += kv('Bonus Range', inc.bonus_range);
+  html += kv('Total Household', fmtCur(inc.total_household));
+  html += `</div></div>`;
+
+  // ── Financial Snapshot
+  html += section('Financial Snapshot', 0.15);
+  html += `<div class="kv-grid">`;
+  html += kv('Liquid Savings', fmtCur(fs.liquid_savings));
+  html += kv('Estimated Net Worth', fmtCur(fs.estimated_net_worth));
+  html += kv('Risk Tolerance', fs.risk_tolerance);
+  html += `</div>`;
+
+  // Registered accounts table
+  const regs = fs.registered_accounts || [];
+  if (regs.length) {
+    html += `<table class="rpt-table" style="margin-top:10px">
+      <tr><th>Account</th><th>Balance</th><th>Institution</th><th>Notes</th></tr>
+      ${regs.map(a => `<tr><td>${esc(a.type||'')}</td><td>${fmtCur(a.balance)}</td><td>${esc(a.institution||'—')}</td><td>${esc(a.notes||'—')}</td></tr>`).join('')}
+    </table>`;
+  }
+
+  html += `<div class="kv-grid" style="margin-top:10px">`;
+  html += kv('Property Value', fmtCur(re.estimated_value));
+  html += kv('Mortgage Balance', fmtCur(re.mortgage_balance));
+  html += kv('Mortgage Type / Rate', `${re.mortgage_type || 'N/A'} — ${re.mortgage_rate || 'N/A'}`);
+
+  const vehs = fs.vehicles || [];
+  vehs.forEach(v => {
+    const owing = v.amount_owing ? ` — ${fmtCur(v.amount_owing)} owing` : '';
+    html += kv('Vehicle', `${v.description || '?'} (${v.owned_or_financed || '?'})${owing}`);
+  });
+
+  const liabs = fs.other_liabilities || [];
+  liabs.forEach(l => {
+    const rate = l.rate ? ` @ ${l.rate}` : '';
+    html += kv(l.type || 'Liability', `${fmtCur(l.balance)}${rate}`);
+  });
+
+  html += `</div></div>`;
+
+  // ── Insurance Coverage
+  html += section('Insurance Coverage', 0.2);
+  const life = ic.life_insurance || [];
+  if (life.length) {
+    html += `<table class="rpt-table">
+      <tr><th>Life Insurance</th><th>Face Value</th><th>Provider</th><th>Notes</th></tr>
+      ${life.map(p => `<tr><td>${esc(p.type||'')}</td><td>${fmtCur(p.face_value)}</td><td>${esc(p.provider||'—')}</td><td>${esc(p.notes||'—')}</td></tr>`).join('')}
+    </table>`;
+  }
+  const dis = ic.disability || [];
+  if (dis.length) {
+    html += `<table class="rpt-table" style="margin-top:10px">
+      <tr><th>Disability</th><th>Benefit</th><th>Duration</th><th>Notes</th></tr>
+      ${dis.map(d => {
+        const tax = d.taxable ? ' (TAXABLE)' : '';
+        return `<tr><td>${esc(d.type||'')}</td><td>${esc(d.benefit_pct||'')}</td><td>${esc(d.duration||'')}${tax}</td><td>${esc(d.notes||'—')}</td></tr>`;
+      }).join('')}
+    </table>`;
+  }
+  const hdv = ic.health_dental_vision || {};
+  const auto = ic.auto_insurance || {};
+  const home = ic.home_insurance || {};
+  html += `<div class="kv-grid" style="margin-top:10px">`;
+  if (hdv.provider) html += kv('Health/Dental', `${hdv.provider} — ${hdv.plan_type || ''} — ${fmtCur(hdv.monthly_cost)}/mo`);
+  if (auto.provider) html += kv('Auto Insurance', `${auto.provider} — Liability: ${auto.liability || '?'} — ${fmtCur(auto.annual_premium)}/yr`);
+  if (home.provider) {
+    const gap = home.replacement_cost_gap ? ` — GAP: ${home.replacement_cost_gap}` : '';
+    html += kv('Home Insurance', `${home.provider} — Dwelling: ${fmtCur(home.dwelling_coverage)} — ${fmtCur(home.annual_premium)}/yr${gap}`);
+  }
+  html += kv('Umbrella Policy', ic.umbrella_policy || 'None');
+  html += kv('Critical Illness', ic.critical_illness || 'None');
+  html += kv('Spouse Coverage', ic.spouse_coverage_summary || 'N/A');
+  html += `</div></div>`;
+
+  // ── Estate Planning
+  html += section('Estate Planning', 0.25);
+  html += `<div class="kv-grid">`;
+  html += kv('Wills', ep.wills);
+  html += kv('POA (Property)', ep.power_of_attorney_property);
+  html += kv('POA (Personal Care)', ep.power_of_attorney_personal_care);
+  html += kv('Beneficiary Designations', ep.beneficiary_designations);
+  if (ep.notes) html += kv('Notes', ep.notes);
+  html += `</div></div>`;
+
+  // ── Identified Gaps
+  html += section('Identified Gaps', 0.3);
+  gaps.forEach(g => {
+    html += `<div class="item-card">
+      <div class="item-title">${badge(g.priority)} [${esc(g.category || 'General')}] ${esc(g.issue || '')}</div>
+      <div class="item-detail">Impact: ${esc(g.impact || '—')}</div>
+    </div>`;
+  });
+  html += `</div>`;
+
+  // ── Recommended Next Steps
+  html += section('Recommended Next Steps', 0.35);
+  steps.forEach((s, i) => {
+    html += `<div class="item-card">
+      <div class="item-title">${badge(s.priority)} ${i + 1}. ${esc(s.action || '')}</div>
+      <div class="item-detail">${esc(s.rationale || '')}</div>
+      <div class="item-detail">Timeline: ${esc(s.timeline || 'N/A')}</div>
+    </div>`;
+  });
+  html += `</div>`;
+
+  // ── Data Conflicts
+  if (conflicts.length) {
+    html += section('Data Conflicts Resolved', 0.4);
+    conflicts.forEach(c => {
+      html += `<div class="conflict-card">
+        <div class="conflict-field">${esc(c.field || '?')}</div>
+        <div class="conflict-detail">Value A: ${esc(c.doc1_value || '?')} &nbsp;|&nbsp; Value B: ${esc(c.doc2_value || '?')}</div>
+        <div class="conflict-detail">Resolved to: <strong style="color:var(--text)">${esc(c.resolved_to || '?')}</strong> — ${esc(c.reasoning || '')}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // ── Missing Information
+  if (missing.length) {
+    html += section('Missing / Unconfirmed Information', 0.45);
+    missing.forEach(m => {
+      html += `<div class="item-card">
+        <div class="item-title">${esc(m.field || '?')}</div>
+        <div class="item-detail">Status: ${esc(m.status || '?')} &nbsp;|&nbsp; Action: ${esc(m.action_required || '')}</div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+
+  // ── Confidence Notes
+  if (confidence) {
+    html += section('Analyst Confidence Notes', 0.5);
+    html += `<div class="confidence-box">${esc(confidence)}</div></div>`;
+  }
+
+  // ── CTA
+  html += `
+    <div class="rpt-cta">
+      <h3>Need this automated for your firm?</h3>
+      <p>Trivox AI builds custom document intelligence systems for financial services teams.</p>
+      <a class="btn-action btn-primary" href="mailto:daniel@trivox.ca?subject=Report%20Engine%20Inquiry" style="text-decoration:none;display:inline-flex">
+        Contact Trivox AI
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </a>
+      <div><button class="btn-new" onclick="renderUpload()">&#8592; Analyze new documents</button></div>
+    </div>
+  `;
+
+  html += `</div>`; // close .report
+
+  app.innerHTML = html;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ── PDF Download ──────────────────────────
+function downloadPDF() {
+  if (!reportData) return;
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const r = reportData;
+  const cp = r.client_profile || {};
+  const fs = r.financial_situation || {};
+  const ic = r.insurance_coverage || {};
+  const gaps = r.identified_gaps || [];
+  const steps = r.recommended_next_steps || [];
+  const ep = r.estate_planning || {};
+  const conflicts = r.data_conflicts || [];
+  const inc = cp.annual_income || {};
+  const sp = cp.spouse || {};
+  const re = fs.real_estate || {};
+
+  const pageW = 210;
+  const margin = 18;
+  const contentW = pageW - margin * 2;
+  let y = 20;
+
+  const blue = [46, 97, 254];
+  const dark = [15, 17, 30];
+  const muted = [122, 122, 158];
+  const textColor = [30, 30, 50];
+
+  function checkPage(needed) {
+    if (y + needed > 275) { doc.addPage(); y = 20; }
+  }
+
+  function sectionTitle(title) {
+    checkPage(14);
+    y += 6;
+    doc.setFontSize(11);
+    doc.setTextColor(...blue);
+    doc.setFont('helvetica', 'bold');
+    doc.text(title.toUpperCase(), margin, y);
+    y += 2;
+    doc.setDrawColor(200, 200, 210);
+    doc.line(margin, y, pageW - margin, y);
+    y += 6;
+  }
+
+  function kvLine(key, val) {
+    checkPage(7);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...muted);
+    doc.text(key, margin, y);
+    doc.setTextColor(...textColor);
+    doc.setFont('helvetica', 'bold');
+    const valStr = val != null ? String(val) : '—';
+    const lines = doc.splitTextToSize(valStr, contentW - 55);
+    doc.text(lines, margin + 55, y);
+    y += Math.max(lines.length * 4.5, 5);
+  }
+
+  // Cover
+  doc.setFillColor(...dark);
+  doc.rect(0, 0, pageW, 80, 'F');
+  doc.setFontSize(22);
+  doc.setTextColor(255, 255, 255);
+  doc.setFont('helvetica', 'bold');
+  doc.text('TRIVOX AI', pageW / 2, 35, { align: 'center' });
+  doc.setFontSize(12);
+  doc.setTextColor(...muted);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Client Summary Report', pageW / 2, 45, { align: 'center' });
+  doc.setFontSize(14);
+  doc.setTextColor(...textColor);
+  doc.setFont('helvetica', 'bold');
+  doc.text(cp.full_name || 'Client Report', pageW / 2, 65, { align: 'center' });
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+  doc.setTextColor(...muted);
+  const now = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  doc.text(`Generated: ${now}`, pageW / 2, 72, { align: 'center' });
+
+  y = 90;
+
+  // Client Profile
+  sectionTitle('Client Profile');
+  let spouseStr = sp.name || 'N/A';
+  if (sp.age) spouseStr += `, age ${sp.age}`;
+  if (sp.employer) spouseStr += ` — ${sp.employer}`;
+
+  kvLine('Full Name', cp.full_name);
+  kvLine('DOB / Age', `${cp.date_of_birth || '?'} (${cp.age || '?'})`);
+  kvLine('Citizenship', cp.citizenship);
+  kvLine('Marital Status', cp.marital_status);
+  kvLine('Spouse', spouseStr);
+  kvLine('Dependents', (cp.dependents||[]).map(d=>`${d.name} (${d.age})`).join(', ') || 'None');
+  kvLine('Address', cp.address);
+  kvLine('Phone / Email', `${cp.phone || '?'} / ${cp.email || '?'}`);
+  kvLine('Employer', `${cp.employer || '?'} — ${cp.job_title || '?'}`);
+  kvLine('Base Salary', fmtCurPlain(inc.base_salary));
+  kvLine('Household Income', fmtCurPlain(inc.total_household));
+
+  // Financial Snapshot
+  sectionTitle('Financial Snapshot');
+  kvLine('Liquid Savings', fmtCurPlain(fs.liquid_savings));
+  kvLine('Net Worth', fmtCurPlain(fs.estimated_net_worth));
+  kvLine('Risk Tolerance', fs.risk_tolerance);
+  (fs.registered_accounts||[]).forEach(a => {
+    kvLine(a.type || 'Account', `${fmtCurPlain(a.balance)} — ${a.institution || '?'}`);
+  });
+  kvLine('Property', `${fmtCurPlain(re.estimated_value)} (mtg: ${fmtCurPlain(re.mortgage_balance)})`);
+
+  // Insurance
+  sectionTitle('Insurance Coverage');
+  (ic.life_insurance||[]).forEach(p => kvLine(`Life — ${p.type}`, `${fmtCurPlain(p.face_value)} — ${p.provider || '?'}`));
+  (ic.disability||[]).forEach(d => kvLine(`Disability — ${d.type}`, `${d.benefit_pct} for ${d.duration}`));
+  const hdv2 = ic.health_dental_vision || {};
+  if (hdv2.provider) kvLine('Health/Dental', `${hdv2.provider} — ${fmtCurPlain(hdv2.monthly_cost)}/mo`);
+
+  // Estate
+  sectionTitle('Estate Planning');
+  kvLine('Wills', ep.wills);
+  kvLine('POA (Property)', ep.power_of_attorney_property);
+  kvLine('POA (Personal Care)', ep.power_of_attorney_personal_care);
+  kvLine('Beneficiaries', ep.beneficiary_designations);
+
+  // Gaps
+  sectionTitle('Identified Gaps');
+  gaps.forEach((g, i) => {
+    checkPage(10);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...textColor);
+    const gapText = `[${(g.priority||'').toUpperCase()}] [${g.category}] ${g.issue}`;
+    const gapLines = doc.splitTextToSize(gapText, contentW);
+    doc.text(gapLines, margin, y);
+    y += gapLines.length * 4.5;
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...muted);
+    doc.setFontSize(8);
+    doc.text(`Impact: ${g.impact || '—'}`, margin, y);
+    y += 6;
+  });
+
+  // Next Steps
+  sectionTitle('Recommended Next Steps');
+  steps.forEach((s, i) => {
+    checkPage(12);
+    doc.setFontSize(9);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...textColor);
+    const stepText = `${i + 1}. [${(s.priority||'').toUpperCase()}] ${s.action}`;
+    const stepLines = doc.splitTextToSize(stepText, contentW);
+    doc.text(stepLines, margin, y);
+    y += stepLines.length * 4.5;
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...muted);
+    doc.setFontSize(8);
+    const ratLines = doc.splitTextToSize(`${s.rationale || ''} | Timeline: ${s.timeline || 'N/A'}`, contentW);
+    doc.text(ratLines, margin, y);
+    y += ratLines.length * 4 + 4;
+  });
+
+  // Conflicts
+  if (conflicts.length) {
+    sectionTitle('Data Conflicts');
+    conflicts.forEach(c => {
+      checkPage(10);
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(...textColor);
+      doc.text(c.field || '?', margin, y);
+      y += 4.5;
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(...muted);
+      doc.setFontSize(8);
+      const cLines = doc.splitTextToSize(`${c.doc1_value} vs ${c.doc2_value} → ${c.resolved_to} — ${c.reasoning}`, contentW);
+      doc.text(cLines, margin, y);
+      y += cLines.length * 4 + 4;
+    });
+  }
+
+  // Footer on all pages
+  const totalPages = doc.internal.getNumberOfPages();
+  for (let p = 1; p <= totalPages; p++) {
+    doc.setPage(p);
+    doc.setFontSize(7);
+    doc.setTextColor(...muted);
+    doc.text('Confidential — Generated by Trivox AI', pageW / 2, 290, { align: 'center' });
+    doc.text(`Page ${p} of ${totalPages}`, pageW - margin, 290, { align: 'right' });
+  }
+
+  const fileName = `client_report_${cp.full_name ? cp.full_name.replace(/\s+/g, '_') : 'report'}_${new Date().toISOString().slice(0,10)}.pdf`;
+  doc.save(fileName);
+}
+
+// ── Helpers ───────────────────────────────
+function esc(s) { if (s == null) return '—'; const d = document.createElement('div'); d.textContent = String(s); return d.innerHTML; }
+function fmtCur(v) { if (v == null) return 'N/A'; if (typeof v === 'string') return v; return '$' + v.toLocaleString('en-US', { maximumFractionDigits: 0 }); }
+function fmtCurPlain(v) { if (v == null) return 'N/A'; if (typeof v === 'string') return v; return '$' + v.toLocaleString('en-US', { maximumFractionDigits: 0 }); }
+function badge(level) { if (!level) return ''; return `<span class="badge badge-${level.toLowerCase()}">${level.toUpperCase()}</span>`; }
+function kv(key, val) { return `<div class="kv-row"><span class="kv-key">${esc(key)}</span><span class="kv-val">${esc(val)}</span></div>`; }
+function section(title, delay) {
+  return `<div class="rpt-section" style="animation:fadeUp 0.5s ${delay}s both">
+    <div class="rpt-section-title">${esc(title)} <div class="bar"></div></div>`;
+}
+
+// ── Particles ─────────────────────────────
+(function(){
+  const c=document.getElementById('bgCanvas'),ctx=c.getContext('2d');let w,h,pts=[];
+  function resize(){w=c.width=window.innerWidth;h=c.height=window.innerHeight}
+  function init(){pts=[];const n=Math.floor((w*h)/12000);for(let i=0;i<n;i++)pts.push({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-0.5)*0.25,vy:(Math.random()-0.5)*0.25,r:Math.random()*1+0.4,a:Math.random()*0.15+0.04})}
+  function draw(){ctx.clearRect(0,0,w,h);pts.forEach((p,i)=>{p.x+=p.vx;p.y+=p.vy;if(p.x<0)p.x=w;if(p.x>w)p.x=0;if(p.y<0)p.y=h;if(p.y>h)p.y=0;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fillStyle=(i%2===0)?`rgba(46,97,254,${p.a})`:`rgba(0,240,255,${p.a})`;ctx.fill()});for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=dx*dx+dy*dy;if(d<10000){ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.strokeStyle=`rgba(46,97,254,${0.04*(1-d/10000)})`;ctx.lineWidth=0.5;ctx.stroke()}}requestAnimationFrame(draw)}
+  resize();init();draw();window.addEventListener('resize',()=>{resize();init()})
+})();
+
+// ── Boot ──────────────────────────────────
+renderUpload();
+</script>
+</body>
+</html>

@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Document Data Extractor - TRIVOX Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#070b18;--bg2:#0d1426;--surface:#121b30;--surface2:#16203a;--border:#1e2a44;--text:#eaf0ff;--muted:#8a97b5;--brand:#2e61fe;--brand2:#00f0ff;--grad:linear-gradient(135deg,#2e61fe,#00f0ff);--good:#22c55e;--warn:#fbbf24;--bad:#ef4444;--radius:16px;--shadow:0 10px 40px rgba(0,0,0,.45);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;}
+
+nav{position:sticky;top:0;z-index:100;background:rgba(7,11,24,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;}
+.nav-brand{display:flex;align-items:center;gap:10px;font-family:'Sora',sans-serif;font-weight:700;font-size:18px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.nav-pill{background:var(--grad);color:#fff;font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;-webkit-text-fill-color:#fff;letter-spacing:.05em;}
+.nav-back{color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;transition:color .2s;}
+.nav-back:hover{color:var(--text);}
+
+.hero{padding:64px 32px 48px;max-width:1100px;margin:0 auto;}
+.eyebrow{font-family:'Sora',sans-serif;font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px;}
+h1{font-family:'Sora',sans-serif;font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.02em;line-height:1.15;margin-bottom:16px;}
+.subhead{color:var(--muted);font-size:16px;line-height:1.6;max-width:640px;margin-bottom:36px;}
+.stats{display:flex;gap:12px;flex-wrap:wrap;}
+.stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:40px;padding:8px 20px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;}
+.stat-chip span{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:1100px;margin:0 auto;padding:0 32px 64px;}
+@media(max-width:900px){.grid{grid-template-columns:1fr;}}
+
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);}
+.panel-title{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:20px;}
+
+.field-label{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;letter-spacing:.04em;text-transform:uppercase;}
+textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:12.5px;line-height:1.6;padding:14px 16px;resize:vertical;min-height:320px;outline:none;transition:border-color .2s;}
+textarea:focus{border-color:var(--brand);}
+
+.btn-grad{width:100%;margin-top:16px;padding:14px;background:var(--grad);border:none;border-radius:12px;color:#fff;font-family:'Sora',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:opacity .2s,transform .1s;}
+.btn-grad:hover{opacity:.9;}
+.btn-grad:active{transform:scale(.98);}
+.btn-grad:disabled{opacity:.5;cursor:not-allowed;}
+
+.right-panel{min-height:480px;display:flex;flex-direction:column;}
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--muted);}
+.empty-icon{font-size:40px;opacity:.35;}
+.empty-text{font-size:14px;text-align:center;max-width:240px;line-height:1.5;}
+
+.orb-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;}
+.orb{width:72px;height:72px;border-radius:50%;background:var(--grad);box-shadow:0 0 40px rgba(46,97,254,.5);animation:pulse 1.4s ease-in-out infinite;}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.12);opacity:.8;}}
+.checklist{list-style:none;display:flex;flex-direction:column;gap:10px;min-width:220px;}
+.checklist li{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted);}
+.checklist li.done{color:var(--text);}
+.check-icon{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.check-icon.filled{background:var(--good);border-color:var(--good);}
+.check-icon.filled::after{content:'✓';font-size:10px;color:#fff;font-weight:700;}
+
+.result-state{display:flex;flex-direction:column;gap:16px;}
+.section-label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+
+.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.field-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+.field-card.full{grid-column:1/-1;}
+.fc-label{font-size:11px;color:var(--muted);margin-bottom:4px;letter-spacing:.04em;text-transform:uppercase;}
+.fc-val{font-size:14px;font-weight:600;}
+.fc-footer{display:flex;justify-content:flex-end;margin-top:6px;}
+.conf-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;}
+.conf-high{background:rgba(34,197,94,.12);color:var(--good);border:1px solid rgba(34,197,94,.3);}
+.conf-med{background:rgba(251,191,36,.12);color:var(--warn);border:1px solid rgba(251,191,36,.3);}
+
+.line-table{width:100%;border-collapse:collapse;}
+.line-table th{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);text-align:left;padding:0 8px 8px;}
+.line-table th:last-child{text-align:right;}
+.line-table td{font-size:13px;padding:9px 8px;border-top:1px solid var(--border);}
+.line-table td:last-child{text-align:right;font-weight:600;}
+
+.totals-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+.total-tile{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;}
+.total-label{font-size:11px;color:var(--muted);margin-bottom:4px;}
+.total-val{font-size:16px;font-weight:700;}
+.total-val.accent{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+.export-row{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+.export-meta{font-size:12px;color:var(--muted);}
+.export-meta strong{color:var(--good);}
+.btn-export{padding:9px 20px;background:var(--grad);border:none;border-radius:10px;color:#fff;font-family:'Sora',sans-serif;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;transition:opacity .2s;}
+.btn-export:hover{opacity:.85;}
+
+footer{text-align:center;padding:28px;color:var(--muted);font-size:13px;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">TRIVOX <span class="nav-pill">AI</span></div>
+  <a class="nav-back" href="../../portfolio.html">← All Demos</a>
+</nav>
+
+<section class="hero">
+  <div class="eyebrow">Operations / Vertical AI</div>
+  <h1>Document Data Extractor</h1>
+  <p class="subhead">Paste any invoice, receipt, or contract and get clean structured data in seconds. Fields extracted with per-field confidence scores, ready to push directly into your accounting software.</p>
+  <div class="stats">
+    <div class="stat-chip"><span>99%</span> accuracy</div>
+    <div class="stat-chip"><span>Any</span> document</div>
+    <div class="stat-chip"><span>3s</span> per doc</div>
+  </div>
+</section>
+
+<div class="grid">
+  <!-- LEFT -->
+  <div class="panel">
+    <div class="panel-title">Raw Document Input</div>
+    <div class="field-label">Paste invoice / receipt / contract text</div>
+    <textarea id="docInput">INVOICE
+Acme Office Supplies Ltd.
+123 Commerce Blvd, Toronto ON M5V 2T6
+Tel: (416) 555-0192   GST# 84729103 RT0001
+
+Bill To:
+Northgate Creative Inc.
+88 King St W, Suite 400
+Toronto ON M5H 1G4
+
+Invoice #:   INV-2024-0847
+Date:        Nov 14 2024
+Due Date:    Dec 14 2024
+PO Ref:      PO-9921-C
+
+___________________________________________
+DESCRIPTION              QTY   UNIT    TOTAL
+___________________________________________
+Ergonomic Desk Chair      2    $289.00  $578.00
+Standing Desk Converter   1    $349.00  $349.00
+Monitor Arm (dual)        3    $124.00  $372.00
+Cable Management Kit      4     $28.50  $114.00
+Wireless Keyboard/Mouse   2     $89.00  $178.00
+-------------------------------------------
+                         Subtotal:  $1,591.00
+                         HST (13%):   $206.83
+                         TOTAL DUE: $1,797.83
+-------------------------------------------
+Payment terms: Net 30
+Bank transfer: TD Bank 004-12847-3920184
+Note: Pls ref invoice # on e-transfer.</textarea>
+    <button class="btn-grad" id="extractBtn" onclick="runDemo()">Extract Data</button>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="panel right-panel">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">📄</div>
+      <div class="empty-text">Paste a document on the left and click "Extract Data" to see structured output</div>
+    </div>
+    <div class="orb-state" id="orbState" style="display:none;">
+      <div class="orb"></div>
+      <ul class="checklist">
+        <li id="ck1"><div class="check-icon"></div>Parsing document structure…</li>
+        <li id="ck2"><div class="check-icon"></div>Identifying vendor and header fields…</li>
+        <li id="ck3"><div class="check-icon"></div>Extracting line items…</li>
+        <li id="ck4"><div class="check-icon"></div>Calculating totals and tax…</li>
+        <li id="ck5"><div class="check-icon"></div>Scoring field confidence…</li>
+      </ul>
+    </div>
+    <div class="result-state" id="resultState" style="display:none;"></div>
+  </div>
+</div>
+
+<footer>Built by TRIVOX · AI automation that runs your business</footer>
+
+<script>
+function tick(id, delay) {
+  return new Promise(r => setTimeout(() => {
+    const el = document.getElementById(id);
+    el.classList.add('done');
+    el.querySelector('.check-icon').classList.add('filled');
+    r();
+  }, delay));
+}
+
+async function runDemo() {
+  const btn = document.getElementById('extractBtn');
+  btn.disabled = true;
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('resultState').style.display = 'none';
+  document.getElementById('orbState').style.display = 'flex';
+
+  for (let i = 1; i <= 5; i++) {
+    const el = document.getElementById('ck' + i);
+    el.classList.remove('done');
+    el.querySelector('.check-icon').classList.remove('filled');
+  }
+
+  await tick('ck1', 280);
+  await tick('ck2', 620);
+  await tick('ck3', 980);
+  await tick('ck4', 1280);
+  await tick('ck5', 1600);
+  await new Promise(r => setTimeout(r, 200));
+
+  document.getElementById('orbState').style.display = 'none';
+  const result = document.getElementById('resultState');
+  result.style.display = 'flex';
+
+  result.innerHTML = `
+    <div>
+      <div class="section-label">Extracted Header Fields</div>
+      <div class="field-grid">
+        <div class="field-card">
+          <div class="fc-label">Vendor</div>
+          <div class="fc-val">Acme Office Supplies Ltd.</div>
+          <div class="fc-footer"><span class="conf-badge conf-high">99% confidence</span></div>
+        </div>
+        <div class="field-card">
+          <div class="fc-label">Invoice Number</div>
+          <div class="fc-val">INV-2024-0847</div>
+          <div class="fc-footer"><span class="conf-badge conf-high">99% confidence</span></div>
+        </div>
+        <div class="field-card">
+          <div class="fc-label">Invoice Date</div>
+          <div class="fc-val">Nov 14, 2024</div>
+          <div class="fc-footer"><span class="conf-badge conf-high">99% confidence</span></div>
+        </div>
+        <div class="field-card">
+          <div class="fc-label">Due Date</div>
+          <div class="fc-val">Dec 14, 2024</div>
+          <div class="fc-footer"><span class="conf-badge conf-high">98% confidence</span></div>
+        </div>
+        <div class="field-card">
+          <div class="fc-label">Bill To</div>
+          <div class="fc-val">Northgate Creative Inc.</div>
+          <div class="fc-footer"><span class="conf-badge conf-high">99% confidence</span></div>
+        </div>
+        <div class="field-card">
+          <div class="fc-label">PO Reference</div>
+          <div class="fc-val">PO-9921-C</div>
+          <div class="fc-footer"><span class="conf-badge conf-med">94% confidence</span></div>
+        </div>
+        <div class="field-card full">
+          <div class="fc-label">Vendor GST Number</div>
+          <div class="fc-val">84729103 RT0001</div>
+          <div class="fc-footer"><span class="conf-badge conf-high">99% confidence</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label">Line Items (5 extracted)</div>
+      <div style="overflow-x:auto;">
+        <table class="line-table">
+          <thead><tr>
+            <th>Description</th><th>Qty</th><th>Unit Price</th><th>Total</th>
+          </tr></thead>
+          <tbody>
+            <tr><td>Ergonomic Desk Chair</td><td>2</td><td>$289.00</td><td>$578.00</td></tr>
+            <tr><td>Standing Desk Converter</td><td>1</td><td>$349.00</td><td>$349.00</td></tr>
+            <tr><td>Monitor Arm (dual)</td><td>3</td><td>$124.00</td><td>$372.00</td></tr>
+            <tr><td>Cable Management Kit</td><td>4</td><td>$28.50</td><td>$114.00</td></tr>
+            <tr><td>Wireless Keyboard/Mouse</td><td>2</td><td>$89.00</td><td>$178.00</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label">Totals</div>
+      <div class="totals-row">
+        <div class="total-tile">
+          <div class="total-label">Subtotal</div>
+          <div class="total-val">$1,591.00</div>
+        </div>
+        <div class="total-tile">
+          <div class="total-label">HST (13%)</div>
+          <div class="total-val">$206.83</div>
+        </div>
+        <div class="total-tile">
+          <div class="total-label">Total Due</div>
+          <div class="total-val accent">$1,797.83</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="export-row">
+      <div class="export-meta">Processed in <strong>2.9s</strong> · 12 fields extracted · avg 98% confidence</div>
+      <button class="btn-export" onclick="alert('In a live integration this would push directly to QuickBooks, Xero, or your ERP.')">Export to Accounting</button>
+    </div>`;
+
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>

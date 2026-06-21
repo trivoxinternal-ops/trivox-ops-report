@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Marketing Audit Tool — TRIVOX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070b18;--bg2:#0d1426;--surface:#121b30;--surface2:#16203a;--border:#1e2a44;--text:#eaf0ff;--muted:#8a97b5;--brand:#2e61fe;--brand2:#00f0ff;--grad:linear-gradient(135deg,#2e61fe,#00f0ff);--good:#22c55e;--warn:#fbbf24;--bad:#ef4444;--radius:16px;--shadow:0 10px 40px rgba(0,0,0,.45);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(7,11,24,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;}
+.nav-brand{display:flex;align-items:center;gap:10px;}
+.nav-logo{font-size:20px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-.02em;}
+.nav-pill{background:var(--grad);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:.08em;}
+.nav-back{color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;transition:color .2s;}
+.nav-back:hover{color:var(--text);}
+
+/* HERO */
+.hero{text-align:center;padding:80px 24px 60px;max-width:800px;margin:0 auto;}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--brand2);margin-bottom:16px;}
+h1{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.02em;line-height:1.15;margin-bottom:16px;}
+h1 span{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{color:var(--muted);font-size:16px;line-height:1.6;max-width:640px;margin:0 auto 40px;}
+.stats{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;}
+.stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 24px;text-align:center;min-width:140px;}
+.stat-num{font-size:22px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:block;margin-bottom:4px;}
+.stat-label{font-size:12px;color:var(--muted);font-weight:500;}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:1100px;margin:0 auto;padding:0 24px 80px;}
+@media(max-width:900px){.grid{grid-template-columns:1fr;}}
+
+/* PANELS */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);}
+.panel-title{font-size:13px;font-weight:600;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:24px;}
+.right-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);min-height:480px;padding:28px;box-shadow:var(--shadow);display:flex;flex-direction:column;}
+
+/* FORM */
+.field{margin-bottom:20px;}
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;}
+input,select{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Sora',sans-serif;font-size:14px;padding:12px 16px;outline:none;transition:border-color .2s;}
+input:focus,select:focus{border-color:var(--brand);}
+select option{background:var(--bg2);}
+.btn{width:100%;background:var(--grad);border:none;border-radius:10px;color:#fff;font-family:'Sora',sans-serif;font-size:14px;font-weight:600;padding:14px;cursor:pointer;letter-spacing:.02em;transition:opacity .2s,transform .1s;margin-top:4px;}
+.btn:hover{opacity:.9;}
+.btn:active{transform:scale(.99);}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+
+/* EMPTY */
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);gap:12px;}
+.empty-icon{width:48px;height:48px;border-radius:50%;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;}
+.empty-state p{font-size:13px;text-align:center;max-width:200px;line-height:1.5;}
+
+/* WORKING */
+.working-state{flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;gap:24px;}
+.orb{width:64px;height:64px;border-radius:50%;background:var(--grad);animation:pulse 1.4s ease-in-out infinite;box-shadow:0 0 30px rgba(46,97,254,.4);}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.12);opacity:.7;}}
+.checklist{list-style:none;width:100%;max-width:260px;}
+.checklist li{font-size:13px;color:var(--muted);padding:6px 0;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);}
+.checklist li:last-child{border-bottom:none;}
+.check-dot{width:8px;height:8px;border-radius:50%;background:var(--border);flex-shrink:0;transition:background .3s;}
+.check-dot.done{background:var(--good);}
+
+/* RESULT */
+.result-state{display:none;flex-direction:column;gap:14px;}
+.result-state.show{display:flex;}
+
+/* GRADE */
+.grade-row{display:flex;align-items:center;gap:20px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px;}
+.grade-circle{width:72px;height:72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;flex-shrink:0;border:3px solid;}
+.grade-info{}
+.grade-headline{font-size:18px;font-weight:700;margin-bottom:4px;}
+.grade-sub{font-size:12px;color:var(--muted);line-height:1.5;}
+.leak-badge{display:inline-block;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);color:var(--bad);font-size:13px;font-weight:700;padding:6px 14px;border-radius:8px;margin-top:8px;}
+
+/* CATEGORY BARS */
+.brief-section{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.brief-label{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px;}
+.cat-list{display:flex;flex-direction:column;gap:10px;}
+.cat-row{display:grid;grid-template-columns:90px 1fr 48px;align-items:center;gap:10px;}
+.cat-name{font-size:12px;font-weight:600;color:var(--text);}
+.cat-bar-wrap{height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
+.cat-bar-fill{height:100%;border-radius:3px;transform:scaleX(0);transform-origin:left;transition:transform .7s ease;}
+.cat-score{font-size:12px;font-weight:700;text-align:right;}
+
+/* FIXES */
+.fix-list{display:flex;flex-direction:column;gap:8px;}
+.fix-item{display:flex;gap:12px;align-items:flex-start;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px;}
+.fix-rank{font-size:11px;font-weight:700;color:var(--brand2);min-width:20px;}
+.fix-body{}
+.fix-title{font-size:13px;font-weight:600;margin-bottom:2px;}
+.fix-impact{font-size:11px;}
+
+/* FOOTER */
+footer{text-align:center;padding:32px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);}
+footer span{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:600;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <span class="nav-logo">TRIVOX</span>
+    <span class="nav-pill">AI</span>
+  </div>
+  <a class="nav-back" href="../../portfolio.html">&#8592; All Demos</a>
+</nav>
+
+<section class="hero">
+  <div class="eyebrow">Marketing &amp; Content</div>
+  <h1>Your AI <span>Marketing Audit Tool</span><br>finds where money leaks</h1>
+  <p class="hero-sub">Drop in a URL and niche. Get a full scorecard — SEO, Ads, Reviews, Site Speed, Social — plus your top 5 highest-impact fixes.</p>
+  <div class="stats">
+    <div class="stat-chip"><span class="stat-num">60+</span><span class="stat-label">60+ checks</span></div>
+    <div class="stat-chip"><span class="stat-num">Instant</span><span class="stat-label">Instant report</span></div>
+    <div class="stat-chip"><span class="stat-num">7</span><span class="stat-label">Found avg 7 leaks</span></div>
+  </div>
+</section>
+
+<div class="grid">
+  <!-- LEFT -->
+  <div class="panel">
+    <div class="panel-title">Input</div>
+    <div class="field">
+      <label for="url">Business URL</label>
+      <input type="text" id="url" value="www.torontoplumbingpros.ca" placeholder="e.g. www.yourbusiness.com">
+    </div>
+    <div class="field">
+      <label for="niche">Business Niche</label>
+      <input type="text" id="niche" value="Home Services — Emergency Plumbing" placeholder="e.g. Local Dentist, HVAC, Ecommerce">
+    </div>
+    <div class="field">
+      <label for="market">Primary Market</label>
+      <select id="market">
+        <option value="local" selected>Local / Service Area</option>
+        <option value="national">National</option>
+        <option value="ecommerce">E-commerce</option>
+        <option value="saas">SaaS / Software</option>
+      </select>
+    </div>
+    <button class="btn" id="auditBtn" onclick="runAudit()">Run Audit</button>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right-panel" id="rightPanel">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">&#128202;</div>
+      <p>Enter your URL to get your full marketing scorecard</p>
+    </div>
+    <div class="working-state" id="workingState">
+      <div class="orb"></div>
+      <ul class="checklist" id="checklist">
+        <li><span class="check-dot" id="c1"></span> Crawling website structure</li>
+        <li><span class="check-dot" id="c2"></span> Scanning on-page SEO signals</li>
+        <li><span class="check-dot" id="c3"></span> Checking ad &amp; review presence</li>
+        <li><span class="check-dot" id="c4"></span> Testing site speed metrics</li>
+        <li><span class="check-dot" id="c5"></span> Auditing social footprint</li>
+      </ul>
+    </div>
+    <div class="result-state" id="resultState"></div>
+  </div>
+</div>
+
+<footer>Built by <span>TRIVOX</span> &middot; AI automation that runs your business</footer>
+
+<script>
+const AUDITS = {
+  "www.torontoplumbingpros.ca": {
+    grade: "C+",
+    gradeColor: "var(--warn)",
+    headline: "Significant gaps found",
+    sub: "Your site has strong local intent but is leaving real revenue on the table — 7 critical issues identified.",
+    leak: "$4,200",
+    categories: [
+      { name: "SEO", score: 54, color: "var(--warn)" },
+      { name: "Google Ads", score: 31, color: "var(--bad)" },
+      { name: "Reviews", score: 68, color: "var(--warn)" },
+      { name: "Site Speed", score: 42, color: "var(--bad)" },
+      { name: "Social", score: 22, color: "var(--bad)" },
+    ],
+    fixes: [
+      { title: "No Google Ads — competitors dominate top 4 spots", impact: "High impact", impactColor: "var(--bad)" },
+      { title: "Site loads in 6.8s on mobile — above 3s kills conversions", impact: "High impact", impactColor: "var(--bad)" },
+      { title: "Missing schema markup — not showing stars in search results", impact: "Medium impact", impactColor: "var(--warn)" },
+      { title: "Only 14 Google reviews — below local pack threshold (~40)", impact: "Medium impact", impactColor: "var(--warn)" },
+      { title: "No Facebook/Instagram presence — zero retargeting audience", impact: "Medium impact", impactColor: "var(--warn)" },
+    ],
+  },
+};
+
+const DEFAULT_AUDIT = (url, niche) => ({
+  grade: "C",
+  gradeColor: "var(--warn)",
+  headline: "Below-average presence found",
+  sub: `"${url}" in ${niche} has multiple gaps limiting visibility and conversions.`,
+  leak: "$3,600",
+  categories: [
+    { name: "SEO", score: 48, color: "var(--warn)" },
+    { name: "Google Ads", score: 25, color: "var(--bad)" },
+    { name: "Reviews", score: 55, color: "var(--warn)" },
+    { name: "Site Speed", score: 38, color: "var(--bad)" },
+    { name: "Social", score: 30, color: "var(--bad)" },
+  ],
+  fixes: [
+    { title: "No paid search presence — competitors capture all high-intent clicks", impact: "High impact", impactColor: "var(--bad)" },
+    { title: "Slow mobile load time — losing visitors before page renders", impact: "High impact", impactColor: "var(--bad)" },
+    { title: "Thin homepage copy — not enough content to rank locally", impact: "Medium impact", impactColor: "var(--warn)" },
+    { title: "Low review count — below trust threshold for local buyers", impact: "Medium impact", impactColor: "var(--warn)" },
+    { title: "No retargeting pixel installed — ad spend can't be recovered", impact: "Medium impact", impactColor: "var(--warn)" },
+  ],
+});
+
+let fillTargets = [];
+
+function buildResult(audit, url) {
+  fillTargets = audit.categories.map(c => c.score / 100);
+
+  const catsHTML = audit.categories.map((c, i) =>
+    `<div class="cat-row">
+      <div class="cat-name">${c.name}</div>
+      <div class="cat-bar-wrap"><div class="cat-bar-fill" id="bar${i}" style="background:${c.color};"></div></div>
+      <div class="cat-score" style="color:${c.color};">${c.score}</div>
+    </div>`
+  ).join('');
+
+  const fixesHTML = audit.fixes.map((f, i) =>
+    `<div class="fix-item">
+      <div class="fix-rank">#${i+1}</div>
+      <div class="fix-body">
+        <div class="fix-title">${f.title}</div>
+        <div class="fix-impact" style="color:${f.impactColor};">&#9650; ${f.impact}</div>
+      </div>
+    </div>`
+  ).join('');
+
+  return `
+    <div class="panel-title">Audit Report — ${url}</div>
+    <div class="grade-row">
+      <div class="grade-circle" style="color:${audit.gradeColor};border-color:${audit.gradeColor};">${audit.grade}</div>
+      <div class="grade-info">
+        <div class="grade-headline">${audit.headline}</div>
+        <div class="grade-sub">${audit.sub}</div>
+        <div class="leak-badge">Leaking est. ${audit.leak}/mo in missed revenue</div>
+      </div>
+    </div>
+    <div class="brief-section">
+      <div class="brief-label">Category Scores</div>
+      <div class="cat-list">${catsHTML}</div>
+    </div>
+    <div class="brief-section">
+      <div class="brief-label">Top 5 Prioritised Fixes</div>
+      <div class="fix-list">${fixesHTML}</div>
+    </div>
+  `;
+}
+
+function runAudit() {
+  const url = document.getElementById('url').value.trim() || 'www.torontoplumbingpros.ca';
+  const niche = document.getElementById('niche').value.trim() || 'Home Services';
+  const btn = document.getElementById('auditBtn');
+
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('workingState').style.display = 'flex';
+  document.getElementById('resultState').style.display = 'none';
+  document.getElementById('resultState').classList.remove('show');
+  btn.disabled = true;
+
+  const dots = ['c1','c2','c3','c4','c5'];
+  dots.forEach(id => document.getElementById(id).classList.remove('done'));
+
+  let step = 0;
+  const interval = setInterval(() => {
+    if (step < dots.length) {
+      document.getElementById(dots[step]).classList.add('done');
+      step++;
+    } else {
+      clearInterval(interval);
+    }
+  }, 360);
+
+  setTimeout(() => {
+    const key = url.toLowerCase().replace(/^https?:\/\//, '');
+    const audit = AUDITS[key] || DEFAULT_AUDIT(url, niche);
+    document.getElementById('workingState').style.display = 'none';
+    const rs = document.getElementById('resultState');
+    rs.innerHTML = buildResult(audit, url);
+    rs.style.display = 'flex';
+    rs.classList.add('show');
+    btn.disabled = false;
+
+    setTimeout(() => {
+      fillTargets.forEach((val, i) => {
+        const bar = document.getElementById('bar' + i);
+        if (bar) bar.style.transform = `scaleX(${val})`;
+      });
+    }, 80);
+  }, 1900);
+}
+</script>
+</body>
+</html>

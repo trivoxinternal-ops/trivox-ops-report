@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Approval OS — TRIVOX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070b18;--bg2:#0d1426;--surface:#121b30;--surface2:#16203a;--border:#1e2a44;--text:#eaf0ff;--muted:#8a97b5;--brand:#2e61fe;--brand2:#00f0ff;--grad:linear-gradient(135deg,#2e61fe,#00f0ff);--good:#22c55e;--warn:#fbbf24;--bad:#ef4444;--radius:16px;--shadow:0 10px 40px rgba(0,0,0,.45);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;}
+
+nav{position:sticky;top:0;z-index:100;background:rgba(7,11,24,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;}
+.nav-brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.1rem;letter-spacing:-.02em;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.nav-pill{background:var(--grad);color:#fff;font-size:.65rem;font-weight:700;padding:3px 8px;border-radius:999px;letter-spacing:.08em;-webkit-text-fill-color:#fff;}
+.nav-back{color:var(--muted);text-decoration:none;font-size:.85rem;font-weight:500;transition:color .2s;}
+.nav-back:hover{color:var(--text);}
+
+.hero{padding:64px 32px 48px;max-width:1200px;margin:0 auto;}
+.eyebrow{font-size:.72rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--brand2);margin-bottom:14px;}
+h1{font-size:clamp(28px,4vw,40px);font-family:'DM Serif Display',serif;font-weight:400;letter-spacing:-.01em;line-height:1.15;margin-bottom:16px;}
+.subhead{color:var(--muted);font-size:.95rem;line-height:1.65;max-width:640px;margin-bottom:36px;}
+.stats{display:flex;gap:12px;flex-wrap:wrap;}
+.stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:8px 18px;font-size:.78rem;font-weight:600;display:flex;align-items:center;gap:7px;}
+.stat-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--grad);flex-shrink:0;}
+
+.grid{display:grid;grid-template-columns:340px 1fr;gap:24px;max-width:1200px;margin:0 auto;padding:0 32px 80px;}
+@media(max-width:900px){.grid{grid-template-columns:1fr;}}
+
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);}
+.panel-title{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:18px;}
+
+/* LEFT */
+.item-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:18px;}
+.item-type{font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--brand2);margin-bottom:8px;}
+.item-title{font-weight:700;font-size:.95rem;margin-bottom:6px;}
+.item-meta{font-size:.75rem;color:var(--muted);line-height:1.6;}
+.item-preview{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:12px 14px;margin-top:12px;font-size:.78rem;color:var(--muted);line-height:1.6;font-style:italic;}
+.item-amount{font-family:'DM Serif Display',serif;font-size:1.6rem;font-weight:400;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin:8px 0 4px;}
+
+.btn-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:6px;}
+.btn-approve{display:flex;align-items:center;justify-content:center;gap:7px;padding:13px;background:var(--grad);border:none;border-radius:10px;color:#fff;font-family:'Sora',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;transition:opacity .2s,transform .15s;}
+.btn-approve:hover{opacity:.9;transform:translateY(-1px);}
+.btn-changes{display:flex;align-items:center;justify-content:center;gap:7px;padding:13px;background:transparent;border:1px solid var(--border);border-radius:10px;color:var(--muted);font-family:'Sora',sans-serif;font-size:.85rem;font-weight:700;cursor:pointer;transition:all .2s;}
+.btn-changes:hover{border-color:var(--warn);color:var(--warn);}
+
+.submitter-row{display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:14px;border-top:1px solid var(--border);}
+.avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.72rem;font-weight:700;flex-shrink:0;}
+.submitter-info{font-size:.75rem;}
+.submitter-name{font-weight:600;color:var(--text);}
+.submitter-role{color:var(--muted);}
+
+/* RIGHT */
+.right-panel{min-height:480px;}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:440px;gap:16px;color:var(--muted);text-align:center;}
+.empty-icon{width:56px;height:56px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.4rem;}
+
+.result-state{display:none;flex-direction:column;gap:20px;}
+
+/* FLOW */
+.flow-track{display:flex;align-items:center;gap:0;margin-bottom:4px;}
+.flow-step{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;position:relative;}
+.flow-step:not(:last-child)::after{content:'';position:absolute;top:16px;left:calc(50% + 20px);right:calc(-50% + 20px);height:2px;background:var(--border);}
+.flow-step.done:not(:last-child)::after{background:var(--good);}
+.flow-step.active:not(:last-child)::after{background:linear-gradient(90deg,var(--brand),var(--border));}
+.flow-node{width:32px;height:32px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:700;background:var(--bg2);transition:all .4s;z-index:1;}
+.flow-step.done .flow-node{background:var(--good);border-color:var(--good);color:#fff;}
+.flow-step.active .flow-node{background:var(--grad);border-color:transparent;color:#fff;box-shadow:0 0 16px rgba(46,97,254,.5);}
+.flow-label{font-size:.68rem;font-weight:600;color:var(--muted);text-align:center;}
+.flow-step.done .flow-label,.flow-step.active .flow-label{color:var(--text);}
+.flow-time{font-size:.62rem;color:var(--muted);}
+
+/* REVIEWER COMMENTS */
+.comments-block{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
+.comments-title{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+.comment{display:flex;gap:10px;margin-bottom:12px;}
+.comment:last-child{margin-bottom:0;}
+.comment-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;flex-shrink:0;}
+.comment-body{flex:1;}
+.comment-header{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+.comment-name{font-size:.78rem;font-weight:700;}
+.comment-time{font-size:.68rem;color:var(--muted);}
+.comment-text{font-size:.78rem;color:var(--muted);line-height:1.5;}
+.status-badge{display:inline-flex;align-items:center;gap:4px;font-size:.62rem;font-weight:700;padding:2px 8px;border-radius:999px;letter-spacing:.05em;}
+.badge-approved{background:rgba(34,197,94,.15);color:var(--good);}
+.badge-review{background:rgba(251,191,36,.15);color:var(--warn);}
+.badge-pending{background:rgba(138,151,181,.12);color:var(--muted);}
+
+/* AUDIT LOG */
+.audit-block{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
+.audit-title{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+.audit-list{display:flex;flex-direction:column;gap:0;}
+.audit-row{display:flex;align-items:flex-start;gap:12px;padding:8px 0;border-bottom:1px solid rgba(30,42,68,.5);font-size:.75rem;}
+.audit-row:last-child{border-bottom:none;}
+.audit-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+.audit-ts{color:var(--muted);white-space:nowrap;flex-shrink:0;font-size:.7rem;}
+.audit-msg{color:var(--text);line-height:1.45;flex:1;}
+.audit-actor{color:var(--muted);}
+
+/* QUEUE */
+.queue-block{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
+.queue-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.queue-title{font-size:.7rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.queue-count{font-size:.68rem;font-weight:700;background:rgba(46,97,254,.2);color:#7aa3ff;padding:2px 9px;border-radius:999px;}
+.queue-list{display:flex;flex-direction:column;gap:8px;}
+.queue-item{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;}
+.queue-left{display:flex;align-items:center;gap:10px;}
+.queue-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:.8rem;flex-shrink:0;}
+.queue-name{font-size:.8rem;font-weight:600;}
+.queue-sub{font-size:.68rem;color:var(--muted);margin-top:2px;}
+.queue-right{display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
+.sla-ok{font-size:.68rem;font-weight:700;color:var(--good);}
+.sla-warn{font-size:.68rem;font-weight:700;color:var(--warn);}
+.sla-bad{font-size:.68rem;font-weight:700;color:var(--bad);}
+.queue-val{font-size:.75rem;font-weight:700;}
+
+/* APPROVED STATE */
+.approved-banner{display:none;background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:12px;padding:16px 20px;text-align:center;}
+.approved-banner.show{display:block;}
+.approved-title{font-family:'DM Serif Display',serif;font-size:1.3rem;font-weight:400;color:var(--good);margin-bottom:4px;}
+.approved-sub{font-size:.78rem;color:var(--muted);}
+
+.changes-banner{display:none;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);border-radius:12px;padding:16px 20px;text-align:center;}
+.changes-banner.show{display:block;}
+.changes-title{font-family:'DM Serif Display',serif;font-size:1.3rem;font-weight:400;color:var(--warn);margin-bottom:4px;}
+.changes-sub{font-size:.78rem;color:var(--muted);}
+
+footer{text-align:center;padding:28px;color:var(--muted);font-size:.75rem;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">TRIVOX <span class="nav-pill">AI</span></div>
+  <a class="nav-back" href="../../portfolio.html">← All Demos</a>
+</nav>
+
+<section class="hero">
+  <div class="eyebrow">Operations</div>
+  <h1>Approval OS</h1>
+  <p class="subhead">Route quotes, content, and expenses to the right reviewer in seconds. Every decision is logged with a timestamp and actor. No Slack threads. No forgotten approvals. Full audit trail from submission to sign-off.</p>
+  <div class="stats">
+    <div class="stat-chip"><span class="dot"></span>Approvals in under 2h</div>
+    <div class="stat-chip"><span class="dot"></span>Full audit trail</div>
+    <div class="stat-chip"><span class="dot"></span>Zero bottlenecks</div>
+  </div>
+</section>
+
+<div class="grid">
+  <!-- LEFT -->
+  <div class="panel">
+    <div class="panel-title">Item Awaiting Your Review</div>
+
+    <div class="item-card">
+      <div class="item-type">Client Quote</div>
+      <div class="item-title">Q-2026-047 — Nexus Logistics</div>
+      <div class="item-amount">$4,200 CAD</div>
+      <div class="item-meta">
+        Scope: AI-powered dispatch routing module<br>
+        Timeline: 3 weeks delivery &nbsp;·&nbsp; Rev-share: 8%<br>
+        Submitted: Jun 19, 2026 at 9:14 AM
+      </div>
+      <div class="item-preview">
+        "Includes custom webhook integration with their existing TMS, real-time route optimization via OSRM API, and a dispatcher dashboard. Pricing based on 60h estimate at $70/h."
+      </div>
+    </div>
+
+    <div class="submitter-row" style="margin-bottom:18px;padding:14px 0 0;border-top:1px solid var(--border);">
+      <div class="avatar" style="background:rgba(46,97,254,.2);color:#7aa3ff;">JR</div>
+      <div class="submitter-info">
+        <div class="submitter-name">José Ramirez</div>
+        <div class="submitter-role">Sales Lead · Commission track</div>
+      </div>
+    </div>
+
+    <div class="btn-row" id="btn-row">
+      <button class="btn-approve" onclick="handleDecision('approve')">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+        Approve
+      </button>
+      <button class="btn-changes" onclick="handleDecision('changes')">
+        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931z"/></svg>
+        Request Changes
+      </button>
+    </div>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="panel right-panel" id="right-panel">
+    <div class="empty-state" id="empty-state">
+      <div class="empty-icon">✅</div>
+      <div style="font-size:.88rem;font-weight:600;">Approval flow ready</div>
+      <div style="font-size:.8rem;max-width:220px;">Click Approve or Request Changes to see the full audit trail and queue.</div>
+    </div>
+
+    <div class="result-state" id="result-state">
+
+      <!-- STATUS BANNER -->
+      <div class="approved-banner" id="approved-banner">
+        <div class="approved-title">Quote Approved</div>
+        <div class="approved-sub">Q-2026-047 signed off. José notified. Sent to client at <span id="approve-time"></span>.</div>
+      </div>
+      <div class="changes-banner" id="changes-banner">
+        <div class="changes-title">Changes Requested</div>
+        <div class="changes-sub">Feedback sent to José. Re-review queued within 2h SLA.</div>
+      </div>
+
+      <!-- FLOW TRACK -->
+      <div>
+        <div class="panel-title">Approval Flow</div>
+        <div class="flow-track" id="flow-track">
+          <div class="flow-step done" id="fs0">
+            <div class="flow-node">✓</div>
+            <div class="flow-label">Submitted</div>
+            <div class="flow-time">9:14 AM</div>
+          </div>
+          <div class="flow-step done" id="fs1">
+            <div class="flow-node">✓</div>
+            <div class="flow-label">Auto-routed</div>
+            <div class="flow-time">9:14 AM</div>
+          </div>
+          <div class="flow-step active" id="fs2">
+            <div class="flow-node">→</div>
+            <div class="flow-label">Review</div>
+            <div class="flow-time">Now</div>
+          </div>
+          <div class="flow-step" id="fs3">
+            <div class="flow-node" id="final-node"></div>
+            <div class="flow-label" id="final-label">Decision</div>
+            <div class="flow-time" id="final-time"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REVIEWER COMMENTS -->
+      <div class="comments-block">
+        <div class="comments-title">Reviewer Thread</div>
+        <div class="comment">
+          <div class="comment-avatar" style="background:rgba(0,240,255,.1);color:var(--brand2);">DM</div>
+          <div class="comment-body">
+            <div class="comment-header">
+              <span class="comment-name">Daniel Martinez</span>
+              <span class="comment-time">9:14 AM · Auto-routed</span>
+              <span class="status-badge badge-review">IN REVIEW</span>
+            </div>
+            <div class="comment-text">Quote routed to senior reviewer. Threshold: over $3,000 requires sign-off within 2 hours per SLA policy.</div>
+          </div>
+        </div>
+        <div class="comment">
+          <div class="comment-avatar" style="background:rgba(46,97,254,.15);color:#7aa3ff;">JR</div>
+          <div class="comment-body">
+            <div class="comment-header">
+              <span class="comment-name">José Ramirez</span>
+              <span class="comment-time">9:12 AM · Submitter</span>
+            </div>
+            <div class="comment-text">Client confirmed budget. They want to kick off before end of June. Hourly rate agreed verbally at $70/h.</div>
+          </div>
+        </div>
+        <div class="comment" id="decision-comment" style="display:none;">
+          <div class="comment-avatar" style="background:rgba(34,197,94,.12);color:var(--good);" id="dc-avatar">You</div>
+          <div class="comment-body">
+            <div class="comment-header">
+              <span class="comment-name">You (Reviewer)</span>
+              <span class="comment-time" id="dc-time"></span>
+              <span class="status-badge" id="dc-badge"></span>
+            </div>
+            <div class="comment-text" id="dc-text"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AUDIT LOG -->
+      <div class="audit-block">
+        <div class="audit-title">Audit Log</div>
+        <div class="audit-list" id="audit-list">
+          <div class="audit-row">
+            <div class="audit-dot" style="background:var(--brand);"></div>
+            <div class="audit-ts">9:14 AM</div>
+            <div class="audit-msg">Quote Q-2026-047 submitted for approval. <span class="audit-actor">by José Ramirez</span></div>
+          </div>
+          <div class="audit-row">
+            <div class="audit-dot" style="background:var(--brand2);"></div>
+            <div class="audit-ts">9:14 AM</div>
+            <div class="audit-msg">Auto-routed to senior reviewer. Rule: quotes over $3,000 CAD. <span class="audit-actor">by System</span></div>
+          </div>
+          <div class="audit-row">
+            <div class="audit-dot" style="background:var(--warn);"></div>
+            <div class="audit-ts">9:15 AM</div>
+            <div class="audit-msg">SLA timer started. Decision required by 11:14 AM. <span class="audit-actor">by System</span></div>
+          </div>
+          <div class="audit-row">
+            <div class="audit-dot" style="background:var(--muted);"></div>
+            <div class="audit-ts">9:16 AM</div>
+            <div class="audit-msg">Reviewer opened quote. Review in progress. <span class="audit-actor">by You</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PENDING QUEUE -->
+      <div class="queue-block">
+        <div class="queue-header">
+          <div class="queue-title">Pending Queue</div>
+          <div class="queue-count">4 items</div>
+        </div>
+        <div class="queue-list">
+          <div class="queue-item">
+            <div class="queue-left">
+              <div class="queue-icon" style="background:rgba(46,97,254,.15);">📄</div>
+              <div>
+                <div class="queue-name">Instagram Caption — Summer Drop</div>
+                <div class="queue-sub">Social content · Submitted by Mia L. · 1h ago</div>
+              </div>
+            </div>
+            <div class="queue-right">
+              <span class="sla-ok">1h 12m left</span>
+              <span class="queue-val" style="color:var(--muted);">Content</span>
+            </div>
+          </div>
+          <div class="queue-item">
+            <div class="queue-left">
+              <div class="queue-icon" style="background:rgba(251,191,36,.12);">💸</div>
+              <div>
+                <div class="queue-name">Expense: Adobe CC Annual</div>
+                <div class="queue-sub">Expense · Submitted by Brian K. · 3h ago</div>
+              </div>
+            </div>
+            <div class="queue-right">
+              <span class="sla-warn">22m left</span>
+              <span class="queue-val">$659</span>
+            </div>
+          </div>
+          <div class="queue-item">
+            <div class="queue-left">
+              <div class="queue-icon" style="background:rgba(239,68,68,.12);">📋</div>
+              <div>
+                <div class="queue-name">Q-2026-046 — Crestwood Partners</div>
+                <div class="queue-sub">Client quote · Submitted by Ana R. · 4h ago</div>
+              </div>
+            </div>
+            <div class="queue-right">
+              <span class="sla-bad">OVERDUE</span>
+              <span class="queue-val">$7,800</span>
+            </div>
+          </div>
+          <div class="queue-item">
+            <div class="queue-left">
+              <div class="queue-icon" style="background:rgba(0,240,255,.1);">🎨</div>
+              <div>
+                <div class="queue-name">Brand Refresh Proposal PDF</div>
+                <div class="queue-sub">Document · Submitted by Dida V. · 30m ago</div>
+              </div>
+            </div>
+            <div class="queue-right">
+              <span class="sla-ok">1h 45m left</span>
+              <span class="queue-val" style="color:var(--muted);">Doc</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<footer>Built by TRIVOX · AI automation that runs your business</footer>
+
+<script>
+function now(){
+  const d=new Date();
+  return d.toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit',hour12:true});
+}
+
+function handleDecision(type){
+  // Disable buttons
+  document.getElementById('btn-row').style.opacity='.4';
+  document.getElementById('btn-row').style.pointerEvents='none';
+
+  const t=now();
+
+  // Show result panel
+  document.getElementById('empty-state').style.display='none';
+  document.getElementById('result-state').style.display='flex';
+
+  // Update flow
+  const fs2=document.getElementById('fs2');
+  fs2.classList.remove('active');
+  fs2.classList.add('done');
+  fs2.querySelector('.flow-node').textContent='✓';
+
+  const fs3=document.getElementById('fs3');
+  const finalNode=document.getElementById('final-node');
+  const finalLabel=document.getElementById('final-label');
+  const finalTime=document.getElementById('final-time');
+  finalTime.textContent=t;
+
+  if(type==='approve'){
+    fs3.classList.add('done');
+    finalNode.textContent='✓';
+    finalLabel.textContent='Approved';
+    document.getElementById('approve-time').textContent=t;
+    document.getElementById('approved-banner').classList.add('show');
+
+    // comment
+    document.getElementById('dc-badge').className='status-badge badge-approved';
+    document.getElementById('dc-badge').textContent='APPROVED';
+    document.getElementById('dc-text').textContent='Quote approved. Pricing and scope look solid. José is authorized to send to client.';
+  } else {
+    fs3.classList.add('active');
+    finalNode.textContent='↩';
+    finalNode.style.background='var(--grad)';
+    finalNode.style.color='#fff';
+    finalNode.style.border='none';
+    finalLabel.textContent='Changes';
+    document.getElementById('changes-banner').classList.add('show');
+
+    document.getElementById('dc-badge').className='status-badge badge-review';
+    document.getElementById('dc-badge').textContent='CHANGES REQUESTED';
+    document.getElementById('dc-text').textContent='Please revise: add a payment schedule breakdown and clarify the rev-share calculation method before sending.';
+  }
+
+  document.getElementById('dc-time').textContent=t+' · Reviewer';
+  document.getElementById('decision-comment').style.display='flex';
+
+  // Append to audit log
+  const log=document.getElementById('audit-list');
+  const row=document.createElement('div');
+  row.className='audit-row';
+  row.style.animation='fadeIn .3s ease';
+  const color=type==='approve'?'var(--good)':'var(--warn)';
+  const msg=type==='approve'
+    ? 'Quote approved. Notification sent to José Ramirez and client.'
+    : 'Changes requested. Quote returned to José Ramirez for revision.';
+  row.innerHTML=`<div class="audit-dot" style="background:${color};"></div><div class="audit-ts">${t}</div><div class="audit-msg">${msg} <span class="audit-actor">by You</span></div>`;
+  log.appendChild(row);
+}
+</script>
+</body>
+</html>

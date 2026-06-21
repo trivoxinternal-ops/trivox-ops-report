@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Lead Qualifier — TRIVOX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070b18;--bg2:#0d1426;--surface:#121b30;--surface2:#16203a;--border:#1e2a44;--text:#eaf0ff;--muted:#8a97b5;--brand:#2e61fe;--brand2:#00f0ff;--grad:linear-gradient(135deg,#2e61fe,#00f0ff);--good:#22c55e;--warn:#fbbf24;--bad:#ef4444;--radius:16px;--shadow:0 10px 40px rgba(0,0,0,.45);}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;}
+
+nav{position:sticky;top:0;z-index:100;background:rgba(7,11,24,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.nav-brand span{font-size:18px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-.02em;}
+.ai-pill{background:var(--grad);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.08em;}
+.nav-back{color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;transition:color .2s;}
+.nav-back:hover{color:var(--text);}
+
+.hero{padding:64px 32px 48px;max-width:1100px;margin:0 auto;}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--brand2);margin-bottom:14px;}
+.hero h1{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.02em;line-height:1.15;margin-bottom:14px;}
+.hero-sub{color:var(--muted);font-size:16px;max-width:640px;line-height:1.6;margin-bottom:40px;}
+.stats{display:flex;gap:20px;flex-wrap:wrap;}
+.stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 24px;display:flex;flex-direction:column;gap:4px;}
+.stat-num{font-size:24px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;}
+.stat-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+
+.demo-section{max-width:1100px;margin:0 auto;padding:0 32px 80px;}
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+@media(max-width:900px){.demo-grid{grid-template-columns:1fr;}}
+
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);}
+.panel-heading{font-size:15px;font-weight:600;margin-bottom:6px;}
+.panel-sub{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5;}
+
+/* Lead input cards */
+.leads-list{display:flex;flex-direction:column;gap:12px;margin-bottom:20px;}
+.lead-input-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+.lead-input-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.lead-input-num{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+.source-tag{font-size:10px;font-weight:600;padding:2px 8px;border-radius:20px;background:rgba(46,97,254,.18);color:#7da4ff;}
+.lead-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.field-group{display:flex;flex-direction:column;gap:4px;}
+.field-label{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;}
+.field-val{font-size:12px;font-weight:500;color:var(--text);}
+.lead-msg-row{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+.lead-msg{font-size:12px;color:var(--muted);line-height:1.5;}
+
+.btn-primary{width:100%;background:var(--grad);border:none;border-radius:10px;color:#fff;font-family:'Sora',sans-serif;font-size:14px;font-weight:700;padding:14px;cursor:pointer;letter-spacing:.02em;transition:opacity .2s;}
+.btn-primary:hover{opacity:.88;}
+.btn-primary:active{opacity:.75;}
+
+/* OUTPUT STATES */
+.output-panel{min-height:480px;display:flex;flex-direction:column;}
+.state{display:none;}
+.state.active{display:flex;flex-direction:column;}
+
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--muted);text-align:center;padding:40px;}
+.empty-icon{opacity:.35;}
+.empty-hint{font-size:13px;line-height:1.6;}
+
+.working-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding:40px;}
+.orb-wrap{position:relative;width:56px;height:56px;}
+.orb{width:56px;height:56px;border-radius:50%;background:var(--grad);}
+.orb-ring{position:absolute;inset:-8px;border-radius:50%;border:2px solid var(--brand2);opacity:0;animation:pulse-ring 1.4s ease-out infinite;}
+@keyframes pulse-ring{0%{transform:scale(.85);opacity:.7;}100%{transform:scale(1.4);opacity:0;}}
+.checklist{list-style:none;display:flex;flex-direction:column;gap:12px;width:100%;max-width:300px;}
+.check-item{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--muted);opacity:.35;transition:opacity .3s;}
+.check-item.done{opacity:1;color:var(--text);}
+.check-dot{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .3s;}
+.check-item.done .check-dot{background:var(--good);border-color:var(--good);}
+.check-dot svg{opacity:0;transition:opacity .3s;}
+.check-item.done .check-dot svg{opacity:1;}
+
+/* RESULT */
+.result-state{flex:1;display:flex;flex-direction:column;gap:14px;overflow:auto;}
+
+/* Summary header */
+.pipeline-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.pipe-chip{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:3px;}
+.pipe-num{font-size:20px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.pipe-label{font-size:10px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);}
+
+/* Scored table */
+.scored-table{width:100%;border-collapse:collapse;}
+.scored-table th{font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);}
+.scored-table td{padding:11px 10px;font-size:12px;vertical-align:middle;border-bottom:1px solid rgba(30,42,68,.5);}
+.scored-table tr:last-child td{border-bottom:none;}
+.scored-table tr{transition:background .15s;}
+.scored-table tbody tr:hover{background:rgba(255,255,255,.025);}
+
+.score-bar-wrap{display:flex;align-items:center;gap:8px;}
+.score-bar{height:5px;border-radius:3px;flex:1;background:var(--border);}
+.score-fill{height:100%;border-radius:3px;}
+.score-fill.high{background:var(--good);}
+.score-fill.mid{background:var(--warn);}
+.score-fill.low{background:var(--bad);}
+.score-val{font-size:12px;font-weight:700;min-width:28px;text-align:right;}
+.score-val.high{color:var(--good);}
+.score-val.mid{color:var(--warn);}
+.score-val.low{color:var(--bad);}
+
+.badge{padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.06em;white-space:nowrap;}
+.badge-hot{background:rgba(239,68,68,.18);color:#ef4444;}
+.badge-warm{background:rgba(251,191,36,.15);color:var(--warn);}
+.badge-cold{background:rgba(138,151,181,.13);color:var(--muted);}
+
+.action-pill{font-size:11px;color:var(--brand2);font-weight:500;}
+
+footer{text-align:center;padding:28px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="#">
+    <span>TRIVOX</span>
+    <span class="ai-pill">AI</span>
+  </a>
+  <a class="nav-back" href="../../portfolio.html">← All Demos</a>
+</nav>
+
+<section class="hero">
+  <div class="eyebrow">Sales &amp; Customer Care</div>
+  <h1>AI Lead Qualifier</h1>
+  <p class="hero-sub">Scores and routes every inbound lead in seconds, so your sales team calls the right people first, every time, with zero manual triage.</p>
+  <div class="stats">
+    <div class="stat-chip">
+      <span class="stat-num">&lt;10s</span>
+      <span class="stat-label">Leads Scored</span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-num">+41%</span>
+      <span class="stat-label">Close Rate Lift</span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-num">0</span>
+      <span class="stat-label">Leads Dropped</span>
+    </div>
+  </div>
+</section>
+
+<section class="demo-section">
+  <div class="demo-grid">
+
+    <!-- LEFT INPUT -->
+    <div class="panel">
+      <div class="panel-heading">Inbound Leads Batch</div>
+      <div class="panel-sub">4 leads from mixed sources, ready to score. The AI ranks them by conversion probability and assigns next actions.</div>
+
+      <div class="leads-list">
+
+        <div class="lead-input-card">
+          <div class="lead-input-header">
+            <span class="lead-input-num">Rachel Kim</span>
+            <span class="source-tag">Meta Ad</span>
+          </div>
+          <div class="lead-fields">
+            <div class="field-group"><span class="field-label">Name</span><span class="field-val">Rachel Kim</span></div>
+            <div class="field-group"><span class="field-label">Budget</span><span class="field-val">$18,000 / mo</span></div>
+          </div>
+          <div class="lead-msg-row"><p class="lead-msg">"We need to automate our onboarding flow ASAP — currently 3 FTEs doing it manually. Timeline is this quarter."</p></div>
+        </div>
+
+        <div class="lead-input-card">
+          <div class="lead-input-header">
+            <span class="lead-input-num">Tom Breckenridge</span>
+            <span class="source-tag">Website Form</span>
+          </div>
+          <div class="lead-fields">
+            <div class="field-group"><span class="field-label">Name</span><span class="field-val">Tom Breckenridge</span></div>
+            <div class="field-group"><span class="field-label">Budget</span><span class="field-val">~$2,000 / mo</span></div>
+          </div>
+          <div class="lead-msg-row"><p class="lead-msg">"Just exploring what AI can do for small businesses. No specific project yet, maybe later this year."</p></div>
+        </div>
+
+        <div class="lead-input-card">
+          <div class="lead-input-header">
+            <span class="lead-input-num">Marcus Delgado</span>
+            <span class="source-tag">Referral</span>
+          </div>
+          <div class="lead-fields">
+            <div class="field-group"><span class="field-label">Name</span><span class="field-val">Marcus Delgado</span></div>
+            <div class="field-group"><span class="field-label">Budget</span><span class="field-val">$6,500 / mo</span></div>
+          </div>
+          <div class="lead-msg-row"><p class="lead-msg">"Referred by Carlos V. We run a 12-location dental chain — need patient follow-up automation and no-show reduction."</p></div>
+        </div>
+
+        <div class="lead-input-card">
+          <div class="lead-input-header">
+            <span class="lead-input-num">Priya Nair</span>
+            <span class="source-tag">LinkedIn DM</span>
+          </div>
+          <div class="lead-fields">
+            <div class="field-group"><span class="field-label">Name</span><span class="field-val">Priya Nair</span></div>
+            <div class="field-group"><span class="field-label">Budget</span><span class="field-val">$4,200 / mo</span></div>
+          </div>
+          <div class="lead-msg-row"><p class="lead-msg">"Interested in a WhatsApp bot for our real estate leads. Have 200+ inbound/mo going uncontacted. Want demo."</p></div>
+        </div>
+
+      </div>
+
+      <button class="btn-primary" onclick="runDemo()">Score Leads</button>
+    </div>
+
+    <!-- RIGHT OUTPUT -->
+    <div class="panel output-panel">
+
+      <!-- EMPTY -->
+      <div class="state active" id="state-empty">
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+              <rect width="56" height="56" rx="16" fill="#1e2a44"/>
+              <path d="M14 42l8-12 7 8 6-9 7 13" stroke="#2e61fe" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="40" cy="18" r="6" stroke="#00f0ff" stroke-width="1.5"/>
+              <path d="M40 15v3l2 2" stroke="#00f0ff" stroke-width="1.4" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <p class="empty-hint">Click "Score Leads" to rank all 4 leads by AI score, temperature, and recommended next action.</p>
+        </div>
+      </div>
+
+      <!-- WORKING -->
+      <div class="state" id="state-working">
+        <div class="working-state">
+          <div class="orb-wrap">
+            <div class="orb"></div>
+            <div class="orb-ring"></div>
+          </div>
+          <ul class="checklist">
+            <li class="check-item" id="c1">
+              <div class="check-dot"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              Reading lead messages &amp; signals
+            </li>
+            <li class="check-item" id="c2">
+              <div class="check-dot"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              Scoring intent, urgency &amp; budget
+            </li>
+            <li class="check-item" id="c3">
+              <div class="check-dot"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              Ranking &amp; routing leads
+            </li>
+            <li class="check-item" id="c4">
+              <div class="check-dot"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              Calculating pipeline value
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- RESULT -->
+      <div class="state" id="state-result">
+        <div class="result-state">
+
+          <div class="pipeline-summary">
+            <div class="pipe-chip">
+              <span class="pipe-num">2</span>
+              <span class="pipe-label">Hot Leads</span>
+            </div>
+            <div class="pipe-chip">
+              <span class="pipe-num">1</span>
+              <span class="pipe-label">Warm Lead</span>
+            </div>
+            <div class="pipe-chip">
+              <span class="pipe-num">$346k</span>
+              <span class="pipe-label">Est. Pipeline / yr</span>
+            </div>
+          </div>
+
+          <div style="overflow-x:auto;">
+            <table class="scored-table">
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Name</th>
+                  <th>Score</th>
+                  <th>Temp</th>
+                  <th>Next Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="font-weight:700;color:var(--brand2);">#1</td>
+                  <td>
+                    <div style="font-weight:600;font-size:13px;">Rachel Kim</div>
+                    <div style="font-size:11px;color:var(--muted);">Meta Ad · $18k/mo</div>
+                  </td>
+                  <td>
+                    <div class="score-bar-wrap">
+                      <div class="score-bar"><div class="score-fill high" style="width:94%;"></div></div>
+                      <span class="score-val high">94</span>
+                    </div>
+                  </td>
+                  <td><span class="badge badge-hot">HOT</span></td>
+                  <td><span class="action-pill">Call within 1h</span></td>
+                </tr>
+                <tr>
+                  <td style="font-weight:700;color:var(--brand2);">#2</td>
+                  <td>
+                    <div style="font-weight:600;font-size:13px;">Marcus Delgado</div>
+                    <div style="font-size:11px;color:var(--muted);">Referral · $6.5k/mo</div>
+                  </td>
+                  <td>
+                    <div class="score-bar-wrap">
+                      <div class="score-bar"><div class="score-fill high" style="width:88%;"></div></div>
+                      <span class="score-val high">88</span>
+                    </div>
+                  </td>
+                  <td><span class="badge badge-hot">HOT</span></td>
+                  <td><span class="action-pill">Send deck + book call</span></td>
+                </tr>
+                <tr>
+                  <td style="font-weight:700;color:var(--muted);">#3</td>
+                  <td>
+                    <div style="font-weight:600;font-size:13px;">Priya Nair</div>
+                    <div style="font-size:11px;color:var(--muted);">LinkedIn · $4.2k/mo</div>
+                  </td>
+                  <td>
+                    <div class="score-bar-wrap">
+                      <div class="score-bar"><div class="score-fill mid" style="width:67%;"></div></div>
+                      <span class="score-val mid">67</span>
+                    </div>
+                  </td>
+                  <td><span class="badge badge-warm">WARM</span></td>
+                  <td><span class="action-pill">Send WhatsApp demo</span></td>
+                </tr>
+                <tr>
+                  <td style="font-weight:700;color:var(--muted);">#4</td>
+                  <td>
+                    <div style="font-weight:600;font-size:13px;">Tom Breckenridge</div>
+                    <div style="font-size:11px;color:var(--muted);">Website · $2k/mo</div>
+                  </td>
+                  <td>
+                    <div class="score-bar-wrap">
+                      <div class="score-bar"><div class="score-fill low" style="width:28%;"></div></div>
+                      <span class="score-val low">28</span>
+                    </div>
+                  </td>
+                  <td><span class="badge badge-cold">COLD</span></td>
+                  <td><span class="action-pill">Nurture sequence</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div style="background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;">
+            <div style="font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--brand2);margin-bottom:10px;">AI Scoring Rationale</div>
+            <div style="font-size:12px;color:var(--muted);line-height:1.7;">
+              <strong style="color:var(--text);">Rachel Kim (94):</strong> Explicit urgency ("this quarter"), high budget, operational pain clearly defined. 3 FTE displacement makes the ROI case immediate.<br>
+              <strong style="color:var(--text);">Marcus Delgado (88):</strong> Warm referral boosts trust significantly. Multi-location scale signals large contract potential; problem is specific and recurring.<br>
+              <strong style="color:var(--text);">Priya Nair (67):</strong> Real volume problem (200+ leads/mo uncontacted), demo request is a buying signal. Budget is moderate and timeline is not defined yet.<br>
+              <strong style="color:var(--text);">Tom Breckenridge (28):</strong> Vague intent, no defined project, low budget. Add to 60-day nurture sequence.
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer>Built by TRIVOX · AI automation that runs your business</footer>
+
+<script>
+function runDemo() {
+  showState('working');
+  const checks = ['c1','c2','c3','c4'];
+  checks.forEach(id => document.getElementById(id).classList.remove('done'));
+  const delays = [300, 750, 1250, 1700];
+  checks.forEach((id, i) => {
+    setTimeout(() => document.getElementById(id).classList.add('done'), delays[i]);
+  });
+  setTimeout(() => showState('result'), 2200);
+}
+
+function showState(name) {
+  ['empty','working','result'].forEach(s => {
+    document.getElementById('state-' + s).classList.remove('active');
+  });
+  document.getElementById('state-' + name).classList.add('active');
+}
+</script>
+</body>
+</html>

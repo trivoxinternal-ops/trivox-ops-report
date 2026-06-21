@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TRIVOX AI — Product Portfolio (40+ Live Demos)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#070b18; --bg2:#0d1426; --surface:#121b30; --surface2:#16203a; --border:#1e2a44;
+  --text:#eaf0ff; --muted:#8a97b5;
+  --brand:#2e61fe; --brand2:#00f0ff; --grad:linear-gradient(135deg,#2e61fe,#00f0ff);
+  --good:#22c55e; --warn:#fbbf24; --bad:#ef4444;
+  --radius:16px; --shadow:0 10px 40px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1180px;margin:0 auto;padding:0 22px}
+
+/* nav */
+.nav{position:sticky;top:0;z-index:50;background:rgba(7,11,24,.82);backdrop-filter:blur(14px);border-bottom:1px solid var(--border)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:60px}
+.brand{font-weight:800;font-size:20px;letter-spacing:-.02em;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.brand .pill{font-size:10px;font-weight:700;color:var(--brand2);border:1px solid var(--border);border-radius:999px;padding:2px 7px;margin-left:7px;-webkit-text-fill-color:initial;letter-spacing:.06em}
+.navcta{font-size:13px;color:var(--muted)}
+
+/* hero */
+.hero{padding:64px 0 36px;text-align:center}
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--brand2);font-weight:600}
+.hero h1{font-size:clamp(30px,5vw,52px);font-weight:800;letter-spacing:-.03em;margin:14px 0 12px;line-height:1.05}
+.hero h1 span{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--muted);max-width:640px;margin:0 auto;font-size:16px}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;max-width:760px;margin:34px auto 0;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.stat{background:linear-gradient(180deg,var(--surface),var(--bg2));padding:22px 14px;text-align:center}
+.stat .n{font-size:clamp(26px,4vw,38px);font-weight:800;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1}
+.stat .l{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-top:6px}
+
+/* filters */
+.filters{display:flex;flex-wrap:wrap;gap:9px;justify-content:center;margin:40px 0 30px}
+.fbtn{font-size:13px;font-weight:500;color:var(--muted);background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:8px 16px;cursor:pointer;transition:.2s;font-family:inherit}
+.fbtn:hover{color:var(--text);border-color:var(--brand)}
+.fbtn.active{color:#fff;background:var(--grad);border-color:transparent}
+
+/* sections */
+.section{margin:14px 0 40px}
+.section-head{display:flex;align-items:center;gap:14px;margin:0 0 20px}
+.section-head h2{font-size:clamp(20px,3vw,27px);font-weight:700;letter-spacing:-.02em;margin:0}
+.section-head .count{font-size:12px;color:var(--muted)}
+.section-head .rule{flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:18px}
+.card{display:flex;flex-direction:column;gap:9px;padding:22px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);transition:transform .2s,border-color .2s,box-shadow .2s;position:relative;overflow:hidden}
+.card::before{content:"";position:absolute;inset:0;background:var(--grad);opacity:0;transition:.2s;z-index:0}
+.card:hover{transform:translateY(-4px);border-color:var(--brand);box-shadow:var(--shadow)}
+.card>*{position:relative;z-index:1}
+.card .tag{font-size:10px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;color:var(--brand2)}
+.card h3{margin:0;font-size:17px;font-weight:700;letter-spacing:-.01em}
+.card p{margin:0;font-size:13px;color:var(--muted);line-height:1.55}
+.card .go{margin-top:auto;font-size:12.5px;font-weight:600;color:var(--brand2);display:flex;align-items:center;gap:6px}
+.card .go::after{content:"→";transition:.2s}
+.card:hover .go::after{transform:translateX(4px)}
+
+footer{border-top:1px solid var(--border);margin-top:40px;padding:30px 0;text-align:center;color:var(--muted);font-size:13px}
+
+@media(max-width:560px){.stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+
+<nav class="nav"><div class="wrap">
+  <div class="brand">TRIVOX<span class="pill">AI</span></div>
+  <div class="navcta">40+ live demos · AI automation for business</div>
+</div></nav>
+
+<header class="hero"><div class="wrap">
+  <div class="eyebrow">Product Portfolio</div>
+  <h1>Everything we've built,<br><span>running live.</span></h1>
+  <p>40+ interactive demos of AI automations TRIVOX has designed, built and delivered — across sales, marketing, operations and full verticals. Click any demo. It runs.</p>
+  <div class="stats">
+    <div class="stat"><div class="n">42</div><div class="l">Live demos</div></div>
+    <div class="stat"><div class="n">6</div><div class="l">Verticals</div></div>
+    <div class="stat"><div class="n">100%</div><div class="l">Interactive</div></div>
+    <div class="stat"><div class="n">24/7</div><div class="l">Always on</div></div>
+  </div>
+</div></header>
+
+<div class="wrap">
+  <div class="filters" id="filters">
+    <button class="fbtn active" data-f="all">All</button>
+    <button class="fbtn" data-f="sales">Sales & Customer Care</button>
+    <button class="fbtn" data-f="marketing">Marketing & Content</button>
+    <button class="fbtn" data-f="ops">Operations & Finance</button>
+    <button class="fbtn" data-f="auto">Automotive</button>
+    <button class="fbtn" data-f="vertical">Vertical Sites + Agents</button>
+    <button class="fbtn" data-f="construction">Construction</button>
+  </div>
+
+  <!-- SALES -->
+  <section class="section" data-cat="sales">
+    <div class="section-head"><h2>Sales &amp; Customer Care</h2><span class="count">6 demos</span><span class="rule"></span></div>
+    <div class="grid">
+      <a class="card" href="demos/whatsapp-sales-bot/index.html"><span class="tag">AI Sales Agent</span><h3>WhatsApp Sales Agent</h3><p>Replies to inbound WhatsApp leads in seconds, qualifies them, books the appointment.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/instagram-dm-agent/index.html"><span class="tag">AI Sales Agent</span><h3>Instagram DM Agent</h3><p>Auto-answers DMs & comments, sends links, captures and books leads.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/ai-receptionist/index.html"><span class="tag">Voice AI</span><h3>AI Voice Receptionist</h3><p>Answers every call, books into the calendar, never misses after-hours.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/lead-qualifier/index.html"><span class="tag">Lead Routing</span><h3>AI Lead Qualifier</h3><p>Scores and routes every inbound lead automatically, hot leads first.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/ai-closer/index.html"><span class="tag">Follow-up</span><h3>AI Closer</h3><p>Multi-touch follow-up that revives warm leads and handles objections.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/appointment-reminders/index.html"><span class="tag">Retention</span><h3>Appointment Reminder Bot</h3><p>Automated SMS/WhatsApp reminders that cut no-shows by more than half.</p><span class="go">Open demo</span></a>
+    </div>
+  </section>
+
+  <!-- MARKETING -->
+  <section class="section" data-cat="marketing">
+    <div class="section-head"><h2>Marketing &amp; Content</h2><span class="count">7 demos</span><span class="rule"></span></div>
+    <div class="grid">
+      <a class="card" href="demos/marketing-audit/index.html"><span class="tag">Lead Magnet</span><h3>Marketing Audit Tool</h3><p>Scores a business's online presence and shows exactly where it leaks money.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/roi-calculator/index.html"><span class="tag">Sales Tool</span><h3>Automation ROI Calculator</h3><p>Shows a prospect their savings, extra deals, and payback period live.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/seo-agent/index.html"><span class="tag">Content AI</span><h3>SEO Content Agent</h3><p>Turns a keyword into a ranking-ready brief: outline, meta, internal links.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/ads-command-center/index.html"><span class="tag">Paid Media</span><h3>Ads Command Center</h3><p>Meta + Google in one dashboard with AI moves to make today.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/content-engine/index.html"><span class="tag">Content AI</span><h3>Content Engine</h3><p>One idea becomes a full week of multi-platform, post-ready content.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/email-sequence-builder/index.html"><span class="tag">Email</span><h3>Email Sequence Builder</h3><p>Writes a full nurture sequence with subject lines and predicted open rates.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/review-responder/index.html"><span class="tag">Reputation</span><h3>Review Responder</h3><p>Drafts on-brand replies to every Google/Yelp review, matched to sentiment.</p><span class="go">Open demo</span></a>
+    </div>
+  </section>
+
+  <!-- OPS -->
+  <section class="section" data-cat="ops">
+    <div class="section-head"><h2>Operations &amp; Finance</h2><span class="count">8 demos</span><span class="rule"></span></div>
+    <div class="grid">
+      <a class="card" href="demos/quote-generator/index.html"><span class="tag">Sales Ops</span><h3>Quote Generator</h3><p>Builds a professional 3-tier priced quote from a short brief in 60s.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/invoice-generator/index.html"><span class="tag">Finance</span><h3>Invoice Generator</h3><p>Line items to a branded, sent, auto-numbered invoice in 15 seconds.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/client-onboarding/index.html"><span class="tag">Ops</span><h3>Client Onboarding Flow</h3><p>Contract, deposit, welcome and kickoff — a new client live in 4 minutes.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/payroll-generator/index.html"><span class="tag">Finance</span><h3>Payroll & Paystub Generator</h3><p>Hours to a compliant payroll run with per-employee paystubs.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/mini-crm/index.html"><span class="tag">CRM</span><h3>TRIVOX CRM</h3><p>Lightweight CRM that hands you your 5 priority actions every morning.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/approval-os/index.html"><span class="tag">Workflow</span><h3>Approval OS</h3><p>Routes quotes, content and expenses for fast approval with a full audit trail.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/inventory-tracker/index.html"><span class="tag">Retail Ops</span><h3>Smart Inventory Tracker</h3><p>Tracks stock, predicts reorders, flags low items before you run out.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/document-extractor/index.html"><span class="tag">Vertical AI</span><h3>Document Data Extractor</h3><p>Reads messy invoices/receipts/contracts and returns clean structured data.</p><span class="go">Open demo</span></a>
+    </div>
+  </section>
+
+  <!-- AUTO -->
+  <section class="section" data-cat="auto">
+    <div class="section-head"><h2>Automotive</h2><span class="count">3 demos</span><span class="rule"></span></div>
+    <div class="grid">
+      <a class="card" href="demos/car-marketplace/index.html"><span class="tag">Marketplace</span><h3>Car Deals Marketplace</h3><p>Auto-updating used-car marketplace that matches buyers to inventory.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/lead-scraper/index.html"><span class="tag">Lead Gen</span><h3>Dealership Lead Scraper</h3><p>Scrapes marketplaces for sellers & buyers into a scored, ready-to-call list.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/auto-crm/index.html"><span class="tag">CRM</span><h3>Dealership CRM</h3><p>Tracks every lead from first message to sold with AI next steps.</p><span class="go">Open demo</span></a>
+    </div>
+  </section>
+
+  <!-- VERTICAL -->
+  <section class="section" data-cat="vertical">
+    <div class="section-head"><h2>Vertical Sites + Agents</h2><span class="count">6 demos</span><span class="rule"></span></div>
+    <div class="grid">
+      <a class="card" href="demos/clinic-booking/index.html"><span class="tag">Healthcare</span><h3>Clinic Booking Agent</h3><p>Books patients, handles intake and answers FAQs around the clock.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/real-estate-agent/index.html"><span class="tag">Real Estate</span><h3>Real Estate AI Agent</h3><p>Qualifies buyers, matches listings, books showings automatically.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/insurance-agent/index.html"><span class="tag">Insurance</span><h3>Insurance AI Agent</h3><p>Quotes life insurance, explains options, books with a human advisor.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/photographer-booking/index.html"><span class="tag">Creative</span><h3>Photographer Booking Site</h3><p>Quotes packages, checks availability and takes the deposit on booking.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/legal-intake/index.html"><span class="tag">Legal</span><h3>Legal Intake AI</h3><p>Qualifies legal leads, runs conflict checks, books consults 24/7.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/english-tutor/index.html"><span class="tag">Education</span><h3>AI English Tutor</h3><p>Personal tutor that corrects, explains and assigns practice ($199/mo product).</p><span class="go">Open demo</span></a>
+    </div>
+  </section>
+
+  <!-- CONSTRUCTION -->
+  <section class="section" data-cat="construction">
+    <div class="section-head"><h2>Construction</h2><span class="count">12 demos</span><span class="rule"></span></div>
+    <div class="grid">
+      <a class="card" href="demos/bid-analyzer/index.html"><span class="tag">Estimating</span><h3>AI Bid / RFP Analyzer</h3><p>Reads an RFP and surfaces risks, scope gaps and a recommended bid.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/estimate-generator/index.html"><span class="tag">Estimating</span><h3>Estimate Generator</h3><p>Turns a scope into a line-item estimate in minutes.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/takeoff-calculator/index.html"><span class="tag">Estimating</span><h3>Takeoff Calculator</h3><p>Material and labor takeoffs from plan inputs.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/change-order/index.html"><span class="tag">Project Admin</span><h3>Change Order Manager</h3><p>Generates and tracks change orders so revenue isn't lost.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/daily-site-report/index.html"><span class="tag">Field Ops</span><h3>Daily Site Report</h3><p>Field-to-office daily reports with photos, crew and progress.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/employee-cost-calculator/index.html"><span class="tag">Finance</span><h3>Employee Cost Calculator</h3><p>True burdened labor cost per employee, instantly.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/accounting-hub/index.html"><span class="tag">Finance</span><h3>Accounting Hub</h3><p>Job-cost accounting view built for contractors.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/command-center/index.html"><span class="tag">Dashboard</span><h3>Command Center</h3><p>One dashboard for jobs, cash, crew and pipeline.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/growth-system/index.html"><span class="tag">Marketing</span><h3>Growth System</h3><p>Lead-to-job growth engine for contractors.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/report-engine/index.html"><span class="tag">Reporting</span><h3>Report Engine</h3><p>Auto-generated client and internal reports.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/voice-agent/index.html"><span class="tag">Voice AI</span><h3>Voice Agent</h3><p>Answers calls and books jobs for contractors.</p><span class="go">Open demo</span></a>
+      <a class="card" href="demos/campos-contracting-demo/index.html"><span class="tag">Case Study</span><h3>Campos Contracting</h3><p>Full client build — the construction suite in one branded demo.</p><span class="go">Open demo</span></a>
+    </div>
+  </section>
+</div>
+
+<footer>Built by TRIVOX · AI automation that runs your business · <span style="color:var(--brand2)">trivox.ca</span></footer>
+
+<script>
+const btns=document.querySelectorAll('.fbtn'),secs=document.querySelectorAll('.section');
+btns.forEach(b=>b.addEventListener('click',()=>{
+  btns.forEach(x=>x.classList.remove('active'));b.classList.add('active');
+  const f=b.dataset.f;
+  secs.forEach(s=>{s.style.display=(f==='all'||s.dataset.cat===f)?'':'none';});
+}));
+</script>
+</body>
+</html>

@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Email Sequence Builder · TRIVOX Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#070b18;--bg2:#0d1426;--surface:#121b30;--surface2:#16203a;--border:#1e2a44;--text:#eaf0ff;--muted:#8a97b5;--brand:#2e61fe;--brand2:#00f0ff;--grad:linear-gradient(135deg,#2e61fe,#00f0ff);--good:#22c55e;--warn:#fbbf24;--bad:#ef4444;--radius:16px;--shadow:0 10px 40px rgba(0,0,0,.45);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;}
+a{color:inherit;text-decoration:none;}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(7,11,24,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;}
+.nav-brand{font-size:18px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:flex;align-items:center;gap:8px;}
+.nav-brand .ai-pill{font-size:10px;font-weight:600;padding:2px 8px;background:var(--grad);-webkit-text-fill-color:#070b18;border-radius:20px;letter-spacing:.08em;}
+.nav-back{font-size:13px;color:var(--muted);transition:color .2s;}
+.nav-back:hover{color:var(--text);}
+
+/* HERO */
+.hero{padding:64px 32px 48px;max-width:1100px;margin:0 auto;}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--brand2);margin-bottom:16px;}
+h1{font-size:clamp(28px,4vw,40px);font-family:'DM Serif Display',serif;font-weight:400;letter-spacing:-.01em;line-height:1.15;margin-bottom:16px;}
+.subhead{color:var(--muted);font-size:16px;max-width:640px;line-height:1.65;margin-bottom:32px;}
+.stats{display:flex;gap:12px;flex-wrap:wrap;}
+.stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:40px;padding:8px 18px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;}
+.stat-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--grad);flex-shrink:0;}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:1fr 1.6fr;gap:20px;max-width:1100px;margin:0 auto;padding:0 32px 64px;}
+@media(max-width:900px){.grid{grid-template-columns:1fr;}}
+
+/* PANEL */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);}
+.panel-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:20px;}
+
+/* FORM */
+.field-group{margin-bottom:18px;}
+.field-group label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;letter-spacing:.06em;}
+.field-group input,.field-group select,.field-group textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-family:'Sora',sans-serif;font-size:14px;outline:none;transition:border-color .2s;resize:none;}
+.field-group input:focus,.field-group select:focus,.field-group textarea:focus{border-color:var(--brand);}
+.field-group textarea{min-height:72px;line-height:1.55;}
+.field-group select option{background:var(--surface2);}
+
+.btn-grad{width:100%;padding:14px;border:none;border-radius:12px;background:var(--grad);color:#070b18;font-family:'Sora',sans-serif;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:.02em;margin-top:8px;transition:opacity .2s,transform .1s;}
+.btn-grad:hover{opacity:.9;}
+.btn-grad:active{transform:scale(.98);}
+
+/* RIGHT PANEL */
+.right-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);min-height:480px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;}
+
+/* EMPTY STATE */
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:40px;opacity:.5;}
+.empty-icon{width:56px;height:56px;border-radius:50%;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:22px;}
+.empty-state p{font-size:14px;color:var(--muted);text-align:center;}
+
+/* LOADING */
+.loading-state{flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:40px;}
+.orb{width:72px;height:72px;border-radius:50%;background:var(--grad);animation:pulse 1.4s ease-in-out infinite;}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.15);opacity:.7;}}
+.checklist{list-style:none;display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px;}
+.checklist li{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:10px;transition:color .3s;}
+.checklist li.done{color:var(--text);}
+.check-icon{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;transition:background .3s,border-color .3s;}
+.checklist li.done .check-icon{background:var(--good);border-color:var(--good);color:#fff;}
+
+/* RESULT */
+.result-state{flex:1;display:none;flex-direction:column;overflow-y:auto;}
+.result-header{padding:18px 24px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.result-header h3{font-size:14px;font-weight:600;}
+.written-badge{font-size:11px;font-weight:600;padding:4px 12px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);color:var(--good);border-radius:20px;letter-spacing:.04em;}
+
+/* TIMELINE */
+.timeline{padding:20px 24px;display:flex;flex-direction:column;gap:0;position:relative;}
+.timeline::before{content:'';position:absolute;left:36px;top:28px;bottom:28px;width:1px;background:var(--border);}
+
+.email-item{display:grid;grid-template-columns:28px 1fr;gap:16px;align-items:start;padding-bottom:20px;position:relative;}
+.email-item:last-child{padding-bottom:0;}
+
+.day-node{width:28px;height:28px;border-radius:50%;background:var(--surface2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--muted);flex-shrink:0;position:relative;z-index:1;}
+.day-node.active{background:var(--grad);border-color:transparent;color:#070b18;}
+
+.email-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.email-card-head{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;}
+.send-day{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+.open-rate{font-size:11px;font-weight:600;padding:2px 9px;border-radius:10px;background:rgba(46,97,254,.1);border:1px solid rgba(46,97,254,.2);color:var(--brand2);}
+.subject-line{padding:10px 16px 6px;font-size:13px;font-weight:600;color:var(--text);line-height:1.4;}
+.preview-text{padding:0 16px 8px;font-size:11px;color:var(--muted);line-height:1.5;}
+.email-footer{padding:8px 16px 12px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;}
+.cta-pill{font-size:10px;font-weight:600;padding:4px 10px;border-radius:8px;background:var(--grad);color:#070b18;}
+.email-type{font-size:10px;color:var(--muted);font-weight:500;}
+
+/* SUMMARY BAR */
+.summary-bar{margin:0 24px 20px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px 20px;}
+.summary-title{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:12px;}
+.summary-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;}
+.summary-metric{display:flex;flex-direction:column;gap:3px;}
+.summary-metric .sm-label{font-size:10px;color:var(--muted);font-weight:500;}
+.summary-metric .sm-val{font-size:18px;font-weight:700;letter-spacing:-.02em;}
+.sm-val.good{color:var(--good);}
+.sm-val.brand{color:var(--brand2);}
+
+/* FOOTER */
+footer{text-align:center;padding:32px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">TRIVOX <span class="ai-pill">AI</span></div>
+  <a class="nav-back" href="../../portfolio.html">← All Demos</a>
+</nav>
+
+<section class="hero">
+  <div class="eyebrow">Marketing &amp; Sales</div>
+  <h1>Email Sequence Builder</h1>
+  <p class="subhead">Write a full nurture sequence in 30 seconds. Five emails with subject lines, preview text, and CTAs, calibrated to your offer and audience.</p>
+  <div class="stats">
+    <div class="stat-chip"><span class="dot"></span>5-email nurture</div>
+    <div class="stat-chip"><span class="dot"></span>+29% open rate</div>
+    <div class="stat-chip"><span class="dot"></span>Written in 30s</div>
+  </div>
+</section>
+
+<div class="grid">
+  <!-- LEFT -->
+  <div class="panel">
+    <div class="panel-label">Campaign Brief</div>
+
+    <div class="field-group">
+      <label>OFFER / PRODUCT</label>
+      <input type="text" id="offer" value="AI Automation Audit for contractors"/>
+    </div>
+
+    <div class="field-group">
+      <label>TARGET AUDIENCE</label>
+      <textarea id="audience">General contractors and trades business owners who are losing time to manual admin work</textarea>
+    </div>
+
+    <div class="field-group">
+      <label>CAMPAIGN GOAL</label>
+      <select id="goal">
+        <option selected>Book a discovery call</option>
+        <option>Drive purchase</option>
+        <option>Webinar registration</option>
+        <option>Free trial signup</option>
+        <option>Download lead magnet</option>
+      </select>
+    </div>
+
+    <div class="field-group">
+      <label>TONE</label>
+      <select id="tone">
+        <option selected>Expert &amp; Direct</option>
+        <option>Conversational &amp; Warm</option>
+        <option>Urgent &amp; Bold</option>
+        <option>Story-driven</option>
+      </select>
+    </div>
+
+    <div class="field-group">
+      <label>SEQUENCE LENGTH</label>
+      <select id="length">
+        <option>3 emails</option>
+        <option selected>5 emails</option>
+        <option>7 emails</option>
+      </select>
+    </div>
+
+    <button class="btn-grad" onclick="buildSequence()">Build Sequence</button>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right-panel" id="rightPanel">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">✉️</div>
+      <p>Fill in your brief and click<br/><strong>Build Sequence</strong> to generate emails.</p>
+    </div>
+
+    <div class="loading-state" id="loadingState">
+      <div class="orb"></div>
+      <ul class="checklist" id="checklist">
+        <li id="c1"><span class="check-icon"></span>Analyzing offer and audience</li>
+        <li id="c2"><span class="check-icon"></span>Mapping 5-email journey</li>
+        <li id="c3"><span class="check-icon"></span>Writing subject lines</li>
+        <li id="c4"><span class="check-icon"></span>Optimizing open-rate predictions</li>
+      </ul>
+    </div>
+
+    <div class="result-state" id="resultState">
+      <div class="result-header">
+        <h3>5-Email Nurture Sequence</h3>
+        <span class="written-badge">Written in 30s</span>
+      </div>
+
+      <div class="timeline">
+
+        <div class="email-item">
+          <div class="day-node active">D1</div>
+          <div class="email-card">
+            <div class="email-card-head">
+              <span class="send-day">Day 1 · Welcome</span>
+              <span class="open-rate">Est. open: 54%</span>
+            </div>
+            <div class="subject-line">You're losing 10 hours a week. Here's proof.</div>
+            <div class="preview-text">We built a calculator for contractors. Plug in your hours and the number will surprise you. Most operators are shocked when they see it.</div>
+            <div class="email-footer">
+              <span class="cta-pill">See the calculator</span>
+              <span class="email-type">Awareness / Hook</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="email-item">
+          <div class="day-node">D3</div>
+          <div class="email-card">
+            <div class="email-card-head">
+              <span class="send-day">Day 3 · Education</span>
+              <span class="open-rate">Est. open: 41%</span>
+            </div>
+            <div class="subject-line">What a $200K contractor does differently (it's not hustle)</div>
+            <div class="preview-text">Three systems separate the operators at $200K from the ones stuck at $80K. None of them require hiring. All of them can be set up in a weekend.</div>
+            <div class="email-footer">
+              <span class="cta-pill">Read the breakdown</span>
+              <span class="email-type">Value / Education</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="email-item">
+          <div class="day-node">D5</div>
+          <div class="email-card">
+            <div class="email-card-head">
+              <span class="send-day">Day 5 · Social Proof</span>
+              <span class="open-rate">Est. open: 38%</span>
+            </div>
+            <div class="subject-line">Mike went from 14-hour days to 9. Here's the exact setup.</div>
+            <div class="preview-text">Mike runs a 6-person roofing crew in Ontario. Six weeks ago he was doing quotes at 11pm. Now he's coaching his son's hockey team on Fridays.</div>
+            <div class="email-footer">
+              <span class="cta-pill">See Mike's full story</span>
+              <span class="email-type">Social Proof / Case Study</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="email-item">
+          <div class="day-node">D8</div>
+          <div class="email-card">
+            <div class="email-card-head">
+              <span class="send-day">Day 8 · Objection Handling</span>
+              <span class="open-rate">Est. open: 34%</span>
+            </div>
+            <div class="subject-line">"I'm not a tech person." (Neither was Carlos.)</div>
+            <div class="preview-text">The number one reason contractors don't automate is fear of complexity. Carlos thought the same thing. Setup took 47 minutes. We walk you through every step.</div>
+            <div class="email-footer">
+              <span class="cta-pill">Watch the setup walkthrough</span>
+              <span class="email-type">Objection Handling</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="email-item">
+          <div class="day-node">D11</div>
+          <div class="email-card">
+            <div class="email-card-head">
+              <span class="send-day">Day 11 · CTA</span>
+              <span class="open-rate">Est. open: 31%</span>
+            </div>
+            <div class="subject-line">Last call: free audit spots close Friday</div>
+            <div class="preview-text">We're running 8 free AI Automation Audits this month. Six are taken. If you've been thinking about it, now is the time. No pitch, just a map of your biggest time leaks.</div>
+            <div class="email-footer">
+              <span class="cta-pill">Claim your free audit</span>
+              <span class="email-type">Urgency / Close</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="summary-bar">
+        <div class="summary-title">Projected Sequence Performance</div>
+        <div class="summary-metrics">
+          <div class="summary-metric">
+            <span class="sm-label">Avg. Open Rate</span>
+            <span class="sm-val good">39.6%</span>
+          </div>
+          <div class="summary-metric">
+            <span class="sm-label">Est. Click Rate</span>
+            <span class="sm-val brand">11.2%</span>
+          </div>
+          <div class="summary-metric">
+            <span class="sm-label">Est. Conversions</span>
+            <span class="sm-val good">4.1%</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<footer>Built by TRIVOX · AI automation that runs your business</footer>
+
+<script>
+function buildSequence(){
+  const empty=document.getElementById('emptyState');
+  const loading=document.getElementById('loadingState');
+  const result=document.getElementById('resultState');
+
+  empty.style.display='none';
+  result.style.display='none';
+  loading.style.display='flex';
+
+  const items=['c1','c2','c3','c4'];
+  items.forEach(id=>{
+    const li=document.getElementById(id);
+    li.classList.remove('done');
+    li.querySelector('.check-icon').textContent='';
+  });
+
+  let i=0;
+  function tick(){
+    if(i<items.length){
+      const li=document.getElementById(items[i]);
+      li.classList.add('done');
+      li.querySelector('.check-icon').textContent='✓';
+      i++;
+      setTimeout(tick,420);
+    } else {
+      setTimeout(()=>{
+        loading.style.display='none';
+        result.style.display='flex';
+      },300);
+    }
+  }
+  setTimeout(tick,300);
+}
+</script>
+</body>
+</html>

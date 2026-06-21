@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Clinic Booking Agent — TRIVOX Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@700;800&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070b18;--bg2:#0d1426;--surface:#121b30;--surface2:#16203a;--border:#1e2a44;--text:#eaf0ff;--muted:#8a97b5;--brand:#2e61fe;--brand2:#00f0ff;--grad:linear-gradient(135deg,#2e61fe,#00f0ff);--good:#22c55e;--warn:#fbbf24;--bad:#ef4444;--radius:16px;--shadow:0 10px 40px rgba(0,0,0,.45);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;}
+a{text-decoration:none;color:inherit;}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(7,11,24,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;}
+.nav-brand{font-size:18px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:flex;align-items:center;gap:8px;}
+.nav-brand .ai-pill{background:var(--grad);-webkit-background-clip:unset;-webkit-text-fill-color:var(--bg);background-clip:unset;color:var(--bg);font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.06em;}
+.nav-back{font-size:13px;color:var(--muted);transition:color .2s;}
+.nav-back:hover{color:var(--text);}
+
+/* HERO */
+.hero{padding:72px 32px 56px;max-width:1100px;margin:0 auto;}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--brand2);margin-bottom:16px;font-family:'DM Sans',sans-serif;}
+h1{font-size:clamp(28px,4vw,40px);font-weight:800;letter-spacing:-.02em;line-height:1.15;margin-bottom:16px;font-family:'DM Sans',sans-serif;}
+h1 span{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{font-size:16px;color:var(--muted);line-height:1.65;max-width:640px;margin-bottom:36px;}
+.stats{display:flex;flex-wrap:wrap;gap:12px;}
+.stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:40px;padding:8px 18px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px;}
+.stat-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--grad);}
+
+/* GRID */
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:1100px;margin:0 auto;padding:0 32px 80px;}
+@media(max-width:900px){.demo-grid{grid-template-columns:1fr;}}
+
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);}
+.panel-label{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:20px;}
+
+/* LEFT PANEL */
+.field-group{margin-bottom:18px;}
+.field-label{font-size:12px;font-weight:500;color:var(--muted);margin-bottom:6px;}
+textarea,input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-family:'Sora',sans-serif;font-size:14px;resize:vertical;outline:none;transition:border-color .2s;}
+textarea:focus,input:focus{border-color:var(--brand);}
+textarea{min-height:120px;}
+.meta-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.btn{width:100%;padding:14px;background:var(--grad);border:none;border-radius:10px;color:#fff;font-family:'Sora',sans-serif;font-size:14px;font-weight:600;cursor:pointer;letter-spacing:.02em;transition:opacity .2s;margin-top:6px;}
+.btn:hover{opacity:.88;}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+
+/* RIGHT PANEL */
+.right-panel{min-height:480px;display:flex;flex-direction:column;}
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--muted);}
+.empty-icon{width:48px;height:48px;border-radius:50%;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;}
+
+/* ORB / LOADING */
+.loading-state{flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;gap:24px;}
+.orb{width:64px;height:64px;border-radius:50%;background:var(--grad);animation:pulse 1.2s ease-in-out infinite;box-shadow:0 0 32px rgba(46,97,254,.5);}
+@keyframes pulse{0%,100%{transform:scale(.9);opacity:.7;}50%{transform:scale(1.05);opacity:1;}}
+.checklist{list-style:none;display:flex;flex-direction:column;gap:8px;min-width:220px;}
+.checklist li{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px;transition:color .3s;}
+.checklist li.done{color:var(--text);}
+.check-icon{width:18px;height:18px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;transition:background .3s,border-color .3s;}
+.checklist li.done .check-icon{background:var(--good);border-color:var(--good);}
+
+/* RESULT */
+.result-state{display:none;flex-direction:column;gap:16px;}
+.ai-reply{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:18px;}
+.ai-reply-header{font-size:11px;font-weight:600;color:var(--brand2);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.ai-reply p{font-size:14px;color:var(--text);line-height:1.65;}
+.badge-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;}
+.badge{font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;}
+.badge-green{background:rgba(34,197,94,.12);color:var(--good);border:1px solid rgba(34,197,94,.25);}
+.badge-blue{background:rgba(46,97,254,.12);color:#7aa3ff;border:1px solid rgba(46,97,254,.25);}
+.badge-cyan{background:rgba(0,240,255,.1);color:var(--brand2);border:1px solid rgba(0,240,255,.2);}
+.appt-card{background:var(--surface2);border:1px solid rgba(34,197,94,.25);border-radius:12px;padding:16px;}
+.appt-card-title{font-size:12px;font-weight:600;color:var(--good);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.appt-rows{display:flex;flex-direction:column;gap:6px;}
+.appt-row{display:flex;justify-content:space-between;font-size:13px;}
+.appt-row span:first-child{color:var(--muted);}
+.appt-row span:last-child{font-weight:500;}
+.intake-note{background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.2);border-radius:10px;padding:12px 14px;font-size:13px;color:var(--warn);display:flex;align-items:center;gap:8px;}
+.patient-card{background:linear-gradient(135deg,rgba(46,97,254,.1),rgba(0,240,255,.06));border:1px solid rgba(46,97,254,.3);border-radius:12px;padding:16px;}
+.patient-card-title{font-size:11px;font-weight:600;color:var(--brand2);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;}
+.patient-rows{display:flex;flex-direction:column;gap:5px;}
+
+/* FOOTER */
+footer{text-align:center;padding:28px;font-size:13px;color:var(--muted);border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">TRIVOX <span class="ai-pill">AI</span></div>
+  <a class="nav-back" href="../../portfolio.html">← All Demos</a>
+</nav>
+
+<div class="hero">
+  <div class="eyebrow">Healthcare · Professional Services</div>
+  <h1>Clinic Booking <span>Agent</span></h1>
+  <p class="hero-sub">A psychology clinic assistant that responds to patient inquiries 24/7, answers service and fee questions, and books appointments. All in a single conversation.</p>
+  <div class="stats">
+    <div class="stat-chip"><span class="dot"></span>0 missed inquiries</div>
+    <div class="stat-chip"><span class="dot"></span>Booked in 1 chat</div>
+    <div class="stat-chip"><span class="dot"></span>After-hours intake</div>
+  </div>
+</div>
+
+<div class="demo-grid">
+  <!-- LEFT -->
+  <div class="panel">
+    <div class="panel-label">Patient Inquiry</div>
+    <div class="field-group">
+      <div class="field-label">Patient message</div>
+      <textarea id="patient-msg">Hi, do you offer anxiety therapy? And what does it cost? I'd like to book something this week if possible.</textarea>
+    </div>
+    <div class="meta-row">
+      <div class="field-group">
+        <div class="field-label">Patient name</div>
+        <input id="patient-name" type="text" value="Sarah M.">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Contact</div>
+        <input id="patient-contact" type="text" value="sarah@email.com">
+      </div>
+    </div>
+    <div class="field-group">
+      <div class="field-label">Preferred day</div>
+      <input id="patient-day" type="text" value="Thursday or Friday afternoon">
+    </div>
+    <button class="btn" id="run-btn" onclick="runDemo()">Respond &amp; Book</button>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="panel right-panel" id="right-panel">
+    <div class="empty-state" id="empty-state">
+      <div class="empty-icon">💬</div>
+      <span style="font-size:14px;">Agent response will appear here</span>
+    </div>
+
+    <div class="loading-state" id="loading-state">
+      <div class="orb"></div>
+      <ul class="checklist" id="checklist">
+        <li id="step1"><span class="check-icon"></span>Reading patient message</li>
+        <li id="step2"><span class="check-icon"></span>Matching services + fees</li>
+        <li id="step3"><span class="check-icon"></span>Checking availability</li>
+        <li id="step4"><span class="check-icon"></span>Booking appointment</li>
+        <li id="step5"><span class="check-icon"></span>Sending intake form</li>
+      </ul>
+    </div>
+
+    <div class="result-state" id="result-state">
+      <div class="panel-label">AI Agent Output</div>
+
+      <div class="ai-reply">
+        <div class="ai-reply-header">🤖 Agent Reply · sent to patient</div>
+        <p>Hi Sarah! Yes, we absolutely offer anxiety therapy. It's one of our most requested services. Our sessions are led by Dr. Elena Voss (Registered Psychologist, CPsych) and are available in-person and via secure video.<br><br>
+        <strong>Session fees:</strong> $175 / 50 min. Many extended health plans cover 80–100%. We also offer a free 15-min discovery call if you'd like to chat first.<br><br>
+        I see you're hoping for Thursday or Friday afternoon. I have a slot open on <strong>Friday, June 27 at 2:00 PM</strong>. Shall I hold that for you? I'll also send over a short intake form so Dr. Voss can prepare.</p>
+        <div class="badge-row">
+          <span class="badge badge-green">Anxiety Therapy: matched</span>
+          <span class="badge badge-blue">$175 / session</span>
+          <span class="badge badge-cyan">Video + In-Person</span>
+        </div>
+      </div>
+
+      <div class="appt-card">
+        <div class="appt-card-title">✓ Appointment Booked</div>
+        <div class="appt-rows">
+          <div class="appt-row"><span>Patient</span><span>Sarah M.</span></div>
+          <div class="appt-row"><span>Service</span><span>Anxiety Therapy: Initial Session</span></div>
+          <div class="appt-row"><span>Clinician</span><span>Dr. Elena Voss, CPsych</span></div>
+          <div class="appt-row"><span>Date &amp; Time</span><span>Fri Jun 27 · 2:00 PM</span></div>
+          <div class="appt-row"><span>Format</span><span>Secure Video (Zoom)</span></div>
+          <div class="appt-row"><span>Fee</span><span>$175 · Insurance eligible</span></div>
+        </div>
+      </div>
+
+      <div class="intake-note">
+        <span>📋</span> Intake form sent to sarah@email.com. Covers history, goals, and insurance details. Reminder scheduled 24h before session.
+      </div>
+
+      <div class="patient-card">
+        <div class="patient-card-title">Captured Patient Record</div>
+        <div class="patient-rows">
+          <div class="appt-row"><span>Name</span><span>Sarah M.</span></div>
+          <div class="appt-row"><span>Contact</span><span>sarah@email.com</span></div>
+          <div class="appt-row"><span>Concern</span><span>Anxiety</span></div>
+          <div class="appt-row"><span>Source</span><span>Website chat</span></div>
+          <div class="appt-row"><span>Status</span><span style="color:var(--good);font-weight:600;">Booked</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>Built by TRIVOX · AI automation that runs your business</footer>
+
+<script>
+function runDemo(){
+  const btn=document.getElementById('run-btn');
+  btn.disabled=true;
+  document.getElementById('empty-state').style.display='none';
+  document.getElementById('loading-state').style.display='flex';
+  document.getElementById('result-state').style.display='none';
+
+  const steps=['step1','step2','step3','step4','step5'];
+  const delays=[350,750,1100,1450,1750];
+  steps.forEach((id,i)=>{
+    setTimeout(()=>{
+      const el=document.getElementById(id);
+      el.classList.add('done');
+      el.querySelector('.check-icon').textContent='✓';
+    },delays[i]);
+  });
+
+  setTimeout(()=>{
+    document.getElementById('loading-state').style.display='none';
+    const rs=document.getElementById('result-state');
+    rs.style.display='flex';
+    btn.disabled=false;
+    btn.textContent='Run Again';
+  },2100);
+}
+</script>
+</body>
+</html>

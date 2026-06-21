@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Automation ROI Calculator — TRIVOX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070b18;--bg2:#0d1426;--surface:#121b30;--surface2:#16203a;--border:#1e2a44;--text:#eaf0ff;--muted:#8a97b5;--brand:#2e61fe;--brand2:#00f0ff;--grad:linear-gradient(135deg,#2e61fe,#00f0ff);--good:#22c55e;--warn:#fbbf24;--bad:#ef4444;--radius:16px;--shadow:0 10px 40px rgba(0,0,0,.45);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(7,11,24,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;}
+.nav-brand{display:flex;align-items:center;gap:10px;}
+.nav-logo{font-size:20px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-.02em;}
+.nav-pill{background:var(--grad);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:.08em;}
+.nav-back{color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;transition:color .2s;}
+.nav-back:hover{color:var(--text);}
+
+/* HERO */
+.hero{text-align:center;padding:80px 24px 60px;max-width:800px;margin:0 auto;}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--brand2);margin-bottom:16px;}
+h1{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.02em;line-height:1.15;margin-bottom:16px;}
+h1 span{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{color:var(--muted);font-size:16px;line-height:1.6;max-width:640px;margin:0 auto 40px;}
+.stats{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;}
+.stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 24px;text-align:center;min-width:140px;}
+.stat-num{font-size:22px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:block;margin-bottom:4px;}
+.stat-label{font-size:12px;color:var(--muted);font-weight:500;}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:1100px;margin:0 auto;padding:0 24px 80px;}
+@media(max-width:900px){.grid{grid-template-columns:1fr;}}
+
+/* PANELS */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);}
+.panel-title{font-size:13px;font-weight:600;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:24px;}
+.right-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);min-height:480px;padding:28px;box-shadow:var(--shadow);display:flex;flex-direction:column;}
+
+/* FORM */
+.field{margin-bottom:22px;}
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:10px;}
+.slider-row{display:flex;align-items:center;gap:12px;}
+input[type=range]{flex:1;-webkit-appearance:none;appearance:none;height:5px;border-radius:3px;background:var(--border);outline:none;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;background:var(--grad);background:linear-gradient(135deg,#2e61fe,#00f0ff);cursor:pointer;border:2px solid var(--bg);}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#2e61fe,#00f0ff);cursor:pointer;border:2px solid var(--bg);}
+.slider-val{font-size:14px;font-weight:700;color:var(--text);min-width:64px;text-align:right;}
+input[type=number]{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Sora',sans-serif;font-size:14px;padding:11px 16px;outline:none;transition:border-color .2s;}
+input[type=number]:focus{border-color:var(--brand);}
+.btn{width:100%;background:var(--grad);border:none;border-radius:10px;color:#fff;font-family:'Sora',sans-serif;font-size:14px;font-weight:600;padding:14px;cursor:pointer;letter-spacing:.02em;transition:opacity .2s,transform .1s;margin-top:4px;}
+.btn:hover{opacity:.9;}
+.btn:active{transform:scale(.99);}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+
+/* EMPTY */
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);gap:12px;}
+.empty-icon{width:48px;height:48px;border-radius:50%;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;}
+.empty-state p{font-size:13px;text-align:center;max-width:200px;line-height:1.5;}
+
+/* WORKING */
+.working-state{flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;gap:24px;}
+.orb{width:64px;height:64px;border-radius:50%;background:var(--grad);animation:pulse 1.4s ease-in-out infinite;box-shadow:0 0 30px rgba(46,97,254,.4);}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.12);opacity:.7;}}
+.checklist{list-style:none;width:100%;max-width:260px;}
+.checklist li{font-size:13px;color:var(--muted);padding:6px 0;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);}
+.checklist li:last-child{border-bottom:none;}
+.check-dot{width:8px;height:8px;border-radius:50%;background:var(--border);flex-shrink:0;transition:background .3s;}
+.check-dot.done{background:var(--good);}
+
+/* RESULT */
+.result-state{display:none;flex-direction:column;gap:14px;}
+.result-state.show{display:flex;}
+
+/* VERDICT */
+.verdict-box{background:linear-gradient(135deg,rgba(46,97,254,.12),rgba(0,240,255,.08));border:1px solid rgba(46,97,254,.35);border-radius:14px;padding:20px;text-align:center;}
+.verdict-label{font-size:11px;font-weight:600;color:var(--brand2);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;}
+.verdict-main{font-size:22px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2;margin-bottom:6px;}
+.verdict-sub{font-size:12px;color:var(--muted);}
+
+/* METRIC CARDS */
+.metrics-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.metric-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+.metric-val{font-size:20px;font-weight:700;margin-bottom:3px;}
+.metric-key{font-size:11px;color:var(--muted);font-weight:500;}
+
+/* CUMULATIVE */
+.brief-section{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.brief-label{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px;}
+.bar-chart{display:flex;flex-direction:column;gap:6px;}
+.bar-row{display:grid;grid-template-columns:40px 1fr 72px;align-items:center;gap:8px;}
+.bar-mo{font-size:11px;color:var(--muted);}
+.bar-wrap{height:8px;background:var(--border);border-radius:4px;overflow:hidden;}
+.bar-fill{height:100%;border-radius:4px;background:var(--grad);transform:scaleX(0);transform-origin:left;transition:transform .6s ease;}
+.bar-amt{font-size:11px;font-weight:600;color:var(--brand2);text-align:right;}
+
+/* PAYBACK */
+.payback-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);}
+.payback-row:last-child{border-bottom:none;}
+.payback-key{font-size:12px;color:var(--muted);}
+.payback-val{font-size:13px;font-weight:600;color:var(--text);}
+
+/* FOOTER */
+footer{text-align:center;padding:32px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);}
+footer span{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:600;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <span class="nav-logo">TRIVOX</span>
+    <span class="nav-pill">AI</span>
+  </div>
+  <a class="nav-back" href="../../portfolio.html">&#8592; All Demos</a>
+</nav>
+
+<section class="hero">
+  <div class="eyebrow">Marketing &amp; Sales</div>
+  <h1>See exactly how much <span>automation saves you</span><br>in real dollars</h1>
+  <p class="hero-sub">Plug in your numbers. Get a live ROI dashboard — money recovered, hours saved, extra deals closed, and your 12-month cumulative return.</p>
+  <div class="stats">
+    <div class="stat-chip"><span class="stat-num">8.4x</span><span class="stat-label">Avg 8.4x ROI</span></div>
+    <div class="stat-chip"><span class="stat-num">Live</span><span class="stat-label">Live numbers</span></div>
+    <div class="stat-chip"><span class="stat-num">Pitch</span><span class="stat-label">Built for the pitch</span></div>
+  </div>
+</section>
+
+<div class="grid">
+  <!-- LEFT -->
+  <div class="panel">
+    <div class="panel-title">Your Numbers</div>
+
+    <div class="field">
+      <label>Leads per month</label>
+      <div class="slider-row">
+        <input type="range" id="leads" min="10" max="500" step="5" value="80" oninput="syncSlider('leads','leadsVal',v=>v)">
+        <span class="slider-val" id="leadsVal">80</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Average deal value ($)</label>
+      <div class="slider-row">
+        <input type="range" id="deal" min="200" max="20000" step="100" value="2400" oninput="syncSlider('deal','dealVal',v=>'$'+Number(v).toLocaleString())">
+        <span class="slider-val" id="dealVal">$2,400</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Admin hours per week</label>
+      <div class="slider-row">
+        <input type="range" id="hours" min="2" max="60" step="1" value="18" oninput="syncSlider('hours','hoursVal',v=>v+'h')">
+        <span class="slider-val" id="hoursVal">18h</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Your hourly cost ($/hr)</label>
+      <div class="slider-row">
+        <input type="range" id="rate" min="20" max="300" step="5" value="65" oninput="syncSlider('rate','rateVal',v=>'$'+v)">
+        <span class="slider-val" id="rateVal">$65</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Current lead-to-close rate (%)</label>
+      <div class="slider-row">
+        <input type="range" id="close" min="1" max="60" step="1" value="12" oninput="syncSlider('close','closeVal',v=>v+'%')">
+        <span class="slider-val" id="closeVal">12%</span>
+      </div>
+    </div>
+
+    <button class="btn" id="calcBtn" onclick="runCalc()">Calculate ROI</button>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right-panel" id="rightPanel">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">&#128200;</div>
+      <p>Adjust your numbers and calculate your automation ROI</p>
+    </div>
+    <div class="working-state" id="workingState">
+      <div class="orb"></div>
+      <ul class="checklist">
+        <li><span class="check-dot" id="c1"></span> Modelling lead conversion lift</li>
+        <li><span class="check-dot" id="c2"></span> Calculating hours recovered</li>
+        <li><span class="check-dot" id="c3"></span> Projecting deal pipeline</li>
+        <li><span class="check-dot" id="c4"></span> Computing payback period</li>
+        <li><span class="check-dot" id="c5"></span> Building 12-month forecast</li>
+      </ul>
+    </div>
+    <div class="result-state" id="resultState"></div>
+  </div>
+</div>
+
+<footer>Built by <span>TRIVOX</span> &middot; AI automation that runs your business</footer>
+
+<script>
+function syncSlider(id, valId, fmt) {
+  const v = document.getElementById(id).value;
+  document.getElementById(valId).textContent = fmt(v);
+}
+
+function fmt$(n) {
+  return '$' + Math.round(n).toLocaleString();
+}
+
+function calcROI() {
+  const leads    = +document.getElementById('leads').value;
+  const deal     = +document.getElementById('deal').value;
+  const hours    = +document.getElementById('hours').value;
+  const rate     = +document.getElementById('rate').value;
+  const closePct = +document.getElementById('close').value / 100;
+
+  // Automation assumptions: 22% close rate lift, 70% of admin hours recovered
+  const closeLifted     = Math.min(closePct * 1.22, 0.9);
+  const extraDeals      = (closeLifted - closePct) * leads;
+  const extraRevMo      = extraDeals * deal;
+  const hoursSavedMo    = hours * 4.33 * 0.70;   // weeks/mo × 70% recovered
+  const dollarsSavedMo  = hoursSavedMo * rate;
+  const totalMo         = extraRevMo + dollarsSavedMo;
+  const totalYr         = totalMo * 12;
+  const trivoxCost      = 1497; // typical TRIVOX automation retainer
+  const roi             = totalMo / trivoxCost;
+  const paybackDays     = Math.round((trivoxCost / totalMo) * 30);
+
+  // 12-month cumulative (with modest ramp: mo 1-2 at 60%, 3-4 at 80%, 5+ at 100%)
+  const ramp = [.6,.6,.8,.8,1,1,1,1,1,1,1,1];
+  const cumulative = ramp.map((r, i) => ({
+    mo: `Mo ${i+1}`,
+    val: Math.round(totalMo * r),
+    cum: Math.round(ramp.slice(0,i+1).reduce((s,x) => s + totalMo*x, 0)),
+  }));
+  const maxCum = cumulative[11].cum;
+
+  return { extraDeals, extraRevMo, hoursSavedMo, dollarsSavedMo, totalMo, totalYr, roi, paybackDays, cumulative, maxCum, trivoxCost };
+}
+
+let barTargets = [];
+
+function buildResult(r) {
+  barTargets = r.cumulative.map(c => c.cum / r.maxCum);
+
+  const roiLabel = r.roi >= 6 ? `You'd ${Math.round(r.roi)}x your investment` : `${Math.round(r.roi * 10) / 10}x return on investment`;
+
+  const barsHTML = r.cumulative.map((c, i) =>
+    `<div class="bar-row">
+      <span class="bar-mo">${c.mo}</span>
+      <div class="bar-wrap"><div class="bar-fill" id="bf${i}"></div></div>
+      <span class="bar-amt">${fmt$(c.cum)}</span>
+    </div>`
+  ).join('');
+
+  return `
+    <div class="panel-title">ROI Dashboard</div>
+
+    <div class="verdict-box">
+      <div class="verdict-label">Bottom Line</div>
+      <div class="verdict-main">${roiLabel}</div>
+      <div class="verdict-sub">Based on your inputs vs. TRIVOX automation retainer (${fmt$(r.trivoxCost)}/mo)</div>
+    </div>
+
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-val" style="color:var(--good);">${fmt$(r.totalMo)}/mo</div>
+        <div class="metric-key">Monthly value recovered</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val" style="color:var(--brand2);">${Math.round(r.hoursSavedMo)}h/mo</div>
+        <div class="metric-key">Admin hours freed</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val" style="color:var(--warn);">+${Math.round(r.extraDeals * 10) / 10}</div>
+        <div class="metric-key">Extra deals/mo closed</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-val" style="color:var(--text);">${r.paybackDays}d</div>
+        <div class="metric-key">Payback period</div>
+      </div>
+    </div>
+
+    <div class="brief-section">
+      <div class="brief-label">12-Month Cumulative Savings</div>
+      <div class="bar-chart">${barsHTML}</div>
+    </div>
+
+    <div class="brief-section">
+      <div class="brief-label">Breakdown</div>
+      <div class="payback-row"><span class="payback-key">Extra revenue from conversion lift</span><span class="payback-val" style="color:var(--good);">${fmt$(r.extraRevMo)}/mo</span></div>
+      <div class="payback-row"><span class="payback-key">Admin time recovered (70%)</span><span class="payback-val" style="color:var(--brand2);">${fmt$(r.dollarsSavedMo)}/mo</span></div>
+      <div class="payback-row"><span class="payback-key">12-month total value</span><span class="payback-val">${fmt$(r.totalYr)}</span></div>
+      <div class="payback-row"><span class="payback-key">TRIVOX automation cost</span><span class="payback-val">${fmt$(r.trivoxCost * 12)}/yr</span></div>
+    </div>
+  `;
+}
+
+function runCalc() {
+  const btn = document.getElementById('calcBtn');
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('workingState').style.display = 'flex';
+  document.getElementById('resultState').style.display = 'none';
+  document.getElementById('resultState').classList.remove('show');
+  btn.disabled = true;
+
+  const dots = ['c1','c2','c3','c4','c5'];
+  dots.forEach(id => document.getElementById(id).classList.remove('done'));
+
+  let step = 0;
+  const interval = setInterval(() => {
+    if (step < dots.length) {
+      document.getElementById(dots[step]).classList.add('done');
+      step++;
+    } else {
+      clearInterval(interval);
+    }
+  }, 340);
+
+  setTimeout(() => {
+    const result = calcROI();
+    document.getElementById('workingState').style.display = 'none';
+    const rs = document.getElementById('resultState');
+    rs.innerHTML = buildResult(result);
+    rs.style.display = 'flex';
+    rs.classList.add('show');
+    btn.disabled = false;
+
+    setTimeout(() => {
+      barTargets.forEach((val, i) => {
+        const bar = document.getElementById('bf' + i);
+        if (bar) bar.style.transform = `scaleX(${val})`;
+      });
+    }, 80);
+  }, 1800);
+}
+</script>
+</body>
+</html>

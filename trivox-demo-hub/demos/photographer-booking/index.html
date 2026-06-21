@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Photographer Booking Site — TRIVOX Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@700;800&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070b18;--bg2:#0d1426;--surface:#121b30;--surface2:#16203a;--border:#1e2a44;--text:#eaf0ff;--muted:#8a97b5;--brand:#2e61fe;--brand2:#00f0ff;--grad:linear-gradient(135deg,#2e61fe,#00f0ff);--good:#22c55e;--warn:#fbbf24;--bad:#ef4444;--radius:16px;--shadow:0 10px 40px rgba(0,0,0,.45);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;}
+a{text-decoration:none;color:inherit;}
+
+nav{position:sticky;top:0;z-index:100;background:rgba(7,11,24,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;}
+.nav-brand{font-size:18px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:flex;align-items:center;gap:8px;}
+.nav-brand .ai-pill{background:var(--grad);-webkit-background-clip:unset;-webkit-text-fill-color:var(--bg);background-clip:unset;color:var(--bg);font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.06em;}
+.nav-back{font-size:13px;color:var(--muted);transition:color .2s;}
+.nav-back:hover{color:var(--text);}
+
+.hero{padding:72px 32px 56px;max-width:1100px;margin:0 auto;}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--brand2);margin-bottom:16px;font-family:'DM Sans',sans-serif;}
+h1{font-size:clamp(28px,4vw,40px);font-weight:800;letter-spacing:-.02em;line-height:1.15;margin-bottom:16px;font-family:'DM Sans',sans-serif;}
+h1 span{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{font-size:16px;color:var(--muted);line-height:1.65;max-width:640px;margin-bottom:36px;}
+.stats{display:flex;flex-wrap:wrap;gap:12px;}
+.stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:40px;padding:8px 18px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px;}
+.stat-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--grad);}
+
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:1100px;margin:0 auto;padding:0 32px 80px;}
+@media(max-width:900px){.demo-grid{grid-template-columns:1fr;}}
+
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);}
+.panel-label{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:20px;}
+
+.field-group{margin-bottom:18px;}
+.field-label{font-size:12px;font-weight:500;color:var(--muted);margin-bottom:6px;}
+textarea,input,select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-family:'Sora',sans-serif;font-size:14px;resize:vertical;outline:none;transition:border-color .2s;appearance:none;}
+textarea:focus,input:focus,select:focus{border-color:var(--brand);}
+select option{background:var(--surface2);}
+.meta-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.btn{width:100%;padding:14px;background:var(--grad);border:none;border-radius:10px;color:#fff;font-family:'Sora',sans-serif;font-size:14px;font-weight:600;cursor:pointer;letter-spacing:.02em;transition:opacity .2s;margin-top:6px;}
+.btn:hover{opacity:.88;}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+
+.right-panel{min-height:480px;display:flex;flex-direction:column;}
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--muted);}
+.empty-icon{width:48px;height:48px;border-radius:50%;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;}
+
+.loading-state{flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;gap:24px;}
+.orb{width:64px;height:64px;border-radius:50%;background:var(--grad);animation:pulse 1.2s ease-in-out infinite;box-shadow:0 0 32px rgba(46,97,254,.5);}
+@keyframes pulse{0%,100%{transform:scale(.9);opacity:.7;}50%{transform:scale(1.05);opacity:1;}}
+.checklist{list-style:none;display:flex;flex-direction:column;gap:8px;min-width:240px;}
+.checklist li{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px;transition:color .3s;}
+.checklist li.done{color:var(--text);}
+.check-icon{width:18px;height:18px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;transition:background .3s,border-color .3s;}
+.checklist li.done .check-icon{background:var(--good);border-color:var(--good);}
+
+.result-state{display:none;flex-direction:column;gap:16px;}
+.packages-grid{display:flex;flex-direction:column;gap:10px;}
+.pkg-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;position:relative;}
+.pkg-card.recommended{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand);}
+.rec-badge{position:absolute;top:-10px;right:14px;background:var(--grad);color:#fff;font-size:10px;font-weight:700;padding:2px 10px;border-radius:20px;letter-spacing:.06em;}
+.pkg-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.pkg-name{font-size:14px;font-weight:600;}
+.pkg-price{font-size:18px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.pkg-meta{font-size:12px;color:var(--muted);margin-bottom:8px;}
+.pkg-delivers{display:flex;flex-wrap:wrap;gap:6px;}
+.deliver-tag{font-size:11px;background:rgba(46,97,254,.1);border:1px solid rgba(46,97,254,.2);color:#7aa3ff;padding:2px 8px;border-radius:12px;}
+
+.avail-bar{background:var(--surface2);border:1px solid rgba(34,197,94,.25);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;}
+.avail-dot{width:10px;height:10px;border-radius:50%;background:var(--good);flex-shrink:0;box-shadow:0 0 8px rgba(34,197,94,.6);}
+.avail-text{font-size:13px;line-height:1.5;}
+.avail-text strong{color:var(--good);}
+
+.cta-card{background:linear-gradient(135deg,rgba(46,97,254,.15),rgba(0,240,255,.08));border:1px solid rgba(46,97,254,.35);border-radius:12px;padding:16px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+.cta-text{font-size:14px;line-height:1.5;}
+.cta-text span{color:var(--warn);font-weight:600;}
+.cta-btn{background:var(--grad);border:none;border-radius:8px;color:#fff;font-family:'Sora',sans-serif;font-size:13px;font-weight:600;padding:10px 20px;cursor:pointer;white-space:nowrap;}
+
+.lead-card{background:linear-gradient(135deg,rgba(46,97,254,.1),rgba(0,240,255,.06));border:1px solid rgba(46,97,254,.3);border-radius:12px;padding:16px;}
+.lead-card-title{font-size:11px;font-weight:600;color:var(--brand2);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;}
+.data-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;}
+.data-row span:first-child{color:var(--muted);}
+.data-row span:last-child{font-weight:500;}
+
+footer{text-align:center;padding:28px;font-size:13px;color:var(--muted);border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">TRIVOX <span class="ai-pill">AI</span></div>
+  <a class="nav-back" href="../../portfolio.html">← All Demos</a>
+</nav>
+
+<div class="hero">
+  <div class="eyebrow">Creative · Professional Services</div>
+  <h1>Photographer <span>Booking Site</span></h1>
+  <p class="hero-sub">A smart booking site for photographers that instantly quotes packages based on event type and hours, checks availability, and collects a deposit to lock the date.</p>
+  <div class="stats">
+    <div class="stat-chip"><span class="dot"></span>Instant quotes</div>
+    <div class="stat-chip"><span class="dot"></span>+45% bookings</div>
+    <div class="stat-chip"><span class="dot"></span>Deposit on booking</div>
+  </div>
+</div>
+
+<div class="demo-grid">
+  <!-- LEFT -->
+  <div class="panel">
+    <div class="panel-label">Client Inquiry</div>
+    <div class="field-group">
+      <div class="field-label">Event type</div>
+      <select id="event-type">
+        <option value="wedding" selected>Wedding</option>
+        <option value="engagement">Engagement</option>
+        <option value="corporate">Corporate Event</option>
+        <option value="portrait">Portrait Session</option>
+      </select>
+    </div>
+    <div class="meta-row">
+      <div class="field-group">
+        <div class="field-label">Event date</div>
+        <input id="event-date" type="text" value="Aug 16, 2026">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Coverage hours</div>
+        <input id="event-hours" type="text" value="8 hours">
+      </div>
+    </div>
+    <div class="meta-row">
+      <div class="field-group">
+        <div class="field-label">Client name</div>
+        <input id="client-name" type="text" value="Jamie &amp; Alex">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Contact</div>
+        <input id="client-contact" type="text" value="jamie@email.com">
+      </div>
+    </div>
+    <div class="field-group">
+      <div class="field-label">Additional notes</div>
+      <textarea id="client-notes" style="min-height:70px;">We need a second shooter for the ceremony and a getting-ready session in the morning.</textarea>
+    </div>
+    <button class="btn" id="run-btn" onclick="runDemo()">Quote &amp; Book</button>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="panel right-panel" id="right-panel">
+    <div class="empty-state" id="empty-state">
+      <div class="empty-icon">📷</div>
+      <span style="font-size:14px;">Packages and availability will appear here</span>
+    </div>
+
+    <div class="loading-state" id="loading-state">
+      <div class="orb"></div>
+      <ul class="checklist">
+        <li id="step1"><span class="check-icon"></span>Reading inquiry details</li>
+        <li id="step2"><span class="check-icon"></span>Generating package options</li>
+        <li id="step3"><span class="check-icon"></span>Checking Aug 16 availability</li>
+        <li id="step4"><span class="check-icon"></span>Selecting recommended package</li>
+        <li id="step5"><span class="check-icon"></span>Preparing deposit link</li>
+      </ul>
+    </div>
+
+    <div class="result-state" id="result-state">
+      <div class="panel-label">Packages for Your Wedding</div>
+
+      <div class="packages-grid">
+        <div class="pkg-card">
+          <div class="pkg-top">
+            <div class="pkg-name">Essential</div>
+            <div class="pkg-price">$2,400</div>
+          </div>
+          <div class="pkg-meta">6 hours coverage · 1 photographer · online gallery</div>
+          <div class="pkg-delivers">
+            <span class="deliver-tag">300+ edited photos</span>
+            <span class="deliver-tag">Online gallery</span>
+            <span class="deliver-tag">14-day delivery</span>
+          </div>
+        </div>
+
+        <div class="pkg-card recommended">
+          <div class="rec-badge">RECOMMENDED</div>
+          <div class="pkg-top">
+            <div class="pkg-name">Signature</div>
+            <div class="pkg-price">$3,800</div>
+          </div>
+          <div class="pkg-meta">8 hours coverage · 2 photographers · album included</div>
+          <div class="pkg-delivers">
+            <span class="deliver-tag">600+ edited photos</span>
+            <span class="deliver-tag">Second shooter</span>
+            <span class="deliver-tag">10x10 album</span>
+            <span class="deliver-tag">10-day delivery</span>
+          </div>
+        </div>
+
+        <div class="pkg-card">
+          <div class="pkg-top">
+            <div class="pkg-name">Luxury</div>
+            <div class="pkg-price">$5,500</div>
+          </div>
+          <div class="pkg-meta">10 hours · 2 photographers · video highlights reel</div>
+          <div class="pkg-delivers">
+            <span class="deliver-tag">800+ edited photos</span>
+            <span class="deliver-tag">Video reel</span>
+            <span class="deliver-tag">Fine-art prints</span>
+            <span class="deliver-tag">7-day delivery</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="avail-bar">
+        <div class="avail-dot"></div>
+        <div class="avail-text"><strong>Aug 16, 2026 is available.</strong> Only 2 weekend dates remain in August. Deposit holds your date immediately.</div>
+      </div>
+
+      <div class="cta-card">
+        <div class="cta-text">Signature package · <span>$950 deposit</span> to confirm Aug 16</div>
+        <button class="cta-btn">Pay Deposit</button>
+      </div>
+
+      <div class="lead-card">
+        <div class="lead-card-title">Captured Lead</div>
+        <div class="data-row"><span>Client</span><span>Jamie &amp; Alex</span></div>
+        <div class="data-row"><span>Event</span><span>Wedding · Aug 16, 2026</span></div>
+        <div class="data-row"><span>Package interest</span><span>Signature ($3,800)</span></div>
+        <div class="data-row"><span>Contact</span><span>jamie@email.com</span></div>
+        <div class="data-row"><span>Status</span><span style="color:var(--warn);font-weight:600;">Deposit pending</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>Built by TRIVOX · AI automation that runs your business</footer>
+
+<script>
+function runDemo(){
+  const btn=document.getElementById('run-btn');
+  btn.disabled=true;
+  document.getElementById('empty-state').style.display='none';
+  document.getElementById('loading-state').style.display='flex';
+  document.getElementById('result-state').style.display='none';
+
+  const steps=['step1','step2','step3','step4','step5'];
+  const delays=[300,700,1050,1400,1750];
+  steps.forEach((id,i)=>{
+    setTimeout(()=>{
+      const el=document.getElementById(id);
+      el.classList.add('done');
+      el.querySelector('.check-icon').textContent='✓';
+    },delays[i]);
+  });
+
+  setTimeout(()=>{
+    document.getElementById('loading-state').style.display='none';
+    document.getElementById('result-state').style.display='flex';
+    btn.disabled=false;
+    btn.textContent='Run Again';
+  },2100);
+}
+</script>
+</body>
+</html>

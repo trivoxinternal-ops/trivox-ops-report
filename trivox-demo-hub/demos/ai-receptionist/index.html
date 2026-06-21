@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Voice Receptionist — TRIVOX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070b18;--bg2:#0d1426;--surface:#121b30;--surface2:#16203a;--border:#1e2a44;--text:#eaf0ff;--muted:#8a97b5;--brand:#2e61fe;--brand2:#00f0ff;--grad:linear-gradient(135deg,#2e61fe,#00f0ff);--good:#22c55e;--warn:#fbbf24;--bad:#ef4444;--radius:16px;--shadow:0 10px 40px rgba(0,0,0,.45);}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;}
+
+nav{position:sticky;top:0;z-index:100;background:rgba(7,11,24,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.nav-brand span{font-size:18px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-.02em;}
+.ai-pill{background:var(--grad);color:#fff;font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.08em;}
+.nav-back{color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;transition:color .2s;}
+.nav-back:hover{color:var(--text);}
+
+.hero{padding:64px 32px 48px;max-width:1100px;margin:0 auto;}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--brand2);margin-bottom:14px;}
+.hero h1{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.02em;line-height:1.15;margin-bottom:14px;}
+.hero-sub{color:var(--muted);font-size:16px;max-width:640px;line-height:1.6;margin-bottom:40px;}
+.stats{display:flex;gap:20px;flex-wrap:wrap;}
+.stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 24px;display:flex;flex-direction:column;gap:4px;}
+.stat-num{font-size:24px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;}
+.stat-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+
+.demo-section{max-width:1100px;margin:0 auto;padding:0 32px 80px;}
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+@media(max-width:900px){.demo-grid{grid-template-columns:1fr;}}
+
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);}
+.panel-heading{font-size:15px;font-weight:600;margin-bottom:6px;}
+.panel-sub{font-size:13px;color:var(--muted);margin-bottom:24px;line-height:1.5;}
+
+.form-group{margin-bottom:16px;}
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;}
+input,textarea,select{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Sora',sans-serif;font-size:14px;padding:12px 14px;outline:none;transition:border-color .2s;resize:none;}
+input:focus,textarea:focus,select:focus{border-color:var(--brand);}
+textarea{min-height:100px;}
+.btn-primary{width:100%;background:var(--grad);border:none;border-radius:10px;color:#fff;font-family:'Sora',sans-serif;font-size:14px;font-weight:700;padding:14px;cursor:pointer;letter-spacing:.02em;transition:opacity .2s;margin-top:4px;}
+.btn-primary:hover{opacity:.88;}
+.btn-primary:active{opacity:.75;}
+
+/* Call visual */
+.call-indicator{display:flex;align-items:center;gap:10px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:16px;}
+.call-dot{width:10px;height:10px;border-radius:50%;background:var(--good);animation:blink 1.2s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
+.call-label{font-size:12px;font-weight:600;color:var(--good);letter-spacing:.06em;text-transform:uppercase;}
+.call-duration{margin-left:auto;font-size:12px;color:var(--muted);}
+
+.output-panel{min-height:480px;display:flex;flex-direction:column;}
+.state{display:none;}
+.state.active{display:flex;flex-direction:column;}
+
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--muted);text-align:center;padding:40px;}
+.empty-icon{opacity:.35;}
+.empty-hint{font-size:13px;line-height:1.6;}
+
+.working-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;padding:40px;}
+.orb-wrap{position:relative;width:56px;height:56px;}
+.orb{width:56px;height:56px;border-radius:50%;background:var(--grad);}
+.orb-ring{position:absolute;inset:-8px;border-radius:50%;border:2px solid var(--brand2);opacity:0;animation:pulse-ring 1.4s ease-out infinite;}
+@keyframes pulse-ring{0%{transform:scale(.85);opacity:.7;}100%{transform:scale(1.4);opacity:0;}}
+.checklist{list-style:none;display:flex;flex-direction:column;gap:12px;width:100%;max-width:300px;}
+.check-item{display:flex;align-items:center;gap:12px;font-size:13px;color:var(--muted);opacity:.35;transition:opacity .3s;}
+.check-item.done{opacity:1;color:var(--text);}
+.check-dot{width:20px;height:20px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .3s;}
+.check-item.done .check-dot{background:var(--good);border-color:var(--good);}
+.check-dot svg{opacity:0;transition:opacity .3s;}
+.check-item.done .check-dot svg{opacity:1;}
+
+.result-state{flex:1;display:flex;flex-direction:column;gap:14px;overflow:auto;}
+
+/* Summary card */
+.summary-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px;}
+.card-title{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--brand2);margin-bottom:12px;}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid rgba(30,42,68,.6);font-size:13px;}
+.info-row:last-child{border-bottom:none;}
+.info-key{color:var(--muted);}
+.info-val{font-weight:600;text-align:right;}
+.badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.06em;}
+.badge-positive{background:rgba(34,197,94,.15);color:var(--good);}
+.badge-appt{background:rgba(46,97,254,.2);color:#7da4ff;}
+.badge-neutral{background:rgba(138,151,181,.15);color:var(--muted);}
+
+/* Appointment block */
+.appt-block{background:linear-gradient(135deg,rgba(46,97,254,.12),rgba(0,240,255,.07));border:1px solid rgba(0,240,255,.2);border-radius:12px;padding:18px;display:flex;gap:16px;align-items:flex-start;}
+.appt-icon{width:44px;height:44px;border-radius:12px;background:var(--grad);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.appt-details{display:flex;flex-direction:column;gap:4px;}
+.appt-label{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--brand2);}
+.appt-name{font-size:15px;font-weight:700;}
+.appt-meta{font-size:12px;color:var(--muted);}
+
+/* CRM note */
+.crm-note{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:18px;}
+.crm-note-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.crm-note-text{font-size:13px;color:var(--muted);line-height:1.65;}
+.auto-tag{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;background:rgba(0,240,255,.1);color:var(--brand2);padding:3px 9px;border-radius:20px;}
+
+footer{text-align:center;padding:28px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="#">
+    <span>TRIVOX</span>
+    <span class="ai-pill">AI</span>
+  </a>
+  <a class="nav-back" href="../../portfolio.html">← All Demos</a>
+</nav>
+
+<section class="hero">
+  <div class="eyebrow">Sales &amp; Customer Care</div>
+  <h1>AI Voice Receptionist</h1>
+  <p class="hero-sub">Answers every inbound call, extracts intent and caller details, books appointments directly into your calendar, and logs a CRM note — without a human ever picking up.</p>
+  <div class="stats">
+    <div class="stat-chip">
+      <span class="stat-num">0</span>
+      <span class="stat-label">Missed Calls</span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-num">100%</span>
+      <span class="stat-label">After-Hours Coverage</span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-num">~$4.2k</span>
+      <span class="stat-label">Saved Per Month</span>
+    </div>
+  </div>
+</section>
+
+<section class="demo-section">
+  <div class="demo-grid">
+
+    <!-- LEFT INPUT -->
+    <div class="panel">
+      <div class="panel-heading">Live Call Transcript</div>
+      <div class="panel-sub">Paste a call transcript or use the sample below. The AI will extract all relevant data, book the appointment, and generate a CRM note.</div>
+
+      <div class="call-indicator">
+        <div class="call-dot"></div>
+        <span class="call-label">Call Ended · Recorded</span>
+        <span class="call-duration">3m 42s</span>
+      </div>
+
+      <div class="form-group">
+        <label>Business Name</label>
+        <input type="text" id="biz-name" value="Renew Physiotherapy Clinic">
+      </div>
+      <div class="form-group">
+        <label>Call Transcript</label>
+        <textarea id="transcript">AI: Thank you for calling Renew Physiotherapy. How can I help you today?
+Caller: Hi, yes, my name is Sandra Kowalski. I was referred by Dr. Mehta. I've been having lower back pain for about three weeks and I'd like to book an initial assessment.
+AI: Of course Sandra, we'd love to help. Are you a new patient with us?
+Caller: Yes, first time. I have Blue Cross extended benefits too.
+AI: Perfect. We have openings Thursday at 10 AM or Friday at 2 PM. Which works better?
+Caller: Thursday at 10 works great.
+AI: Booked! You'll get a confirmation text shortly. Anything else?
+Caller: No that's everything, thank you.
+AI: Have a great day Sandra!</textarea>
+      </div>
+      <div class="form-group">
+        <label>Assigned Practitioner</label>
+        <input type="text" id="practitioner" value="Dr. Aisha Patel, PT">
+      </div>
+
+      <button class="btn-primary" onclick="runDemo()">Process Call</button>
+    </div>
+
+    <!-- RIGHT OUTPUT -->
+    <div class="panel output-panel">
+
+      <!-- EMPTY -->
+      <div class="state active" id="state-empty">
+        <div class="empty-state">
+          <div class="empty-icon">
+            <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
+              <rect width="56" height="56" rx="16" fill="#1e2a44"/>
+              <path d="M20 18h-2a2 2 0 00-2 2v2c0 9.94 8.06 18 18 18h2a2 2 0 002-2v-2a1 1 0 00-.68-.95l-5-1.67a1 1 0 00-1.16.46l-1.37 2.28A15.15 15.15 0 0121.88 27.2l2.28-1.37a1 1 0 00.46-1.16l-1.67-5A1 1 0 0022 19h-2z" stroke="#2e61fe" stroke-width="1.5" stroke-linejoin="round"/>
+              <path d="M34 18v2m4-2v2m-2-4h2" stroke="#00f0ff" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <p class="empty-hint">Click "Process Call" to extract caller details, book the appointment, and generate a CRM note automatically.</p>
+        </div>
+      </div>
+
+      <!-- WORKING -->
+      <div class="state" id="state-working">
+        <div class="working-state">
+          <div class="orb-wrap">
+            <div class="orb"></div>
+            <div class="orb-ring"></div>
+          </div>
+          <ul class="checklist">
+            <li class="check-item" id="c1">
+              <div class="check-dot"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              Transcribing &amp; parsing call
+            </li>
+            <li class="check-item" id="c2">
+              <div class="check-dot"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              Detecting intent &amp; sentiment
+            </li>
+            <li class="check-item" id="c3">
+              <div class="check-dot"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              Booking appointment slot
+            </li>
+            <li class="check-item" id="c4">
+              <div class="check-dot"><svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+              Creating CRM note
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- RESULT -->
+      <div class="state" id="state-result">
+        <div class="result-state">
+
+          <!-- Call Summary -->
+          <div class="summary-card">
+            <div class="card-title">Call Summary</div>
+            <div class="info-row"><span class="info-key">Caller</span><span class="info-val" id="r-caller">Sandra Kowalski</span></div>
+            <div class="info-row"><span class="info-key">Business</span><span class="info-val" id="r-biz">Renew Physiotherapy Clinic</span></div>
+            <div class="info-row"><span class="info-key">Intent</span><span class="info-val"><span class="badge badge-appt">Book Initial Assessment</span></span></div>
+            <div class="info-row"><span class="info-key">Referral</span><span class="info-val">Dr. Mehta</span></div>
+            <div class="info-row"><span class="info-key">Insurance</span><span class="info-val">Blue Cross Extended</span></div>
+            <div class="info-row"><span class="info-key">Patient Type</span><span class="info-val"><span class="badge badge-neutral">New Patient</span></span></div>
+            <div class="info-row"><span class="info-key">Sentiment</span><span class="info-val"><span class="badge badge-positive">Positive</span></span></div>
+            <div class="info-row"><span class="info-key">Duration</span><span class="info-val">3m 42s</span></div>
+          </div>
+
+          <!-- Appointment Block -->
+          <div class="appt-block">
+            <div class="appt-icon">
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><rect x="3" y="4" width="16" height="15" rx="3" stroke="#fff" stroke-width="1.6"/><path d="M7 2v4M15 2v4M3 9h16" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/><path d="M7 13h2v2H7z" fill="#fff"/></svg>
+            </div>
+            <div class="appt-details">
+              <span class="appt-label">Appointment Confirmed</span>
+              <span class="appt-name" id="r-appt-name">Sandra Kowalski</span>
+              <span class="appt-meta">Thursday, June 26 · 10:00 AM</span>
+              <span class="appt-meta" id="r-prac">Dr. Aisha Patel, PT · Initial Assessment · 60 min</span>
+              <span class="appt-meta" style="color:var(--good);margin-top:4px;">SMS confirmation sent</span>
+            </div>
+          </div>
+
+          <!-- CRM Note -->
+          <div class="crm-note">
+            <div class="crm-note-header">
+              <div class="card-title" style="margin-bottom:0;">CRM Note Auto-Created</div>
+              <span class="auto-tag">Auto-logged</span>
+            </div>
+            <p class="crm-note-text" id="r-crm-note">
+              New patient Sandra Kowalski called re: lower back pain (3 weeks duration). Referred by Dr. Mehta. Has Blue Cross extended benefits — verify coverage before appointment. Booked for initial physio assessment Thu Jun 26 @ 10:00 AM with Dr. Aisha Patel. Send intake form 24h prior. Follow up if no-show within 15 min of start time.
+            </p>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<footer>Built by TRIVOX · AI automation that runs your business</footer>
+
+<script>
+function runDemo() {
+  const biz = document.getElementById('biz-name').value || 'Renew Physiotherapy Clinic';
+  const prac = document.getElementById('practitioner').value || 'Dr. Aisha Patel, PT';
+
+  document.getElementById('r-biz').textContent = biz;
+  document.getElementById('r-prac').textContent = prac + ' · Initial Assessment · 60 min';
+  document.getElementById('r-crm-note').textContent =
+    'New patient Sandra Kowalski called re: lower back pain (3 weeks duration). Referred by Dr. Mehta. Has Blue Cross extended benefits — verify coverage before appointment. Booked for initial physio assessment Thu Jun 26 @ 10:00 AM with ' + prac + '. Send intake form 24h prior. Follow up if no-show within 15 min of start time.';
+
+  showState('working');
+
+  const checks = ['c1','c2','c3','c4'];
+  checks.forEach(id => document.getElementById(id).classList.remove('done'));
+  const delays = [300, 750, 1250, 1700];
+  checks.forEach((id, i) => {
+    setTimeout(() => document.getElementById(id).classList.add('done'), delays[i]);
+  });
+  setTimeout(() => showState('result'), 2200);
+}
+
+function showState(name) {
+  ['empty','working','result'].forEach(s => {
+    document.getElementById('state-' + s).classList.remove('active');
+  });
+  document.getElementById('state-' + name).classList.add('active');
+}
+</script>
+</body>
+</html>

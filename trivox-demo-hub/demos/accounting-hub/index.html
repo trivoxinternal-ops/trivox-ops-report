@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TrivoxAI — AI Accounting & Invoicing Hub</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#070b18; --bg2:#0d1426; --surface:#121b30; --surface2:#16203a; --border:#1e2a44;
+  --text:#eaf0ff; --muted:#8a97b5;
+  --brand:#2e61fe; --brand2:#00f0ff; --grad:linear-gradient(135deg,#2e61fe,#00f0ff);
+  --good:#22c55e; --warn:#fbbf24; --bad:#ef4444;
+  --radius:16px; --shadow:0 10px 40px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box} html,body{margin:0}
+body{background:radial-gradient(1200px 600px at 70% -10%,#13224a 0,transparent 60%),var(--bg);color:var(--text);font-family:'Sora',system-ui,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+.tvx-btn{background:var(--grad);color:#04122e;border:0;border-radius:12px;padding:12px 20px;font-weight:700;font-family:inherit;cursor:pointer;transition:.2s;font-size:14px}
+.tvx-btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.tvx-btn:active{transform:translateY(0)}
+.tvx-btn[disabled]{opacity:.5;cursor:not-allowed;transform:none;filter:none}
+.tvx-btn.ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
+.tvx-btn.ghost:hover{border-color:var(--brand);background:rgba(46,97,254,.08)}
+.tvx-card{background:linear-gradient(180deg,var(--surface),var(--bg2));border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+.tvx-badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:999px;background:rgba(46,97,254,.15);color:#7fa8ff;border:1px solid rgba(46,97,254,.35)}
+
+/* Layout */
+.wrap{max-width:1240px;margin:0 auto;padding:0 24px}
+header.top{position:sticky;top:0;z-index:40;backdrop-filter:blur(14px);background:rgba(7,11,24,.72);border-bottom:1px solid var(--border)}
+.top-inner{display:flex;align-items:center;justify-content:space-between;height:66px}
+.demo-title{color:var(--muted);font-size:13px;font-weight:500;border-left:1px solid var(--border);padding-left:16px;margin-left:16px}
+.top-right{display:flex;align-items:center;gap:14px}
+.live-dot{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);font-weight:500}
+.live-dot i{width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 0 0 rgba(34,197,94,.6);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.5)}70%{box-shadow:0 0 0 7px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-weight:700;color:#04122e;font-size:13px}
+
+main{padding:30px 0 60px}
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;flex-wrap:wrap;margin-bottom:24px}
+.page-head h1{font-size:28px;font-weight:800;letter-spacing:-.02em;margin:6px 0 4px}
+.page-head p{color:var(--muted);margin:0;font-size:14px;max-width:560px}
+.head-actions{display:flex;gap:10px;flex-wrap:wrap}
+
+/* KPI grid */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+.kpi{padding:18px 18px 16px;position:relative;overflow:hidden}
+.kpi .lbl{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.kpi .val{font-size:27px;font-weight:800;letter-spacing:-.02em;margin-top:8px}
+.kpi .sub{font-size:12px;margin-top:6px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.delta{font-weight:700}
+.delta.up{color:var(--good)} .delta.down{color:var(--bad)}
+.kpi-ic{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:rgba(46,97,254,.14);border:1px solid rgba(46,97,254,.3)}
+.kpi-ic svg{width:16px;height:16px}
+.kpi.accent-bad .kpi-ic{background:rgba(239,68,68,.14);border-color:rgba(239,68,68,.3)}
+.kpi.accent-warn .kpi-ic{background:rgba(251,191,36,.14);border-color:rgba(251,191,36,.3)}
+.kpi.accent-good .kpi-ic{background:rgba(34,197,94,.14);border-color:rgba(34,197,94,.3)}
+
+/* Insight banner */
+.insight{display:flex;align-items:center;gap:16px;padding:16px 20px;margin-bottom:22px;background:linear-gradient(110deg,rgba(46,97,254,.16),rgba(0,240,255,.06));border:1px solid rgba(46,97,254,.4)}
+.insight .ai-orb{width:42px;height:42px;border-radius:12px;background:var(--grad);display:flex;align-items:center;justify-content:center;flex-shrink:0;animation:floaty 4s ease-in-out infinite}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+.insight .ai-orb svg{width:22px;height:22px}
+.insight .txt{flex:1;min-width:0}
+.insight .txt .t1{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--brand2)}
+.insight .txt .t2{font-weight:600;font-size:15px;margin-top:2px}
+.insight .txt .t2 b{color:var(--bad)}
+.insight .cta{flex-shrink:0}
+
+/* Two col */
+.cols{display:grid;grid-template-columns:1fr 360px;gap:20px;align-items:start}
+.section-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--border)}
+.section-head h2{font-size:16px;font-weight:700;margin:0}
+.section-head .meta{font-size:12px;color:var(--muted)}
+
+/* Filters */
+.filters{display:flex;gap:8px;padding:14px 20px;border-bottom:1px solid var(--border);flex-wrap:wrap;align-items:center}
+.chip{font-size:12px;font-weight:600;padding:6px 13px;border-radius:999px;border:1px solid var(--border);color:var(--muted);cursor:pointer;background:transparent;font-family:inherit;transition:.15s}
+.chip:hover{color:var(--text);border-color:var(--brand)}
+.chip.on{background:rgba(46,97,254,.18);border-color:var(--brand);color:#bcd0ff}
+.filters .spacer{flex:1}
+.search{display:flex;align-items:center;gap:8px;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:7px 12px}
+.search input{background:transparent;border:0;outline:0;color:var(--text);font-family:inherit;font-size:13px;width:150px}
+.search input::placeholder{color:var(--muted)}
+.search svg{width:14px;height:14px;color:var(--muted)}
+
+/* Table */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+thead th{text-align:left;padding:12px 20px;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border);white-space:nowrap}
+thead th.num,tbody td.num{text-align:right}
+tbody td{padding:13px 20px;border-bottom:1px solid rgba(30,42,68,.55);vertical-align:middle}
+tbody tr{transition:.12s}
+tbody tr:hover{background:rgba(46,97,254,.06)}
+tbody tr:last-child td{border-bottom:0}
+.inv-id{font-weight:700;color:#cfe}
+.client{font-weight:600}
+.client small{display:block;color:var(--muted);font-weight:400;font-size:11.5px;margin-top:1px}
+.mono{font-variant-numeric:tabular-nums}
+.status{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.status i{width:6px;height:6px;border-radius:50%}
+.status.paid{background:rgba(34,197,94,.13);color:#86efac;border:1px solid rgba(34,197,94,.3)}
+.status.paid i{background:var(--good)}
+.status.sent{background:rgba(46,97,254,.13);color:#9cc0ff;border:1px solid rgba(46,97,254,.32)}
+.status.sent i{background:var(--brand)}
+.status.overdue{background:rgba(239,68,68,.13);color:#fca5a5;border:1px solid rgba(239,68,68,.32)}
+.status.overdue i{background:var(--bad)}
+.status.draft{background:rgba(138,151,181,.13);color:#aeb9d4;border:1px solid rgba(138,151,181,.3)}
+.status.draft i{background:var(--muted)}
+.aging{font-size:11.5px;font-weight:600}
+.aging.b0{color:var(--muted)} .aging.b1{color:var(--warn)} .aging.b2{color:var(--bad)}
+.row-act{background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:8px;width:30px;height:30px;cursor:pointer;font-family:inherit;transition:.15s;display:inline-flex;align-items:center;justify-content:center}
+.row-act:hover{border-color:var(--brand);color:var(--text)}
+
+/* Side panel */
+.side{display:flex;flex-direction:column;gap:20px;position:sticky;top:86px}
+.side .pad{padding:20px}
+.spark-card .vals{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:10px}
+.spark-card .big{font-size:24px;font-weight:800;letter-spacing:-.02em}
+.spark-card svg.sl{width:100%;height:64px;display:block}
+.legend{display:flex;gap:16px;margin-top:14px;flex-wrap:wrap}
+.legend span{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:7px}
+.legend i{width:9px;height:9px;border-radius:3px}
+.aging-bars{display:flex;flex-direction:column;gap:14px;margin-top:4px}
+.ab{display:flex;flex-direction:column;gap:6px}
+.ab .ab-top{display:flex;justify-content:space-between;font-size:12.5px}
+.ab .ab-top b{font-weight:600}
+.ab .ab-amt{font-weight:700;font-variant-numeric:tabular-nums}
+.track{height:8px;border-radius:999px;background:rgba(255,255,255,.05);overflow:hidden}
+.track i{display:block;height:100%;border-radius:999px;width:0;transition:width 1s cubic-bezier(.22,1,.36,1)}
+.sync-card .pad{display:flex;flex-direction:column;gap:12px}
+.sync-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--bg)}
+.sync-row .l{display:flex;align-items:center;gap:11px;min-width:0}
+.sync-row .l .lg{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0}
+.sync-row .l .nm{font-weight:600;font-size:13.5px}
+.sync-row .l .nm small{display:block;color:var(--muted);font-size:11px;font-weight:400}
+.qb{background:#2ca01c;color:#fff} .xe{background:#13b5ea;color:#fff}
+.sync-mini{font-size:11px;color:var(--good);display:flex;align-items:center;gap:5px;font-weight:600}
+
+/* Toast */
+.toasts{position:fixed;right:24px;bottom:24px;z-index:80;display:flex;flex-direction:column;gap:12px;max-width:360px}
+.toast{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border-radius:14px;background:linear-gradient(180deg,var(--surface2),var(--surface));border:1px solid var(--border);box-shadow:var(--shadow);transform:translateX(120%);opacity:0;transition:.4s cubic-bezier(.22,1,.36,1)}
+.toast.show{transform:translateX(0);opacity:1}
+.toast .ic{width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.toast .ic.ok{background:rgba(34,197,94,.16);color:var(--good)}
+.toast .ic.qb{background:#2ca01c;color:#fff} .toast .ic.xe{background:#13b5ea;color:#fff}
+.toast .ic.ai{background:var(--grad);color:#04122e}
+.toast .body .tt{font-weight:700;font-size:13.5px}
+.toast .body .ts{font-size:12px;color:var(--muted);margin-top:2px}
+
+/* Modal */
+.overlay{position:fixed;inset:0;background:rgba(4,7,16,.74);backdrop-filter:blur(6px);z-index:60;display:flex;align-items:center;justify-content:center;padding:24px;opacity:0;pointer-events:none;transition:.25s}
+.overlay.show{opacity:1;pointer-events:auto}
+.modal{width:100%;max-width:660px;max-height:90vh;overflow:hidden;transform:scale(.96) translateY(8px);transition:.3s cubic-bezier(.22,1,.36,1);display:flex;flex-direction:column}
+.overlay.show .modal{transform:scale(1) translateY(0)}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 24px;border-bottom:1px solid var(--border)}
+.modal-head h3{margin:0;font-size:17px;font-weight:700}
+.modal-head .x{background:transparent;border:0;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;padding:4px;border-radius:8px}
+.modal-head .x:hover{color:var(--text);background:rgba(255,255,255,.06)}
+.modal-body{padding:24px;overflow-y:auto}
+
+/* AI working state */
+.ai-stage{text-align:center;padding:18px 10px 8px}
+.ai-stage .orb-lg{width:74px;height:74px;border-radius:20px;background:var(--grad);margin:0 auto 18px;display:flex;align-items:center;justify-content:center;position:relative;animation:floaty 3s ease-in-out infinite}
+.ai-stage .orb-lg::after{content:"";position:absolute;inset:-6px;border-radius:24px;border:2px solid rgba(0,240,255,.4);animation:ring 2s ease-out infinite}
+@keyframes ring{0%{transform:scale(.9);opacity:.8}100%{transform:scale(1.25);opacity:0}}
+.ai-stage .orb-lg svg{width:36px;height:36px}
+.ai-step{font-size:15px;font-weight:600;min-height:22px;color:var(--text)}
+.ai-sub{font-size:12.5px;color:var(--muted);margin-top:4px;min-height:18px}
+.dots{display:inline-flex;gap:4px;margin-left:6px;vertical-align:middle}
+.dots i{width:5px;height:5px;border-radius:50%;background:var(--brand2);animation:bd 1.2s infinite}
+.dots i:nth-child(2){animation-delay:.2s}.dots i:nth-child(3){animation-delay:.4s}
+@keyframes bd{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+.prog{height:6px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden;margin:22px auto 6px;max-width:380px}
+.prog i{display:block;height:100%;width:0;background:var(--grad);border-radius:999px;transition:width .4s ease}
+.checklist{max-width:380px;margin:20px auto 0;text-align:left;display:flex;flex-direction:column;gap:11px}
+.ci{display:flex;align-items:center;gap:11px;font-size:13px;color:var(--muted);opacity:.45;transition:.3s}
+.ci.active{opacity:1;color:var(--text)}
+.ci.done{opacity:1;color:var(--text)}
+.ci .box{width:20px;height:20px;border-radius:6px;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.3s}
+.ci.active .box{border-color:var(--brand);background:rgba(46,97,254,.15)}
+.ci.done .box{border-color:var(--good);background:rgba(34,197,94,.18)}
+.ci .box svg{width:12px;height:12px;color:var(--good);opacity:0;transform:scale(.5);transition:.25s}
+.ci.done .box svg{opacity:1;transform:scale(1)}
+.spinner{width:11px;height:11px;border-radius:50%;border:2px solid rgba(255,255,255,.18);border-top-color:var(--brand2);animation:spin .7s linear infinite;display:none}
+.ci.active .spinner{display:block}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Invoice doc */
+.invoice{animation:fadeUp .5s cubic-bezier(.22,1,.36,1)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.inv-doc{background:#0a1020;border:1px solid var(--border);border-radius:14px;overflow:hidden}
+.inv-top{display:flex;justify-content:space-between;padding:22px 24px;background:linear-gradient(120deg,rgba(46,97,254,.14),rgba(0,240,255,.05));border-bottom:1px solid var(--border)}
+.inv-top .co{font-weight:800;font-size:17px;letter-spacing:-.01em}
+.inv-top .co small{display:block;color:var(--muted);font-weight:400;font-size:11.5px;margin-top:3px;line-height:1.5}
+.inv-top .rt{text-align:right}
+.inv-top .rt .lbl{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.inv-top .rt .no{font-size:18px;font-weight:800;color:var(--brand2)}
+.inv-top .rt small{display:block;color:var(--muted);font-size:11.5px;margin-top:5px}
+.inv-meta{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:18px 24px;border-bottom:1px solid var(--border)}
+.inv-meta .m .k{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.inv-meta .m .v{font-size:13px;font-weight:600;margin-top:3px}
+.inv-lines{width:100%;border-collapse:collapse;font-size:13px}
+.inv-lines th{text-align:left;padding:11px 24px;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border)}
+.inv-lines th.n,.inv-lines td.n{text-align:right}
+.inv-lines td{padding:11px 24px;border-bottom:1px solid rgba(30,42,68,.5)}
+.inv-lines td .d{font-weight:600}
+.inv-lines td .dd{color:var(--muted);font-size:11.5px;margin-top:1px}
+.inv-lines tr.hold td{color:var(--warn)}
+.inv-tot{padding:16px 24px;display:flex;flex-direction:column;gap:7px;align-items:flex-end}
+.inv-tot .tr{display:flex;justify-content:space-between;width:280px;font-size:13px}
+.inv-tot .tr .lk{color:var(--muted)}
+.inv-tot .tr.hold .lv{color:var(--warn)}
+.inv-tot .tr.grand{border-top:1px solid var(--border);margin-top:6px;padding-top:11px;font-size:17px;font-weight:800}
+.inv-tot .tr.grand .lv{color:var(--brand2)}
+.inv-foot{padding:14px 24px;border-top:1px solid var(--border);font-size:11.5px;color:var(--muted);display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.modal-actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+.ai-tag{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;color:var(--brand2);font-weight:600;margin-top:14px;justify-content:center}
+.ai-tag svg{width:14px;height:14px}
+
+footer{border-top:1px solid var(--border);padding:22px 0;color:var(--muted);font-size:12.5px}
+.footer-inner{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+
+@media(max-width:980px){
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .cols{grid-template-columns:1fr}
+  .side{position:static}
+  .demo-title{display:none}
+}
+@media(max-width:560px){
+  .kpis{grid-template-columns:1fr}
+  .inv-meta{grid-template-columns:1fr}
+  .page-head h1{font-size:23px}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap top-inner">
+    <div style="display:flex;align-items:center">
+      <span style="display:inline-flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:-.02em">
+        <svg width="30" height="30" viewBox="0 0 48 48" fill="none"><defs><linearGradient id="tvx_accounting_hub" x1="0" y1="0" x2="48" y2="48"><stop offset="0" stop-color="#2e61fe"/><stop offset="1" stop-color="#00f0ff"/></linearGradient></defs><path d="M5 9 L24 41 L43 9 L33 9 L24 25 L15 9 Z" fill="url(#tvx_accounting_hub)"/><path d="M16 9 L24 22 L32 9 L24 9 Z" fill="url(#tvx_accounting_hub)" opacity=".5"/></svg>
+        Trivox<span style="color:var(--brand2)">AI</span>
+      </span>
+      <span class="demo-title">AI Accounting &amp; Invoicing Hub</span>
+    </div>
+    <div class="top-right">
+      <span class="live-dot"><i></i> Live · Auto-reconcile ON</span>
+      <div class="avatar">DO</div>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="page-head">
+    <div>
+      <span class="tvx-badge">Accounts Receivable / Payable</span>
+      <h1>Accounting on autopilot</h1>
+      <p>Progress billing, reconciliation and collections for your active jobs — drafted, matched and synced by AI.</p>
+    </div>
+    <div class="head-actions">
+      <button class="tvx-btn ghost" id="syncQB">Sync to QuickBooks</button>
+      <button class="tvx-btn ghost" id="syncXero">Sync to Xero</button>
+      <button class="tvx-btn" id="genInvoice">+ Generate Invoice</button>
+    </div>
+  </div>
+
+  <!-- KPIs -->
+  <div class="kpis">
+    <div class="tvx-card kpi">
+      <div class="lbl"><span class="kpi-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#7fa8ff" stroke-width="2"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></span> Outstanding AR</div>
+      <div class="val" id="kpiAR">$486,920</div>
+      <div class="sub"><span class="delta up">▲ 4.1%</span> vs last month · 14 open invoices</div>
+    </div>
+    <div class="tvx-card kpi accent-warn">
+      <div class="lbl"><span class="kpi-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg></span> AP Due (30d)</div>
+      <div class="val" id="kpiAP">$213,540</div>
+      <div class="sub"><span class="delta down">▼ 2.3%</span> vs last month · 9 bills queued</div>
+    </div>
+    <div class="tvx-card kpi accent-good">
+      <div class="lbl"><span class="kpi-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M3 17l6-6 4 4 8-8"/><path d="M21 7v5h-5"/></svg></span> 90-Day Cash Flow</div>
+      <div class="val" id="kpiCash">+$152,800</div>
+      <svg class="sl" viewBox="0 0 240 48" preserveAspectRatio="none" style="height:38px;margin-top:6px">
+        <defs><linearGradient id="cfgrad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#00f0ff" stop-opacity=".35"/><stop offset="1" stop-color="#00f0ff" stop-opacity="0"/></linearGradient></defs>
+        <path d="M0 38 L20 34 L40 36 L60 28 L80 30 L100 22 L120 24 L140 16 L160 19 L180 12 L200 14 L220 7 L240 9 L240 48 L0 48 Z" fill="url(#cfgrad)"/>
+        <path d="M0 38 L20 34 L40 36 L60 28 L80 30 L100 22 L120 24 L140 16 L160 19 L180 12 L200 14 L220 7 L240 9" fill="none" stroke="#00f0ff" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="tvx-card kpi accent-bad">
+      <div class="lbl"><span class="kpi-ic"><svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></span> Overdue &gt;30d</div>
+      <div class="val" id="kpiOver" style="color:var(--bad)">$42,300</div>
+      <div class="sub">3 invoices · avg 41 days past due</div>
+    </div>
+  </div>
+
+  <!-- AI Insight -->
+  <div class="tvx-card insight">
+    <div class="ai-orb">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#04122e" stroke-width="2.2"><path d="M12 2l2.4 5.6L20 10l-5.6 2.4L12 18l-2.4-5.6L4 10l5.6-2.4L12 2z"/></svg>
+    </div>
+    <div class="txt">
+      <div class="t1">Trivox AI · Collections insight</div>
+      <div class="t2"><b>$42,300 overdue &gt;30 days</b> across 3 clients — 3 polite reminder emails drafted &amp; ready to send.</div>
+    </div>
+    <div class="cta"><button class="tvx-btn" id="reviewReminders">Review reminders</button></div>
+  </div>
+
+  <!-- Two columns -->
+  <div class="cols">
+    <!-- Invoices -->
+    <div class="tvx-card">
+      <div class="section-head">
+        <h2>Invoices</h2>
+        <span class="meta" id="invMeta">Showing 8 of 23 · updated just now</span>
+      </div>
+      <div class="filters">
+        <button class="chip on" data-f="all">All</button>
+        <button class="chip" data-f="paid">Paid</button>
+        <button class="chip" data-f="sent">Sent</button>
+        <button class="chip" data-f="overdue">Overdue</button>
+        <span class="spacer"></span>
+        <div class="search">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+          <input id="searchInv" type="text" placeholder="Search client / job…" />
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Invoice</th><th>Client / Project</th><th>Issued</th>
+              <th class="num">Amount (CAD)</th><th>Aging</th><th>Status</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="invBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Side -->
+    <div class="side">
+      <div class="tvx-card spark-card">
+        <div class="section-head"><h2>AR Aging</h2><span class="meta">Total $486,920</span></div>
+        <div class="pad">
+          <div class="aging-bars" id="agingBars"></div>
+        </div>
+      </div>
+
+      <div class="tvx-card sync-card">
+        <div class="section-head"><h2>Connected Ledgers</h2><span class="meta">Auto-sync</span></div>
+        <div class="pad">
+          <div class="sync-row">
+            <div class="l"><div class="lg qb">qb</div><div class="nm">QuickBooks Online<small id="qbStat">Synced 6 min ago</small></div></div>
+            <div class="sync-mini"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg> Linked</div>
+          </div>
+          <div class="sync-row">
+            <div class="l"><div class="lg xe">xe</div><div class="nm">Xero<small id="xeStat">Synced 11 min ago</small></div></div>
+            <div class="sync-mini"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg> Linked</div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:2px">
+            <button class="tvx-btn ghost" style="flex:1;padding:10px" id="syncQB2">Push to QB</button>
+            <button class="tvx-btn ghost" style="flex:1;padding:10px" id="syncXero2">Push to Xero</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tvx-card">
+        <div class="section-head"><h2>Reconciliation</h2><span class="meta">Last 30d</span></div>
+        <div class="pad" style="display:flex;flex-direction:column;gap:14px">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div><div style="font-size:24px;font-weight:800">98.4%</div><div style="font-size:12px;color:var(--muted)">auto-matched by AI</div></div>
+            <div style="text-align:right"><div style="font-size:13px;font-weight:700;color:var(--warn)">3 items</div><div style="font-size:12px;color:var(--muted)">need review</div></div>
+          </div>
+          <div class="track"><i style="width:98.4%;background:linear-gradient(90deg,#2e61fe,#00f0ff)"></i></div>
+          <div style="font-size:12px;color:var(--muted)">412 transactions matched to bank feed automatically. AI flagged a duplicate vendor bill from <b style="color:var(--text)">Greenfield Mechanical</b>.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap footer-inner">
+    <span>TRIVOX AI — Automation Infrastructure</span>
+    <span>HST #82914-RT0001 · All figures CAD · Demo environment</span>
+  </div>
+</footer>
+
+<!-- Toasts -->
+<div class="toasts" id="toasts"></div>
+
+<!-- Modal -->
+<div class="overlay" id="overlay">
+  <div class="tvx-card modal" id="modal">
+    <div class="modal-head">
+      <h3 id="modalTitle">Generate Invoice</h3>
+      <button class="x" id="modalClose">&times;</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- MOCK DATA ----------
+  var CAD = function(n){
+    return "$" + Math.round(n).toLocaleString("en-CA");
+  };
+
+  var invoices = [
+    {id:"INV-1042", client:"Bridgepoint Developments", proj:"Lakeshore Tower — Phase 2", issued:"May 28, 2026", amount:96450, status:"sent", days:12},
+    {id:"INV-1041", client:"Maple Grove Properties", proj:"Riverside Condos — Block C", issued:"May 22, 2026", amount:142800, status:"sent", days:18},
+    {id:"INV-1038", client:"Hawthorne Retail Group", proj:"Dufferin Plaza Fit-Out", issued:"Apr 14, 2026", amount:18900, status:"overdue", days:56},
+    {id:"INV-1036", client:"Northwind Logistics", proj:"Mississauga Warehouse Slab", issued:"Apr 02, 2026", amount:14200, status:"overdue", days:68},
+    {id:"INV-1034", client:"Cedarwood Homes", proj:"Oakville Custom Build #14", issued:"Apr 21, 2026", amount:9200, status:"overdue", days:39},
+    {id:"INV-1033", client:"Bridgepoint Developments", proj:"Lakeshore Tower — Phase 1", issued:"Mar 30, 2026", amount:88400, status:"paid", days:0},
+    {id:"INV-1031", client:"City of Vaughan", proj:"Civic Centre HVAC Retrofit", issued:"Mar 18, 2026", amount:67300, status:"paid", days:0},
+    {id:"INV-1029", client:"Stonegate Industrial", proj:"Brampton Distribution Centre", issued:"Mar 05, 2026", amount:54600, status:"paid", days:0}
+  ];
+
+  // status sort helper for "aging bucket"
+  function bucket(days){
+    if(days===0) return "—";
+    if(days<=30) return days+" d";
+    if(days<=60) return days+" d";
+    return days+" d";
+  }
+  function bucketClass(days,status){
+    if(status==="paid") return "b0";
+    if(days<=30) return "b0";
+    if(days<=60) return "b1";
+    return "b2";
+  }
+
+  // ---------- RENDER TABLE ----------
+  var currentFilter = "all";
+  var searchTerm = "";
+
+  function renderTable(){
+    var body = document.getElementById("invBody");
+    var rows = invoices.filter(function(iv){
+      var passF = currentFilter==="all" || iv.status===currentFilter;
+      var s = searchTerm.toLowerCase();
+      var passS = !s || iv.client.toLowerCase().indexOf(s)>=0 || iv.proj.toLowerCase().indexOf(s)>=0 || iv.id.toLowerCase().indexOf(s)>=0;
+      return passF && passS;
+    });
+    body.innerHTML = rows.map(function(iv){
+      var st = iv.status;
+      var stLabel = st.charAt(0).toUpperCase()+st.slice(1);
+      var ag = st==="paid" ? '<span class="aging b0">Settled</span>' :
+        '<span class="aging '+bucketClass(iv.days,st)+'">'+bucket(iv.days)+'</span>';
+      return '<tr>'+
+        '<td><span class="inv-id">'+iv.id+'</span></td>'+
+        '<td class="client">'+iv.client+'<small>'+iv.proj+'</small></td>'+
+        '<td style="color:var(--muted);white-space:nowrap">'+iv.issued+'</td>'+
+        '<td class="num mono" style="font-weight:700">'+CAD(iv.amount)+'</td>'+
+        '<td>'+ag+'</td>'+
+        '<td><span class="status '+st+'"><i></i>'+stLabel+'</span></td>'+
+        '<td><button class="row-act" title="View" data-view="'+iv.id+'"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button></td>'+
+      '</tr>';
+    }).join("");
+    document.getElementById("invMeta").textContent = "Showing "+rows.length+" of 23 · updated just now";
+    if(rows.length===0){
+      body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:34px">No invoices match your filters.</td></tr>';
+    }
+  }
+
+  // ---------- AGING BARS ----------
+  function renderAging(){
+    var data = [
+      {lbl:"Current (0–30 days)", amt:351320, pct:72, color:"linear-gradient(90deg,#2e61fe,#00f0ff)"},
+      {lbl:"31–60 days", amt:93300, pct:19, color:"#fbbf24"},
+      {lbl:"60+ days", amt:42300, pct:9, color:"#ef4444"}
+    ];
+    var el = document.getElementById("agingBars");
+    el.innerHTML = data.map(function(d){
+      return '<div class="ab"><div class="ab-top"><b>'+d.lbl+'</b><span class="ab-amt">'+CAD(d.amt)+'</span></div>'+
+        '<div class="track"><i data-w="'+d.pct+'" style="background:'+d.color+'"></i></div></div>';
+    }).join("");
+    // animate
+    requestAnimationFrame(function(){
+      setTimeout(function(){
+        el.querySelectorAll(".track i").forEach(function(i){ i.style.width = i.getAttribute("data-w")+"%"; });
+      },120);
+    });
+  }
+
+  // ---------- TOAST ----------
+  function toast(opts){
+    var c = document.getElementById("toasts");
+    var t = document.createElement("div");
+    t.className = "toast";
+    t.innerHTML = '<div class="ic '+(opts.kind||"ok")+'">'+(opts.icon||
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>')+'</div>'+
+      '<div class="body"><div class="tt">'+opts.title+'</div><div class="ts">'+opts.sub+'</div></div>';
+    c.appendChild(t);
+    requestAnimationFrame(function(){ t.classList.add("show"); });
+    setTimeout(function(){
+      t.classList.remove("show");
+      setTimeout(function(){ if(t.parentNode) t.parentNode.removeChild(t); }, 450);
+    }, opts.ms||3800);
+  }
+
+  // ---------- MODAL ----------
+  var overlay = document.getElementById("overlay");
+  var modalBody = document.getElementById("modalBody");
+  var modalTitle = document.getElementById("modalTitle");
+  function openModal(title){ modalTitle.textContent = title; overlay.classList.add("show"); }
+  function closeModal(){ overlay.classList.remove("show"); }
+  document.getElementById("modalClose").addEventListener("click", closeModal);
+  overlay.addEventListener("click", function(e){ if(e.target===overlay) closeModal(); });
+  document.addEventListener("keydown", function(e){ if(e.key==="Escape") closeModal(); });
+
+  // ---------- AI WORKING STAGE ----------
+  // steps: array of {step, sub}. onDone called after sequence.
+  function runAI(opts){
+    var steps = opts.steps;
+    var total = opts.duration || 2100;
+    modalBody.innerHTML =
+      '<div class="ai-stage">'+
+        '<div class="orb-lg"><svg viewBox="0 0 24 24" fill="none" stroke="#04122e" stroke-width="2.2"><path d="M12 2l2.4 5.6L20 10l-5.6 2.4L12 18l-2.4-5.6L4 10l5.6-2.4L12 2z"/></svg></div>'+
+        '<div class="ai-step" id="aiStep">'+steps[0].step+'<span class="dots"><i></i><i></i><i></i></span></div>'+
+        '<div class="ai-sub" id="aiSub">'+steps[0].sub+'</div>'+
+        '<div class="prog"><i id="aiProg"></i></div>'+
+        '<div class="checklist" id="aiCheck">'+
+          steps.map(function(s,i){
+            return '<div class="ci'+(i===0?' active':'')+'" data-i="'+i+'"><span class="box"><span class="spinner"></span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg></span>'+s.step+'</div>';
+          }).join("")+
+        '</div>'+
+      '</div>';
+
+    var stepEl = document.getElementById("aiStep");
+    var subEl = document.getElementById("aiSub");
+    var progEl = document.getElementById("aiProg");
+    var checks = document.querySelectorAll("#aiCheck .ci");
+    var n = steps.length;
+    var per = total / n;
+
+    // progress bar continuous
+    var start = Date.now();
+    var progTimer = setInterval(function(){
+      var p = Math.min(100, ((Date.now()-start)/total)*100);
+      progEl.style.width = p+"%";
+      if(p>=100) clearInterval(progTimer);
+    }, 40);
+
+    var idx = 0;
+    function advance(){
+      // mark current done
+      if(idx>0){ checks[idx-1].classList.remove("active"); checks[idx-1].classList.add("done"); }
+      if(idx < n){
+        checks[idx].classList.add("active");
+        stepEl.innerHTML = steps[idx].step + '<span class="dots"><i></i><i></i><i></i></span>';
+        subEl.textContent = steps[idx].sub;
+        idx++;
+        setTimeout(advance, per);
+      } else {
+        progEl.style.width = "100%";
+        clearInterval(progTimer);
+        stepEl.innerHTML = (opts.finalStep||"Done") ;
+        subEl.textContent = opts.finalSub||"";
+        setTimeout(function(){ opts.onDone && opts.onDone(); }, 360);
+      }
+    }
+    setTimeout(advance, per);
+  }
+
+  // ---------- GENERATE INVOICE ----------
+  function generateInvoice(){
+    openModal("Generate Progress-Billing Invoice");
+    runAI({
+      duration: 2300,
+      steps: [
+        {step:"Reading project schedule", sub:"Lakeshore Tower — Phase 2 · 6 active milestones"},
+        {step:"Calculating % complete", sub:"Matching site progress photos to schedule of values"},
+        {step:"Applying holdback & HST", sub:"10% statutory holdback · 13% HST (Ontario)"},
+        {step:"Drafting branded invoice", sub:"Pulling client billing profile & PO reference"}
+      ],
+      finalStep:"Invoice ready",
+      finalSub:"Generated INV-1043 from milestone completion",
+      onDone: showInvoiceDoc
+    });
+  }
+
+  function showInvoiceDoc(){
+    // numbers
+    var lines = [
+      {d:"Foundation & Substructure", dd:"Milestone 3 of 8 — 100% complete this period", val:184000},
+      {d:"Structural Steel — Levels 1–4", dd:"Milestone 4 of 8 — 65% complete (progress draw)", val:142000},
+      {d:"Site Services & Underground", dd:"Change Order CO-07 approved Apr 24", val:28500}
+    ];
+    var subtotal = lines.reduce(function(a,l){ return a+l.val; },0); // 354500
+    var holdbackRate = 0.10;
+    var holdback = subtotal * holdbackRate; // 35450
+    var afterHoldback = subtotal - holdback; // 319050
+    var hst = afterHoldback * 0.13; // 41476.5
+    var grand = afterHoldback + hst; // 360526.5
+
+    var rowsHtml = lines.map(function(l){
+      return '<tr><td><div class="d">'+l.d+'</div><div class="dd">'+l.dd+'</div></td><td class="n mono">'+CAD(l.val)+'</td></tr>';
+    }).join("");
+
+    modalBody.innerHTML =
+      '<div class="invoice">'+
+        '<div class="inv-doc">'+
+          '<div class="inv-top">'+
+            '<div>'+
+              '<div class="co">Trivox<span style="color:var(--brand2)">Build</span> Group'+
+                '<small>2400 Lakeshore Blvd W, Suite 410<br/>Toronto, ON M8V 1B5 · HST #82914-RT0001</small>'+
+              '</div>'+
+            '</div>'+
+            '<div class="rt">'+
+              '<div class="lbl">Progress Invoice</div>'+
+              '<div class="no">INV-1043</div>'+
+              '<small>Issued Jun 09, 2026 · Net 30</small>'+
+            '</div>'+
+          '</div>'+
+          '<div class="inv-meta">'+
+            '<div class="m"><div class="k">Bill To</div><div class="v">Bridgepoint Developments<br/><span style="font-weight:400;color:var(--muted);font-size:12px">120 Front St E, Toronto ON</span></div></div>'+
+            '<div class="m"><div class="k">Project / SOV</div><div class="v">Lakeshore Tower — Phase 2<br/><span style="font-weight:400;color:var(--muted);font-size:12px">PO #BPD-2026-0417</span></div></div>'+
+            '<div class="m"><div class="k">Billing Period</div><div class="v">May 2026<br/><span style="font-weight:400;color:var(--muted);font-size:12px">Application #4</span></div></div>'+
+          '</div>'+
+          '<table class="inv-lines">'+
+            '<thead><tr><th>Schedule of Values — Work Completed</th><th class="n">Amount</th></tr></thead>'+
+            '<tbody>'+rowsHtml+'</tbody>'+
+          '</table>'+
+          '<div class="inv-tot">'+
+            '<div class="tr"><span class="lk">Work completed this period</span><span class="lv mono">'+CAD(subtotal)+'</span></div>'+
+            '<div class="tr hold"><span class="lk">Less 10% statutory holdback</span><span class="lv mono">−'+CAD(holdback)+'</span></div>'+
+            '<div class="tr"><span class="lk">Net before tax</span><span class="lv mono">'+CAD(afterHoldback)+'</span></div>'+
+            '<div class="tr"><span class="lk">HST @ 13%</span><span class="lv mono">'+CAD(hst)+'</span></div>'+
+            '<div class="tr grand"><span class="lk">Amount Due</span><span class="lv mono">'+CAD(grand)+'</span></div>'+
+          '</div>'+
+          '<div class="inv-foot">'+
+            '<span>Holdback released on substantial performance per Construction Act (Ontario).</span>'+
+            '<span>Remit via EFT · GL: 1200 · AR</span>'+
+          '</div>'+
+        '</div>'+
+        '<div class="ai-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 5.6L20 10l-5.6 2.4L12 18l-2.4-5.6L4 10l5.6-2.4L12 2z"/></svg> Drafted by Trivox AI from milestone data — reviewed in 0.0s, no manual entry</div>'+
+        '<div class="modal-actions">'+
+          '<button class="tvx-btn" id="invSendSync">Send &amp; Sync to QuickBooks</button>'+
+          '<button class="tvx-btn ghost" id="invDownload">Download PDF</button>'+
+          '<button class="tvx-btn ghost" id="invClose">Close</button>'+
+        '</div>'+
+      '</div>';
+
+    document.getElementById("invClose").addEventListener("click", closeModal);
+    document.getElementById("invDownload").addEventListener("click", function(){
+      toast({kind:"ok", title:"Invoice exported", sub:"INV-1043 saved as PDF to /Invoices/2026/Q2"});
+    });
+    document.getElementById("invSendSync").addEventListener("click", function(){
+      // add to table as sent
+      if(!invoices.some(function(i){return i.id==="INV-1043";})){
+        invoices.unshift({id:"INV-1043", client:"Bridgepoint Developments", proj:"Lakeshore Tower — Phase 2", issued:"Jun 09, 2026", amount:Math.round(grand), status:"sent", days:0});
+      }
+      currentFilter="all";
+      document.querySelectorAll(".chip").forEach(function(c){ c.classList.toggle("on", c.getAttribute("data-f")==="all"); });
+      renderTable();
+      closeModal();
+      toast({kind:"ai", title:"INV-1043 sent to client", sub:"Emailed to Bridgepoint Developments · "+CAD(grand)});
+      setTimeout(function(){
+        toast({kind:"qb", icon:"qb", title:"Synced to QuickBooks Online", sub:"AR invoice + holdback liability posted to GL"});
+        document.getElementById("qbStat").textContent = "Synced just now";
+      }, 900);
+    });
+  }
+
+  // ---------- SYNC ----------
+  function doSync(target){
+    var isQB = target==="qb";
+    openModal(isQB ? "Sync to QuickBooks Online" : "Sync to Xero");
+    runAI({
+      duration: 1800,
+      steps: [
+        {step:"Authenticating "+(isQB?"QuickBooks":"Xero")+" connection", sub:"Secure OAuth token · realm verified"},
+        {step:"Mapping accounts to chart of accounts", sub:"AR, holdback liability, HST payable"},
+        {step:"Posting 6 invoices & 4 bills", sub:"Reconciling against bank feed"}
+      ],
+      finalStep:"Sync complete",
+      finalSub:"Ledgers are up to date",
+      onDone: function(){
+        closeModal();
+        if(isQB){
+          toast({kind:"qb", icon:"qb", title:"QuickBooks sync complete", sub:"6 invoices, 4 bills posted · 0 conflicts"});
+          document.getElementById("qbStat").textContent = "Synced just now";
+        } else {
+          toast({kind:"xe", icon:"xe", title:"Xero sync complete", sub:"6 invoices, 4 bills posted · 0 conflicts"});
+          document.getElementById("xeStat").textContent = "Synced just now";
+        }
+      }
+    });
+  }
+
+  // ---------- REMINDERS ----------
+  function reviewReminders(){
+    openModal("AI Collections — Draft Reminders");
+    runAI({
+      duration: 2000,
+      steps: [
+        {step:"Identifying overdue accounts", sub:"3 invoices >30 days · $42,300 total"},
+        {step:"Checking payment history & tone", sub:"Tailoring outreach per client relationship"},
+        {step:"Drafting reminder emails", sub:"Polite, firm, with payment links"}
+      ],
+      finalStep:"3 reminders drafted",
+      finalSub:"Ready for your one-click approval",
+      onDone: showReminders
+    });
+  }
+
+  function showReminders(){
+    var rem = [
+      {client:"Hawthorne Retail Group", inv:"INV-1038", amt:18900, days:56, tone:"Firm — second notice"},
+      {client:"Northwind Logistics", inv:"INV-1036", amt:14200, days:68, tone:"Escalation — final notice"},
+      {client:"Cedarwood Homes", inv:"INV-1034", amt:9200, days:39, tone:"Friendly — first reminder"}
+    ];
+    var preview =
+      'Hi Daniel,<br/><br/>Hope the Dufferin Plaza fit-out is going well. Our records show invoice '+
+      '<b>INV-1038 ($18,900)</b> is now <b>56 days past due</b>. Would you be able to arrange payment '+
+      'this week? I\'ve attached a copy and a secure payment link for convenience.<br/><br/>'+
+      'Happy to jump on a quick call if there\'s anything blocking it.<br/><br/>Best,<br/>Accounts — TrivoxBuild Group';
+
+    modalBody.innerHTML =
+      '<div class="invoice">'+
+        '<div style="display:flex;flex-direction:column;gap:12px">'+
+          rem.map(function(r,i){
+            return '<div style="border:1px solid var(--border);border-radius:12px;padding:14px;background:var(--bg)">'+
+              '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px">'+
+                '<div><div style="font-weight:700">'+r.client+'</div>'+
+                '<div style="font-size:12px;color:var(--muted)">'+r.inv+' · <span style="color:var(--bad);font-weight:600">'+r.days+' days overdue</span></div></div>'+
+                '<div style="text-align:right"><div style="font-weight:800" class="mono">'+CAD(r.amt)+'</div>'+
+                '<div style="font-size:11px;color:var(--brand2);font-weight:600">'+r.tone+'</div></div>'+
+              '</div>'+
+              (i===0 ? '<div style="margin-top:12px;padding:13px;border-radius:10px;background:rgba(46,97,254,.07);border:1px solid var(--border);font-size:12.5px;color:var(--muted);line-height:1.6">'+preview+'</div>' : '')+
+            '</div>';
+          }).join("")+
+        '</div>'+
+        '<div class="ai-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l2.4 5.6L20 10l-5.6 2.4L12 18l-2.4-5.6L4 10l5.6-2.4L12 2z"/></svg> Personalized by Trivox AI from each client\'s payment history</div>'+
+        '<div class="modal-actions">'+
+          '<button class="tvx-btn" id="remSend">Send all 3 reminders</button>'+
+          '<button class="tvx-btn ghost" id="remClose">Review later</button>'+
+        '</div>'+
+      '</div>';
+    document.getElementById("remClose").addEventListener("click", closeModal);
+    document.getElementById("remSend").addEventListener("click", function(){
+      closeModal();
+      toast({kind:"ai", title:"3 reminders sent", sub:"$42,300 in collections outreach · tracked for replies"});
+      setTimeout(function(){
+        toast({kind:"ok", title:"Activity logged", sub:"Follow-ups scheduled in 5 business days if unpaid"});
+      }, 900);
+    });
+  }
+
+  // ---------- WIRE UP ----------
+  document.getElementById("genInvoice").addEventListener("click", generateInvoice);
+  document.getElementById("syncQB").addEventListener("click", function(){ doSync("qb"); });
+  document.getElementById("syncXero").addEventListener("click", function(){ doSync("xero"); });
+  document.getElementById("syncQB2").addEventListener("click", function(){ doSync("qb"); });
+  document.getElementById("syncXero2").addEventListener("click", function(){ doSync("xero"); });
+  document.getElementById("reviewReminders").addEventListener("click", reviewReminders);
+
+  document.querySelectorAll(".chip").forEach(function(c){
+    c.addEventListener("click", function(){
+      document.querySelectorAll(".chip").forEach(function(x){ x.classList.remove("on"); });
+      c.classList.add("on");
+      currentFilter = c.getAttribute("data-f");
+      renderTable();
+    });
+  });
+  document.getElementById("searchInv").addEventListener("input", function(e){
+    searchTerm = e.target.value; renderTable();
+  });
+
+  // row view -> open the relevant invoice (just toast for demo, open doc for 1042/1043)
+  document.getElementById("invBody").addEventListener("click", function(e){
+    var btn = e.target.closest("[data-view]");
+    if(!btn) return;
+    var id = btn.getAttribute("data-view");
+    var iv = invoices.find(function(x){ return x.id===id; });
+    if(!iv) return;
+    toast({kind:"ai", title:"Opening "+id, sub:iv.client+" · "+CAD(iv.amount)});
+  });
+
+  // init
+  renderTable();
+  renderAging();
+})();
+</script>
+</body>
+</html>

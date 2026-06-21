@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TRIVOX CRM — AI-Prioritized Pipeline</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070b18;--bg2:#0d1426;--surface:#121b30;--surface2:#16203a;--border:#1e2a44;--text:#eaf0ff;--muted:#8a97b5;--brand:#2e61fe;--brand2:#00f0ff;--grad:linear-gradient(135deg,#2e61fe,#00f0ff);--good:#22c55e;--warn:#fbbf24;--bad:#ef4444;--radius:16px;--shadow:0 10px 40px rgba(0,0,0,.45);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;}
+
+nav{position:sticky;top:0;z-index:100;background:rgba(7,11,24,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;}
+.nav-brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.1rem;letter-spacing:-.02em;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.nav-pill{background:var(--grad);color:#fff;font-size:.65rem;font-weight:700;padding:3px 8px;border-radius:999px;letter-spacing:.08em;-webkit-text-fill-color:#fff;}
+.nav-back{color:var(--muted);text-decoration:none;font-size:.85rem;font-weight:500;transition:color .2s;}
+.nav-back:hover{color:var(--text);}
+
+.hero{padding:64px 32px 48px;max-width:1200px;margin:0 auto;}
+.eyebrow{font-size:.72rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--brand2);margin-bottom:14px;}
+h1{font-size:clamp(28px,4vw,40px);font-family:'DM Serif Display',serif;font-weight:400;letter-spacing:-.01em;line-height:1.15;margin-bottom:16px;}
+.subhead{color:var(--muted);font-size:.95rem;line-height:1.65;max-width:640px;margin-bottom:36px;}
+.stats{display:flex;gap:12px;flex-wrap:wrap;}
+.stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:8px 18px;font-size:.78rem;font-weight:600;display:flex;align-items:center;gap:7px;}
+.stat-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--grad);flex-shrink:0;}
+
+.grid{display:grid;grid-template-columns:320px 1fr;gap:24px;max-width:1200px;margin:0 auto;padding:0 32px 80px;}
+@media(max-width:900px){.grid{grid-template-columns:1fr;}}
+
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);}
+.panel-title{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:18px;}
+
+.view-label{font-size:.78rem;font-weight:600;color:var(--muted);margin-bottom:8px;}
+.view-select{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Sora',sans-serif;font-size:.85rem;padding:10px 14px;outline:none;cursor:pointer;margin-bottom:20px;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238a97b5' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;}
+.view-select:focus{border-color:var(--brand);}
+
+.filter-chips{display:flex;flex-direction:column;gap:8px;margin-bottom:24px;}
+.filter-chip{display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font-size:.8rem;cursor:pointer;transition:border-color .2s;}
+.filter-chip:hover,.filter-chip.active{border-color:var(--brand);}
+.filter-chip.active .chip-label{color:var(--text);}
+.chip-label{color:var(--muted);font-weight:500;}
+.chip-count{background:var(--surface2);border-radius:999px;padding:2px 9px;font-size:.7rem;font-weight:700;color:var(--brand2);}
+
+.btn-primary{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;background:var(--grad);border:none;border-radius:10px;color:#fff;font-family:'Sora',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;transition:opacity .2s,transform .15s;}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px);}
+.btn-primary:active{transform:translateY(0);}
+
+/* RIGHT */
+.right-panel{min-height:480px;}
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:440px;gap:16px;color:var(--muted);text-align:center;}
+.empty-icon{width:56px;height:56px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.4rem;}
+
+.working-state{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:440px;gap:24px;}
+.orb{width:72px;height:72px;border-radius:50%;background:var(--grad);box-shadow:0 0 40px rgba(46,97,254,.5);animation:pulse 1.4s ease-in-out infinite;}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.12);opacity:.8;}}
+.checklist{list-style:none;display:flex;flex-direction:column;gap:10px;font-size:.85rem;}
+.checklist li{display:flex;align-items:center;gap:10px;color:var(--muted);transition:color .3s;}
+.checklist li.done{color:var(--text);}
+.check-icon{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.6rem;transition:all .3s;}
+.checklist li.done .check-icon{background:var(--good);border-color:var(--good);color:#fff;}
+
+.result-state{display:none;flex-direction:column;gap:20px;}
+
+/* PIPELINE VALUE TILES */
+.pipeline-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+@media(max-width:1100px){.pipeline-tiles{grid-template-columns:repeat(2,1fr);}}
+.pipe-tile{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+.pipe-tile-label{font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.pipe-tile-val{font-family:'DM Serif Display',serif;font-size:1.35rem;font-weight:400;line-height:1;}
+.pipe-tile-val.grad{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.pipe-tile-sub{font-size:.7rem;color:var(--muted);margin-top:4px;}
+
+/* CONTACTS TABLE */
+.section-label{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.contacts-table{width:100%;border-collapse:collapse;font-size:.8rem;}
+.contacts-table th{color:var(--muted);font-weight:600;font-size:.68rem;letter-spacing:.08em;text-transform:uppercase;padding:7px 10px;border-bottom:1px solid var(--border);text-align:left;white-space:nowrap;}
+.contacts-table td{padding:10px 10px;border-bottom:1px solid rgba(30,42,68,.5);vertical-align:top;}
+.contacts-table tr:last-child td{border-bottom:none;}
+.contact-name{font-weight:600;color:var(--text);}
+.contact-co{font-size:.72rem;color:var(--muted);margin-top:2px;}
+.stage-pill{display:inline-block;border-radius:999px;padding:3px 10px;font-size:.68rem;font-weight:700;letter-spacing:.04em;}
+.stage-proposal{background:rgba(46,97,254,.18);color:#7aa3ff;}
+.stage-negotiation{background:rgba(251,191,36,.15);color:var(--warn);}
+.stage-qualified{background:rgba(0,240,255,.12);color:var(--brand2);}
+.stage-closed{background:rgba(34,197,94,.15);color:var(--good);}
+.ai-action{font-size:.72rem;color:var(--muted);display:flex;align-items:flex-start;gap:5px;margin-top:2px;}
+.ai-tag{color:var(--brand2);font-weight:700;flex-shrink:0;}
+.last-touch{font-size:.72rem;color:var(--muted);}
+
+/* PRIORITY PANEL */
+.priority-panel{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px 18px;}
+.priority-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.priority-title{font-size:.78rem;font-weight:700;}
+.priority-badge{font-size:.65rem;font-weight:700;padding:3px 9px;border-radius:999px;background:rgba(46,97,254,.2);color:#7aa3ff;}
+.action-list{display:flex;flex-direction:column;gap:8px;}
+.action-item{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:10px;}
+.action-num{width:22px;height:22px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;flex-shrink:0;color:#fff;}
+.action-text{font-size:.8rem;line-height:1.45;}
+.action-who{font-size:.7rem;color:var(--muted);margin-top:2px;}
+
+footer{text-align:center;padding:28px;color:var(--muted);font-size:.75rem;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">TRIVOX <span class="nav-pill">AI</span></div>
+  <a class="nav-back" href="../../portfolio.html">← All Demos</a>
+</nav>
+
+<section class="hero">
+  <div class="eyebrow">Operations</div>
+  <h1>TRIVOX CRM</h1>
+  <p class="subhead">AI scans your pipeline every morning, ranks who to call, flags deals going cold, and tells you exactly what to say. Start each day knowing the 5 moves that close the most revenue.</p>
+  <div class="stats">
+    <div class="stat-chip"><span class="dot"></span>$280k pipeline</div>
+    <div class="stat-chip"><span class="dot"></span>AI-prioritized</div>
+    <div class="stat-chip"><span class="dot"></span>Nothing forgotten</div>
+  </div>
+</section>
+
+<div class="grid">
+  <!-- LEFT -->
+  <div class="panel">
+    <div class="panel-title">Pipeline View</div>
+    <div class="view-label">Select pipeline</div>
+    <select class="view-select" id="pipeline-select">
+      <option>All Deals</option>
+      <option>Active Only</option>
+      <option>Closing This Month</option>
+      <option>At Risk</option>
+    </select>
+
+    <div class="panel-title">Filter by stage</div>
+    <div class="filter-chips">
+      <div class="filter-chip active" onclick="toggleChip(this)"><span class="chip-label">Qualified</span><span class="chip-count">2</span></div>
+      <div class="filter-chip active" onclick="toggleChip(this)"><span class="chip-label">Proposal Sent</span><span class="chip-count">3</span></div>
+      <div class="filter-chip active" onclick="toggleChip(this)"><span class="chip-label">Negotiation</span><span class="chip-count">2</span></div>
+      <div class="filter-chip" onclick="toggleChip(this)"><span class="chip-label">Closed Won</span><span class="chip-count">5</span></div>
+    </div>
+
+    <button class="btn-primary" onclick="loadDay()">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09z"/></svg>
+      Load My Day
+    </button>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="panel right-panel" id="right-panel">
+    <div class="empty-state" id="empty-state">
+      <div class="empty-icon">📊</div>
+      <div style="font-size:.88rem;font-weight:600;">Pipeline ready</div>
+      <div style="font-size:.8rem;max-width:220px;">Select a view and click Load My Day to see AI-ranked priorities.</div>
+    </div>
+
+    <div class="working-state" id="working-state">
+      <div class="orb"></div>
+      <ul class="checklist" id="checklist">
+        <li id="c0"><span class="check-icon"></span> Scanning 7 active deals</li>
+        <li id="c1"><span class="check-icon"></span> Calculating deal velocity &amp; risk scores</li>
+        <li id="c2"><span class="check-icon"></span> Checking last-touch dates</li>
+        <li id="c3"><span class="check-icon"></span> Ranking by revenue impact</li>
+        <li id="c4"><span class="check-icon"></span> Generating AI next-actions</li>
+      </ul>
+    </div>
+
+    <div class="result-state" id="result-state">
+      <div>
+        <div class="section-label">Pipeline Overview</div>
+        <div class="pipeline-tiles">
+          <div class="pipe-tile"><div class="pipe-tile-label">Total Value</div><div class="pipe-tile-val grad">$280k</div><div class="pipe-tile-sub">7 active deals</div></div>
+          <div class="pipe-tile"><div class="pipe-tile-label">Closing Soon</div><div class="pipe-tile-val" style="color:var(--warn);">$94k</div><div class="pipe-tile-sub">3 deals · this month</div></div>
+          <div class="pipe-tile"><div class="pipe-tile-label">At Risk</div><div class="pipe-tile-val" style="color:var(--bad);">$48k</div><div class="pipe-tile-sub">2 deals · gone cold</div></div>
+          <div class="pipe-tile"><div class="pipe-tile-label">Win Rate</div><div class="pipe-tile-val" style="color:var(--good);">68%</div><div class="pipe-tile-sub">L90d average</div></div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-label">Active Contacts</div>
+        <div style="overflow-x:auto;">
+          <table class="contacts-table">
+            <thead>
+              <tr>
+                <th>Contact</th>
+                <th>Stage</th>
+                <th>Value</th>
+                <th>Last Touch</th>
+                <th>AI Next Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><div class="contact-name">Marcus Webb</div><div class="contact-co">Nexus Logistics</div></td>
+                <td><span class="stage-pill stage-negotiation">Negotiation</span></td>
+                <td style="font-weight:700;">$52,000</td>
+                <td><span class="last-touch">2d ago</span></td>
+                <td><div class="ai-action"><span class="ai-tag">AI:</span>Send revised scope with updated timeline. Deal stalled on delivery dates.</div></td>
+              </tr>
+              <tr>
+                <td><div class="contact-name">Aisha Brennan</div><div class="contact-co">Foundry Media</div></td>
+                <td><span class="stage-pill stage-proposal">Proposal</span></td>
+                <td style="font-weight:700;">$38,500</td>
+                <td><span class="last-touch" style="color:var(--bad);">9d ago</span></td>
+                <td><div class="ai-action"><span class="ai-tag">AI:</span>Follow up urgently: proposal opened 3× but no reply. Risk of going cold.</div></td>
+              </tr>
+              <tr>
+                <td><div class="contact-name">Derek Chow</div><div class="contact-co">Altitude SaaS</div></td>
+                <td><span class="stage-pill stage-qualified">Qualified</span></td>
+                <td style="font-weight:700;">$71,000</div></td>
+                <td><span class="last-touch">1d ago</span></td>
+                <td><div class="ai-action"><span class="ai-tag">AI:</span>Book demo this week. High intent signals, budget confirmed.</div></td>
+              </tr>
+              <tr>
+                <td><div class="contact-name">Lena Moreira</div><div class="contact-co">Crestwood Partners</div></td>
+                <td><span class="stage-pill stage-proposal">Proposal</span></td>
+                <td style="font-weight:700;">$29,000</td>
+                <td><span class="last-touch">4d ago</span></td>
+                <td><div class="ai-action"><span class="ai-tag">AI:</span>Add ROI calculator to proposal. She asked about payback period.</div></td>
+              </tr>
+              <tr>
+                <td><div class="contact-name">Tom Griffiths</div><div class="contact-co">Ironclad Builds</div></td>
+                <td><span class="stage-pill stage-negotiation">Negotiation</span></td>
+                <td style="font-weight:700;">$45,500</td>
+                <td><span class="last-touch" style="color:var(--warn);">7d ago</span></td>
+                <td><div class="ai-action"><span class="ai-tag">AI:</span>Call today. Competing vendor spotted in his LinkedIn activity.</div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="priority-panel">
+        <div class="priority-header">
+          <div class="priority-title">Today's 5 Priority Actions</div>
+          <div class="priority-badge">AI-RANKED</div>
+        </div>
+        <div class="action-list">
+          <div class="action-item"><div class="action-num">1</div><div><div class="action-text">Call Tom Griffiths. Competitor threat detected, risk of losing $45.5k deal this week.</div><div class="action-who">Ironclad Builds · Negotiation · 7d no contact</div></div></div>
+          <div class="action-item"><div class="action-num">2</div><div><div class="action-text">Email Aisha Brennan a re-engagement nudge. Proposal viewed 3× with no reply in 9 days.</div><div class="action-who">Foundry Media · Proposal · $38.5k at risk</div></div></div>
+          <div class="action-item"><div class="action-num">3</div><div><div class="action-text">Book Derek Chow demo: highest value qualified deal with strong engagement signals.</div><div class="action-who">Altitude SaaS · Qualified · $71k potential</div></div></div>
+          <div class="action-item"><div class="action-num">4</div><div><div class="action-text">Send Marcus Webb revised scope doc. Deal blocked on delivery timeline clarity.</div><div class="action-who">Nexus Logistics · Negotiation · $52k</div></div></div>
+          <div class="action-item"><div class="action-num">5</div><div><div class="action-text">Add ROI slide to Lena Moreira's proposal before end of day.</div><div class="action-who">Crestwood Partners · Proposal · $29k</div></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>Built by TRIVOX · AI automation that runs your business</footer>
+
+<script>
+function toggleChip(el){el.classList.toggle('active');}
+
+function loadDay(){
+  document.getElementById('empty-state').style.display='none';
+  document.getElementById('result-state').style.display='none';
+  const ws=document.getElementById('working-state');
+  ws.style.display='flex';
+
+  const checks=document.querySelectorAll('#checklist li');
+  checks.forEach(c=>{c.classList.remove('done');c.querySelector('.check-icon').textContent='';});
+
+  let i=0;
+  const tick=setInterval(()=>{
+    if(i<checks.length){
+      checks[i].classList.add('done');
+      checks[i].querySelector('.check-icon').textContent='✓';
+      i++;
+    } else {
+      clearInterval(tick);
+      setTimeout(()=>{
+        ws.style.display='none';
+        document.getElementById('result-state').style.display='flex';
+      },200);
+    }
+  },380);
+}
+</script>
+</body>
+</html>

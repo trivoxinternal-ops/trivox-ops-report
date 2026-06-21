@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrivoxAI — Change Order & Approval Flow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070b18; --bg2:#0d1426; --surface:#121b30; --surface2:#16203a; --border:#1e2a44;
+  --text:#eaf0ff; --muted:#8a97b5;
+  --brand:#2e61fe; --brand2:#00f0ff; --grad:linear-gradient(135deg,#2e61fe,#00f0ff);
+  --good:#22c55e; --warn:#fbbf24; --bad:#ef4444;
+  --radius:16px; --shadow:0 10px 40px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box} html,body{margin:0}
+body{background:radial-gradient(1200px 600px at 70% -10%,#13224a 0,transparent 60%),var(--bg);color:var(--text);font-family:'Sora',system-ui,sans-serif;line-height:1.5;min-height:100vh;display:flex;flex-direction:column}
+.tvx-btn{background:var(--grad);color:#04122e;border:0;border-radius:12px;padding:12px 20px;font-weight:700;font-family:inherit;cursor:pointer;transition:.2s}
+.tvx-btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.tvx-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;filter:none}
+.tvx-card{background:linear-gradient(180deg,var(--surface),var(--bg2));border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+.tvx-badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:999px;background:rgba(46,97,254,.15);color:#7fa8ff;border:1px solid rgba(46,97,254,.35)}
+
+/* Header */
+header{display:flex;align-items:center;justify-content:space-between;padding:18px 28px;border-bottom:1px solid var(--border);background:rgba(7,11,24,.6);backdrop-filter:blur(8px);position:sticky;top:0;z-index:50}
+.demo-title{font-size:13px;color:var(--muted);font-weight:500;display:flex;align-items:center;gap:10px}
+.demo-title .tvx-badge{font-size:10px}
+
+/* Layout */
+main{flex:1;max-width:1320px;width:100%;margin:0 auto;padding:28px;display:grid;grid-template-columns:1.15fr .85fr;gap:24px;align-items:start}
+@media(max-width:1000px){main{grid-template-columns:1fr}}
+
+/* Project summary strip */
+.proj-strip{grid-column:1 / -1;display:flex;flex-wrap:wrap;gap:20px;align-items:center;justify-content:space-between;padding:20px 24px}
+.proj-meta h1{font-size:22px;margin:0 0 4px;font-weight:700;letter-spacing:-.02em}
+.proj-meta .sub{color:var(--muted);font-size:13px}
+.kpis{display:flex;gap:14px;flex-wrap:wrap}
+.kpi{min-width:150px;padding:12px 16px;border-radius:12px;background:var(--surface2);border:1px solid var(--border)}
+.kpi .label{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);font-weight:600}
+.kpi .val{font-size:20px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums}
+.kpi .val.delta-up{color:var(--warn)}
+.kpi .val.brand{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* CO list */
+.section-h{display:flex;align-items:center;justify-content:space-between;margin:0 0 14px}
+.section-h h2{font-size:15px;margin:0;font-weight:600;letter-spacing:.01em}
+.section-h .count{color:var(--muted);font-size:12px}
+.co-list{display:flex;flex-direction:column;gap:10px}
+.co-item{display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:12px;background:var(--surface2);border:1px solid var(--border);cursor:pointer;transition:.18s;position:relative;overflow:hidden}
+.co-item:hover{border-color:#2e61fe66;transform:translateY(-1px)}
+.co-item.active{border-color:var(--brand);box-shadow:0 0 0 1px var(--brand),0 8px 24px rgba(46,97,254,.18)}
+.co-item.locked{cursor:default;opacity:.92}
+.co-id{font-weight:700;font-size:13px;letter-spacing:.02em;min-width:62px;color:#aebfe6}
+.co-body{flex:1;min-width:0}
+.co-desc{font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.co-trade{font-size:11px;color:var(--muted);margin-top:2px}
+.co-cost{font-size:13.5px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.co-cost.pos{color:var(--warn)} .co-cost.neg{color:var(--good)}
+.co-status{font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.st-pending{background:rgba(251,191,36,.14);color:var(--warn);border:1px solid rgba(251,191,36,.3)}
+.st-approved{background:rgba(34,197,94,.14);color:var(--good);border:1px solid rgba(34,197,94,.3)}
+.st-rejected{background:rgba(239,68,68,.14);color:var(--bad);border:1px solid rgba(239,68,68,.3)}
+
+/* Detail / AI panel */
+.detail{position:sticky;top:96px}
+.detail .pad{padding:22px}
+.empty-state{text-align:center;padding:60px 24px;color:var(--muted)}
+.empty-state .ring{width:54px;height:54px;margin:0 auto 16px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;opacity:.85}
+.empty-state h3{color:var(--text);font-size:16px;margin:0 0 6px}
+
+.det-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:6px}
+.det-head .id{font-weight:700;font-size:15px;color:#aebfe6}
+.det-desc{font-size:17px;font-weight:600;line-height:1.35;margin:8px 0 2px}
+.det-trade{color:var(--muted);font-size:12.5px}
+
+/* AI working */
+.ai-working{margin:22px 0 6px;display:none}
+.ai-working.show{display:block;animation:fade .3s ease}
+.ai-row{display:flex;align-items:center;gap:10px;font-size:13px;color:#9fb0d6;margin-bottom:14px}
+.ai-row .pulse{width:9px;height:9px;border-radius:50%;background:var(--brand2);box-shadow:0 0 10px var(--brand2);animation:pulse 1s infinite}
+.dots span{display:inline-block;animation:blink 1.4s infinite both}
+.dots span:nth-child(2){animation-delay:.2s} .dots span:nth-child(3){animation-delay:.4s}
+.bar{height:6px;border-radius:999px;background:var(--surface2);overflow:hidden;border:1px solid var(--border)}
+.bar i{display:block;height:100%;width:0;background:var(--grad);border-radius:999px;transition:width .25s linear}
+.stream-lines{margin-top:14px;font-size:12.5px;color:var(--muted)}
+.stream-lines .ln{opacity:0;transform:translateY(4px);transition:.35s;display:flex;align-items:center;gap:8px;padding:3px 0}
+.stream-lines .ln.on{opacity:1;transform:none}
+.stream-lines .ln .ck{color:var(--good);font-weight:700}
+
+/* AI result */
+.ai-result{display:none}
+.ai-result.show{display:block;animation:fade .45s ease}
+.ai-summary{background:rgba(46,97,254,.07);border:1px solid rgba(46,97,254,.25);border-radius:12px;padding:14px 16px;font-size:13.5px;line-height:1.6;margin-bottom:18px}
+.ai-summary .tag{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--brand2);font-weight:700;display:block;margin-bottom:6px}
+.impact-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.impact{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px}
+.impact .label{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+.impact .big{font-size:22px;font-weight:700;margin-top:4px;font-variant-numeric:tabular-nums}
+.impact .note{font-size:11.5px;color:var(--muted);margin-top:3px}
+.up{color:var(--warn)} .down{color:var(--good)}
+
+.breakdown{margin-bottom:18px}
+.breakdown .bh{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;margin-bottom:8px}
+.brow{display:flex;justify-content:space-between;font-size:13px;padding:7px 0;border-bottom:1px dashed var(--border)}
+.brow:last-child{border-bottom:0}
+.brow .v{font-variant-numeric:tabular-nums;font-weight:600}
+
+.revised{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,rgba(46,97,254,.16),rgba(0,240,255,.08));border:1px solid rgba(0,240,255,.3);border-radius:12px;padding:16px 18px;margin-bottom:18px}
+.revised .label{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:#9fb0d6;font-weight:600}
+.revised .amt{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums}
+
+.actions{display:flex;gap:10px}
+.btn-reject{background:transparent;color:var(--bad);border:1px solid rgba(239,68,68,.4);border-radius:12px;padding:12px 18px;font-weight:600;font-family:inherit;cursor:pointer;transition:.2s}
+.btn-reject:hover{background:rgba(239,68,68,.1)}
+.tvx-btn.flex{flex:1}
+
+/* approved confirmation */
+.approved-box{display:none;text-align:center;padding:8px 0 0;animation:fade .5s ease}
+.approved-box.show{display:block}
+.approved-box .seal{width:64px;height:64px;border-radius:50%;border:2px solid var(--good);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;background:rgba(34,197,94,.1);animation:pop .5s cubic-bezier(.2,1.2,.4,1)}
+.approved-box h3{margin:0 0 4px;font-size:18px;color:var(--good)}
+.sig{margin-top:14px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;text-align:left}
+.sig .row{display:flex;justify-content:space-between;font-size:12.5px;padding:4px 0;color:var(--muted)}
+.sig .row b{color:var(--text);font-weight:600}
+.sig .name{font-family:'Sora';font-size:22px;font-weight:300;font-style:italic;color:#cfe0ff;border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:8px}
+.rejected-note{display:none;margin-top:14px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:12px;padding:14px 16px;font-size:13px;color:#ffb4b4}
+.rejected-note.show{display:block;animation:fade .4s ease}
+
+footer{border-top:1px solid var(--border);padding:18px 28px;color:var(--muted);font-size:12px;text-align:center}
+
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.5);opacity:.5}}
+@keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{transform:scale(0);opacity:0}60%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+.flash{animation:flashk .8s ease}
+@keyframes flashk{0%{color:var(--brand2)}100%{}}
+</style>
+</head>
+<body>
+<header>
+  <span style="display:inline-flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:-.02em">
+    <svg width="30" height="30" viewBox="0 0 48 48" fill="none"><defs><linearGradient id="tvx_change_order" x1="0" y1="0" x2="48" y2="48"><stop offset="0" stop-color="#2e61fe"/><stop offset="1" stop-color="#00f0ff"/></linearGradient></defs><path d="M5 9 L24 41 L43 9 L33 9 L24 25 L15 9 Z" fill="url(#tvx_change_order)"/><path d="M16 9 L24 22 L32 9 L24 9 Z" fill="url(#tvx_change_order)" opacity=".5"/></svg>
+    Trivox<span style="color:var(--brand2)">AI</span>
+  </span>
+  <div class="demo-title"><span class="tvx-badge">Demo</span> Change Order &amp; Approval Flow</div>
+</header>
+
+<main>
+  <div class="proj-strip tvx-card">
+    <div class="proj-meta">
+      <h1>Lakeshore Medical Tower — Phase 2</h1>
+      <div class="sub">Mixed-use • 14 storeys • 211 Lakeshore Blvd E, Toronto, ON &nbsp;•&nbsp; GC: Northbridge Construction Group</div>
+    </div>
+    <div class="kpis">
+      <div class="kpi">
+        <div class="label">Original Contract</div>
+        <div class="val" id="kpiOriginal">$42,850,000</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Approved CO Value</div>
+        <div class="val delta-up" id="kpiApprovedCO">+$0</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Revised Contract Total</div>
+        <div class="val brand" id="kpiRevised">$42,850,000</div>
+      </div>
+      <div class="kpi">
+        <div class="label">Schedule Impact</div>
+        <div class="val" id="kpiSchedule">+0 days</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEFT: list -->
+  <section class="tvx-card" style="padding:22px">
+    <div class="section-h">
+      <h2>Change Orders</h2>
+      <span class="count" id="coCount"></span>
+    </div>
+    <div class="co-list" id="coList"></div>
+  </section>
+
+  <!-- RIGHT: detail -->
+  <section class="tvx-card detail">
+    <div id="detailEmpty" class="empty-state">
+      <div class="ring">
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#04122e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+      </div>
+      <h3>Select a pending change order</h3>
+      <div style="font-size:13px;max-width:260px;margin:0 auto">TrivoxAI instantly computes the budget &amp; schedule impact and prepares it for one-click approval.</div>
+    </div>
+
+    <div id="detailContent" class="pad" style="display:none">
+      <div class="det-head">
+        <div>
+          <span class="id" id="dId">CO-001</span>
+          <div class="det-desc" id="dDesc"></div>
+          <div class="det-trade" id="dTrade"></div>
+        </div>
+        <span class="co-status st-pending" id="dStatus">Pending</span>
+      </div>
+
+      <!-- AI working -->
+      <div class="ai-working" id="aiWorking">
+        <div class="ai-row">
+          <span class="pulse"></span>
+          <span id="aiLabel">TrivoxAI analyzing change order</span>
+          <span class="dots"><span>.</span><span>.</span><span>.</span></span>
+        </div>
+        <div class="bar"><i id="aiBar"></i></div>
+        <div class="stream-lines" id="aiStream">
+          <div class="ln"><span class="ck">✓</span> Parsing scope &amp; affected divisions</div>
+          <div class="ln"><span class="ck">✓</span> Pricing labour, material &amp; equipment</div>
+          <div class="ln"><span class="ck">✓</span> Cross-checking subtrade quotes &amp; CCDC markup</div>
+          <div class="ln"><span class="ck">✓</span> Modelling critical-path schedule impact</div>
+          <div class="ln"><span class="ck">✓</span> Reconciling against approved budget</div>
+        </div>
+      </div>
+
+      <!-- AI result -->
+      <div class="ai-result" id="aiResult">
+        <div class="ai-summary">
+          <span class="tag">AI Impact Summary</span>
+          <span id="rSummary"></span>
+        </div>
+
+        <div class="impact-grid">
+          <div class="impact">
+            <div class="label">Cost Impact</div>
+            <div class="big" id="rCost"></div>
+            <div class="note" id="rCostNote"></div>
+          </div>
+          <div class="impact">
+            <div class="label">Schedule Impact</div>
+            <div class="big" id="rSched"></div>
+            <div class="note" id="rSchedNote"></div>
+          </div>
+        </div>
+
+        <div class="breakdown">
+          <div class="bh">Cost Breakdown (excl. HST)</div>
+          <div id="rBreakdown"></div>
+        </div>
+
+        <div class="revised">
+          <div>
+            <div class="label">Revised Contract Total (if approved)</div>
+            <div style="font-size:11.5px;color:var(--muted);margin-top:2px" id="rHst"></div>
+          </div>
+          <div class="amt" id="rRevised"></div>
+        </div>
+
+        <div class="actions" id="rActions">
+          <button class="btn-reject" id="btnReject">Reject</button>
+          <button class="tvx-btn flex" id="btnApprove">Approve Change Order</button>
+        </div>
+
+        <!-- approved -->
+        <div class="approved-box" id="approvedBox">
+          <div class="seal">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>
+          </div>
+          <h3>Change Order Approved</h3>
+          <div style="font-size:13px;color:var(--muted)">Contract total updated &amp; pushed to accounting.</div>
+          <div class="sig">
+            <div class="name" id="sigName">Daniel Ortiz</div>
+            <div class="row"><span>Authorized by</span><b>Daniel Ortiz, Project Manager</b></div>
+            <div class="row"><span>Timestamp</span><b id="sigTime"></b></div>
+            <div class="row"><span>Reference</span><b id="sigRef"></b></div>
+            <div class="row"><span>Synced to</span><b>QuickBooks • Procore</b></div>
+          </div>
+        </div>
+
+        <div class="rejected-note" id="rejectedNote">
+          Change order rejected. No budget or schedule changes applied. The originating subtrade has been notified via TrivoxAI.
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>TRIVOX AI — Automation Infrastructure</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  var ORIGINAL = 42850000;
+  var HST = 0.13;
+
+  // Mocked change orders — realistic Ontario construction
+  var COS = [
+    { id:"CO-001", desc:"Upgrade Level 3 MRI suite to RF-shielded enclosure", trade:"Division 13 — Special Construction",
+      cost:184500, days:9, status:"Pending",
+      breakdown:[["RF shielding system & panels",112000],["Mechanical re-coordination",28500],["Electrical isolation",19000],["Subcontractor markup (CCDC 10%)",18450],["Bonding & contingency",6550]],
+      summary:"Reclassifying the Level 3 imaging room to a fully RF-shielded MRI suite adds <b>$184,500</b> in shielding, mechanical and electrical scope. Critical-path impact of <b>9 days</b> driven by lead time on the shielded enclosure. Recommend approval — change is owner-directed and within the 5% contingency envelope." },
+    { id:"CO-002", desc:"Add curtain-wall sun shading to south elevation (Levels 4-9)", trade:"Division 08 — Openings / Glazing",
+      cost:267800, days:14, status:"Pending",
+      breakdown:[["Aluminum sun-shade fins & brackets",178000],["Structural attachment & engineering",41000],["Hoisting & swing-stage access",24500],["Subcontractor markup (CCDC 10%)",24300]],
+      summary:"Architect-issued addendum adds horizontal sun-shading across six floors of the south curtain wall. Material lead time and swing-stage sequencing drive a <b>14-day</b> critical-path extension. Cost of <b>$267,800</b> is the largest open CO — recommend owner sign-off before fabrication release." },
+    { id:"CO-003", desc:"Value-engineer slab-on-grade to thickened-edge design", trade:"Division 03 — Concrete",
+      cost:-96400, days:-4, status:"Pending",
+      breakdown:[["Reduced concrete volume (parkade)",-58000],["Rebar reduction",-21400],["Reduced formwork & labour",-17000]],
+      summary:"VE proposal substitutes the structural slab-on-grade with an engineered thickened-edge design in the parkade. Generates a <b>$96,400 credit</b> and pulls <b>4 days</b> off the schedule with no loss of performance. Strongly recommend approval — pure savings, structurally signed off by EOR." },
+    { id:"CO-004", desc:"Relocate main electrical room for ESA clearance compliance", trade:"Division 26 — Electrical",
+      cost:58200, days:6, status:"Pending",
+      breakdown:[["Demolition & re-rough of partitions",18500],["Conduit & feeder re-routing",22000],["Fire-rated assembly upgrade",11400],["Subcontractor markup (CCDC 10%)",6300]],
+      summary:"ESA plan review flagged insufficient working clearance at the main electrical room. Relocation requires partition re-work and feeder re-routing for <b>$58,200</b> and <b>6 days</b>. Non-discretionary — required for ESA approval and permit. Recommend immediate approval." },
+    { id:"CO-005", desc:"Add backup generator & ATS for life-safety branch", trade:"Division 26 — Electrical",
+      cost:341000, days:21, status:"Pending",
+      breakdown:[["500kW diesel generator",212000],["Automatic transfer switch & gear",58000],["Acoustic enclosure & pad",34000],["Fuel system & commissioning",23000],["Subcontractor markup (CCDC 10%)",14000]],
+      summary:"OBC life-safety requirement for the medical occupancy adds a 500kW standby generator with ATS. Generator lead time of 16-18 weeks drives a <b>21-day</b> critical-path impact; cost is <b>$341,000</b>. Largest schedule driver in the log — recommend procurement be released on approval." },
+    { id:"CO-006", desc:"Substitute imported tile for domestic equivalent (lobby)", trade:"Division 09 — Finishes",
+      cost:-22300, days:-2, status:"Approved", approver:"M. Chen, Sr. PM", ref:"NCG-CO-2026-006",
+      breakdown:[["Tile material credit",-16800],["Reduced import freight & duty",-5500]],
+      summary:"Finish substitution to a domestic porcelain tile of equal spec generated a $22,300 credit and recovered 2 days of import lead time." },
+    { id:"CO-007", desc:"Roof-top mechanical penthouse — added vibration isolation", trade:"Division 23 — HVAC",
+      cost:0, days:0, status:"Rejected", approver:"M. Chen, Sr. PM", ref:"NCG-CO-2026-007",
+      breakdown:[], summary:"Rejected — scope determined to be included in base mechanical contract; no entitlement to additional cost." }
+  ];
+
+  // ---- live contract state (only Approved COs count) ----
+  function approvedTotals(){
+    var cost=0, days=0;
+    COS.forEach(function(c){ if(c.status==="Approved"){ cost+=c.cost; days+=c.days; } });
+    return {cost:cost, days:days};
+  }
+
+  function fmt(n){
+    var neg = n<0;
+    var s = Math.abs(Math.round(n)).toLocaleString("en-CA");
+    return (neg?"-$":"$")+s;
+  }
+  function fmtSigned(n){
+    if(n===0) return "$0";
+    return (n>0?"+":"")+fmt(n).replace("$", n<0?"$":"$");
+  }
+  function signCost(n){ // returns "+$X" / "-$X"
+    if(n===0) return "$0";
+    return (n>0?"+":"-")+"$"+Math.abs(Math.round(n)).toLocaleString("en-CA");
+  }
+  function signDays(d){
+    if(d===0) return "0 days";
+    return (d>0?"+":"")+d+(Math.abs(d)===1?" day":" days");
+  }
+
+  function animateNumber(el, from, to, fmtFn, ms){
+    var start=null;
+    function step(ts){
+      if(!start) start=ts;
+      var p=Math.min((ts-start)/ms,1);
+      var eased=1-Math.pow(1-p,3);
+      var val=from+(to-from)*eased;
+      el.textContent=fmtFn(val);
+      if(p<1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  var prevApprovedCO=0, prevRevised=ORIGINAL, prevDays=0;
+  function refreshKPIs(){
+    var t=approvedTotals();
+    var revised=ORIGINAL+t.cost;
+    animateNumber(document.getElementById("kpiApprovedCO"), prevApprovedCO, t.cost, function(v){return signCost(v);}, 700);
+    animateNumber(document.getElementById("kpiRevised"), prevRevised, revised, function(v){return fmt(v);}, 800);
+    var sEl=document.getElementById("kpiSchedule");
+    animateNumber(sEl, prevDays, t.days, function(v){var r=Math.round(v);return (r>0?"+":"")+r+" days";}, 700);
+    var coEl=document.getElementById("kpiApprovedCO");
+    coEl.classList.remove("delta-up");
+    if(t.cost>0) coEl.classList.add("delta-up");
+    prevApprovedCO=t.cost; prevRevised=revised; prevDays=t.days;
+  }
+
+  // ---- render list ----
+  var currentId=null;
+  function statusClass(s){ return s==="Pending"?"st-pending":s==="Approved"?"st-approved":"st-rejected"; }
+
+  function renderList(){
+    var list=document.getElementById("coList");
+    list.innerHTML="";
+    var pending=0;
+    COS.forEach(function(c){
+      if(c.status==="Pending") pending++;
+      var div=document.createElement("div");
+      div.className="co-item"+(c.id===currentId?" active":"")+(c.status!=="Pending"?" locked":"");
+      var costClass = c.cost>0?"pos":(c.cost<0?"neg":"");
+      div.innerHTML =
+        '<div class="co-id">'+c.id+'</div>'+
+        '<div class="co-body"><div class="co-desc">'+c.desc+'</div><div class="co-trade">'+c.trade+'</div></div>'+
+        '<div class="co-cost '+costClass+'">'+signCost(c.cost)+'</div>'+
+        '<div class="co-status '+statusClass(c.status)+'">'+c.status+'</div>';
+      div.addEventListener("click", function(){ openCO(c.id); });
+      list.appendChild(div);
+    });
+    document.getElementById("coCount").textContent = pending+" pending • "+COS.length+" total";
+  }
+
+  // ---- detail / AI flow ----
+  var streamTimers=[];
+  function clearTimers(){ streamTimers.forEach(clearTimeout); streamTimers=[]; }
+
+  function findCO(id){ for(var i=0;i<COS.length;i++) if(COS[i].id===id) return COS[i]; return null; }
+
+  function openCO(id){
+    var c=findCO(id);
+    if(!c) return;
+    currentId=id;
+    renderList();
+    document.getElementById("detailEmpty").style.display="none";
+    document.getElementById("detailContent").style.display="block";
+    document.getElementById("dId").textContent=c.id;
+    document.getElementById("dDesc").textContent=c.desc;
+    document.getElementById("dTrade").textContent=c.trade;
+    var ds=document.getElementById("dStatus");
+    ds.textContent=c.status; ds.className="co-status "+statusClass(c.status);
+
+    clearTimers();
+    var working=document.getElementById("aiWorking");
+    var result=document.getElementById("aiResult");
+    working.classList.remove("show");
+    result.classList.remove("show");
+
+    if(c.status==="Pending"){
+      runAI(c);
+    } else {
+      // already-decided CO: show result instantly, decided state
+      showResult(c, true);
+    }
+  }
+
+  function runAI(c){
+    var working=document.getElementById("aiWorking");
+    var result=document.getElementById("aiResult");
+    var bar=document.getElementById("aiBar");
+    var lines=document.querySelectorAll("#aiStream .ln");
+    var label=document.getElementById("aiLabel");
+
+    working.classList.add("show");
+    result.classList.remove("show");
+    bar.style.width="0";
+    lines.forEach(function(l){ l.classList.remove("on"); });
+    label.textContent="TrivoxAI analyzing "+c.id;
+
+    // progress bar
+    var pcts=[12,30,52,74,90,100];
+    pcts.forEach(function(p,i){
+      streamTimers.push(setTimeout(function(){ bar.style.width=p+"%"; }, 200+i*330));
+    });
+    // stream lines
+    lines.forEach(function(l,i){
+      streamTimers.push(setTimeout(function(){ l.classList.add("on"); }, 350+i*330));
+    });
+    // reveal result
+    streamTimers.push(setTimeout(function(){
+      working.classList.remove("show");
+      showResult(c,false);
+    }, 350+lines.length*330+400));
+  }
+
+  function showResult(c, decided){
+    var result=document.getElementById("aiResult");
+    document.getElementById("rSummary").innerHTML=c.summary;
+
+    var rCost=document.getElementById("rCost");
+    rCost.textContent=signCost(c.cost);
+    rCost.className="big "+(c.cost>0?"up":(c.cost<0?"down":""));
+    document.getElementById("rCostNote").textContent = c.cost>0?"Net add to contract":(c.cost<0?"Credit to owner":"No cost impact");
+
+    var rSched=document.getElementById("rSched");
+    rSched.textContent=signDays(c.days);
+    rSched.className="big "+(c.days>0?"up":(c.days<0?"down":""));
+    document.getElementById("rSchedNote").textContent = c.days>0?"Added to critical path":(c.days<0?"Schedule recovered":"No schedule impact");
+
+    // breakdown
+    var bd=document.getElementById("rBreakdown");
+    bd.innerHTML="";
+    if(c.breakdown.length===0){
+      bd.innerHTML='<div class="brow"><span>No itemized cost</span><span class="v">$0</span></div>';
+    } else {
+      c.breakdown.forEach(function(row){
+        var d=document.createElement("div");
+        d.className="brow";
+        d.innerHTML='<span>'+row[0]+'</span><span class="v">'+signCost(row[1])+'</span>';
+        bd.appendChild(d);
+      });
+    }
+
+    // revised total preview (current approved + this CO)
+    var t=approvedTotals();
+    var revisedIfApproved=ORIGINAL+t.cost+(c.status==="Approved"?0:c.cost);
+    document.getElementById("rRevised").textContent=fmt(revisedIfApproved);
+    var hstAmt=(revisedIfApproved)*HST;
+    document.getElementById("rHst").textContent="Incl. HST (13%): "+fmt(revisedIfApproved*(1+HST));
+
+    // actions vs decided
+    var actions=document.getElementById("rActions");
+    var approvedBox=document.getElementById("approvedBox");
+    var rejectedNote=document.getElementById("rejectedNote");
+    approvedBox.classList.remove("show");
+    rejectedNote.classList.remove("show");
+
+    if(c.status==="Approved"){
+      actions.style.display="none";
+      fillSig(c);
+      approvedBox.classList.add("show");
+      document.getElementById("rRevised").textContent=fmt(ORIGINAL+t.cost);
+      document.getElementById("rHst").textContent="Incl. HST (13%): "+fmt((ORIGINAL+t.cost)*(1+HST));
+    } else if(c.status==="Rejected"){
+      actions.style.display="none";
+      rejectedNote.classList.add("show");
+      document.getElementById("rRevised").textContent=fmt(ORIGINAL+t.cost);
+      document.getElementById("rHst").textContent="Incl. HST (13%): "+fmt((ORIGINAL+t.cost)*(1+HST));
+    } else {
+      actions.style.display="flex";
+      document.getElementById("btnApprove").disabled=false;
+      document.getElementById("btnReject").disabled=false;
+    }
+
+    result.classList.add("show");
+  }
+
+  function fillSig(c){
+    var name = c.approver ? c.approver.split(",")[0] : "Daniel Ortiz";
+    var role = c.approver ? c.approver : "Daniel Ortiz, Project Manager";
+    document.getElementById("sigName").textContent=name;
+    document.querySelector("#approvedBox .sig .row b").textContent=role;
+    document.getElementById("sigRef").textContent=c.ref || ("NCG-CO-2026-"+c.id.split("-")[1]);
+    document.getElementById("sigTime").textContent = c.approvedAt || nowStamp();
+  }
+
+  function nowStamp(){
+    var d=new Date();
+    var opts={year:"numeric",month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"};
+    return d.toLocaleString("en-CA",opts)+" EDT";
+  }
+
+  // approve / reject
+  document.getElementById("btnApprove").addEventListener("click", function(){
+    var c=findCO(currentId);
+    if(!c || c.status!=="Pending") return;
+    var btn=this;
+    btn.disabled=true;
+    document.getElementById("btnReject").disabled=true;
+    btn.textContent="Recording approval...";
+    setTimeout(function(){
+      c.status="Approved";
+      c.approver="Daniel Ortiz, Project Manager";
+      c.ref="NCG-CO-2026-"+c.id.split("-")[1];
+      c.approvedAt=nowStamp();
+      btn.textContent="Approve Change Order";
+      refreshKPIs();
+      renderList();
+      // re-render detail in decided state
+      showResult(c,true);
+      // flash revised header
+      var k=document.getElementById("kpiRevised");
+      k.classList.remove("flash"); void k.offsetWidth; k.classList.add("flash");
+    }, 1100);
+  });
+
+  document.getElementById("btnReject").addEventListener("click", function(){
+    var c=findCO(currentId);
+    if(!c || c.status!=="Pending") return;
+    var btn=this;
+    btn.disabled=true;
+    document.getElementById("btnApprove").disabled=true;
+    btn.textContent="Recording...";
+    setTimeout(function(){
+      c.status="Rejected";
+      c.approver="Daniel Ortiz, Project Manager";
+      c.ref="NCG-CO-2026-"+c.id.split("-")[1];
+      btn.textContent="Reject";
+      renderList();
+      showResult(c,true);
+    }, 900);
+  });
+
+  // init
+  renderList();
+  refreshKPIs();
+})();
+</script>
+</body>
+</html>

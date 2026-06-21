@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrivoxAI — AI Material Takeoff &amp; Cost</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070b18; --bg2:#0d1426; --surface:#121b30; --surface2:#16203a; --border:#1e2a44;
+  --text:#eaf0ff; --muted:#8a97b5;
+  --brand:#2e61fe; --brand2:#00f0ff; --grad:linear-gradient(135deg,#2e61fe,#00f0ff);
+  --good:#22c55e; --warn:#fbbf24; --bad:#ef4444;
+  --radius:16px; --shadow:0 10px 40px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box} html,body{margin:0}
+body{background:radial-gradient(1200px 600px at 70% -10%,#13224a 0,transparent 60%),var(--bg);color:var(--text);font-family:'Sora',system-ui,sans-serif;line-height:1.5;min-height:100vh}
+.tvx-btn{background:var(--grad);color:#04122e;border:0;border-radius:12px;padding:12px 20px;font-weight:700;font-family:inherit;cursor:pointer;transition:.2s;font-size:15px}
+.tvx-btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.tvx-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;filter:none}
+.tvx-card{background:linear-gradient(180deg,var(--surface),var(--bg2));border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+.tvx-badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:999px;background:rgba(46,97,254,.15);color:#7fa8ff;border:1px solid rgba(46,97,254,.35)}
+
+/* layout */
+header.app{display:flex;align-items:center;justify-content:space-between;padding:18px 32px;border-bottom:1px solid var(--border);background:rgba(7,11,24,.6);backdrop-filter:blur(8px);position:sticky;top:0;z-index:30}
+.hdr-title{font-size:13px;color:var(--muted);font-weight:500;letter-spacing:.04em}
+.wrap{max-width:1240px;margin:0 auto;padding:32px}
+.hero{margin-bottom:26px}
+.hero h1{font-size:30px;font-weight:800;letter-spacing:-.02em;margin:10px 0 6px}
+.hero p{color:var(--muted);margin:0;max-width:680px;font-size:15px}
+.grid{display:grid;grid-template-columns:420px 1fr;gap:24px;align-items:start}
+@media(max-width:980px){.grid{grid-template-columns:1fr}}
+
+/* config panel */
+.panel{padding:22px}
+.panel h2{font-size:16px;margin:0 0 4px;font-weight:700}
+.panel .sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+.section-label{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700;margin:18px 0 10px}
+
+.assembly{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--border);border-radius:12px;background:var(--surface2);margin-bottom:10px;cursor:pointer;transition:.18s;user-select:none}
+.assembly:hover{border-color:rgba(46,97,254,.5)}
+.assembly.active{border-color:var(--brand);background:linear-gradient(180deg,rgba(46,97,254,.14),rgba(0,240,255,.05))}
+.assembly .ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(46,97,254,.15);flex-shrink:0}
+.assembly .meta{flex:1;min-width:0}
+.assembly .meta .nm{font-weight:600;font-size:14px}
+.assembly .meta .ds{font-size:12px;color:var(--muted)}
+.assembly .chk{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:.18s}
+.assembly.active .chk{background:var(--grad);border-color:transparent}
+.assembly.active .chk svg{opacity:1}
+.assembly .chk svg{opacity:0;transition:.18s}
+
+.dims{margin-top:20px}
+.field{margin-bottom:14px}
+.field label{display:block;font-size:12px;color:var(--muted);margin-bottom:6px;font-weight:600;letter-spacing:.02em}
+.field-row{display:flex;gap:12px}
+.field-row .field{flex:1}
+input.tvx,select.tvx{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:10px;color:var(--text);padding:11px 13px;font-family:inherit;font-size:14px;transition:.18s}
+input.tvx:focus,select.tvx:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(46,97,254,.18)}
+select.tvx{cursor:pointer}
+.runbar{margin-top:22px}
+.runbar .tvx-btn{width:100%;display:flex;align-items:center;justify-content:center;gap:10px}
+.hint{font-size:12px;color:var(--muted);text-align:center;margin-top:10px}
+
+/* results area */
+.results{min-height:560px;position:relative}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:560px;text-align:center;padding:40px;color:var(--muted)}
+.empty .big-ico{width:84px;height:84px;border-radius:20px;background:linear-gradient(135deg,rgba(46,97,254,.18),rgba(0,240,255,.08));display:flex;align-items:center;justify-content:center;margin-bottom:20px;border:1px solid var(--border)}
+.empty h3{color:var(--text);font-size:18px;margin:0 0 8px;font-weight:700}
+.empty p{margin:0;max-width:380px;font-size:14px}
+
+/* AI working overlay */
+.working{display:flex;flex-direction:column;align-items:center;justify-content:center;height:560px;text-align:center;padding:40px}
+.working .orb{width:90px;height:90px;border-radius:50%;background:var(--grad);position:relative;margin-bottom:28px;animation:pulse 1.4s ease-in-out infinite}
+.working .orb::after{content:'';position:absolute;inset:-12px;border-radius:50%;border:2px solid rgba(0,240,255,.35);animation:ring 1.4s ease-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1);box-shadow:0 0 40px rgba(46,97,254,.5)}50%{transform:scale(1.08);box-shadow:0 0 70px rgba(0,240,255,.6)}}
+@keyframes ring{0%{transform:scale(.9);opacity:.8}100%{transform:scale(1.5);opacity:0}}
+.working .status{font-size:16px;font-weight:600;margin-bottom:6px;min-height:24px}
+.working .substatus{font-size:13px;color:var(--muted);min-height:20px}
+.dots span{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--brand2);margin:0 3px;animation:bounce 1.2s infinite}
+.dots span:nth-child(2){animation-delay:.2s}.dots span:nth-child(3){animation-delay:.4s}
+@keyframes bounce{0%,80%,100%{transform:scale(.5);opacity:.4}40%{transform:scale(1);opacity:1}}
+.prog{width:320px;max-width:80%;height:6px;border-radius:999px;background:var(--bg2);overflow:hidden;margin-top:22px;border:1px solid var(--border)}
+.prog .bar{height:100%;width:0;background:var(--grad);border-radius:999px;transition:width .3s ease}
+.steplist{margin-top:24px;text-align:left;width:340px;max-width:90%}
+.steplist .st{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);padding:5px 0;opacity:.4;transition:.3s}
+.steplist .st.done{opacity:1;color:var(--text)}
+.steplist .st .tick{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.steplist .st.done .tick{background:var(--good);border-color:var(--good)}
+.steplist .st .tick svg{opacity:0}.steplist .st.done .tick svg{opacity:1}
+
+/* output */
+.out{padding:0;animation:fadein .5s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.out-head{padding:22px 24px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.out-head h2{margin:0 0 4px;font-size:18px;font-weight:700}
+.out-head .pmeta{font-size:13px;color:var(--muted)}
+.out-head .gt{text-align:right}
+.out-head .gt .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:700}
+.out-head .gt .val{font-size:26px;font-weight:800;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1.1}
+
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border)}
+@media(max-width:720px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--bg2);padding:16px 18px}
+.kpi .k{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
+.kpi .v{font-size:20px;font-weight:700;margin-top:3px}
+.kpi .v small{font-size:12px;color:var(--muted);font-weight:500}
+
+.qsec{padding:22px 24px;border-bottom:1px solid var(--border)}
+.qsec:last-child{border-bottom:0}
+.qsec h3{font-size:14px;font-weight:700;margin:0 0 14px;display:flex;align-items:center;gap:10px}
+.qsec h3 .tag{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.qtable{width:100%;border-collapse:collapse;font-size:13.5px}
+.qtable th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;padding:8px 10px;border-bottom:1px solid var(--border)}
+.qtable th.r,.qtable td.r{text-align:right}
+.qtable td{padding:9px 10px;border-bottom:1px solid rgba(30,42,68,.6)}
+.qtable tr:last-child td{border-bottom:0}
+.qtable .mat{font-weight:600}
+.qtable .spec{color:var(--muted);font-size:12px}
+.waste{color:var(--warn);font-size:12px;font-weight:600}
+.lead{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:rgba(251,191,36,.12);color:var(--warn);border:1px solid rgba(251,191,36,.3);margin-left:8px}
+.lead.ok{background:rgba(34,197,94,.12);color:var(--good);border-color:rgba(34,197,94,.3)}
+
+.supplier{padding:22px 24px;border-top:1px solid var(--border);background:rgba(46,97,254,.04)}
+.supplier h3{font-size:15px;font-weight:700;margin:0 0 4px}
+.supplier .sub{font-size:13px;color:var(--muted);margin:0 0 16px}
+.stable{width:100%;border-collapse:collapse;font-size:13.5px}
+.stable th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700;padding:8px 10px;border-bottom:1px solid var(--border)}
+.stable th.r,.stable td.r{text-align:right}
+.stable td{padding:10px;border-bottom:1px solid rgba(30,42,68,.6);vertical-align:top}
+.stable tr:last-child td{border-bottom:0}
+.stable .sku{font-family:ui-monospace,monospace;font-size:11px;color:var(--muted)}
+.totrow{display:flex;flex-direction:column;gap:6px;margin-top:18px;margin-left:auto;width:320px;max-width:100%}
+.totrow .tr{display:flex;justify-content:space-between;font-size:14px}
+.totrow .tr.muted{color:var(--muted);font-size:13px}
+.totrow .tr.grand{border-top:1px solid var(--border);padding-top:10px;margin-top:4px;font-size:18px;font-weight:800}
+.totrow .tr.grand .amt{background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+
+.actions{display:flex;gap:10px;padding:20px 24px;border-top:1px solid var(--border);flex-wrap:wrap}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text);border-radius:12px;padding:12px 18px;font-weight:600;font-family:inherit;font-size:14px;cursor:pointer;transition:.18s;display:inline-flex;align-items:center;gap:8px}
+.btn-ghost:hover{border-color:var(--brand);background:rgba(46,97,254,.08)}
+
+.flag-banner{margin:0 24px 0;padding:14px 16px;border-radius:12px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.25);display:flex;gap:12px;align-items:flex-start;margin-top:22px}
+.flag-banner .fi{color:var(--warn);flex-shrink:0;margin-top:1px}
+.flag-banner .ft{font-size:13px}
+.flag-banner .ft b{color:var(--warn)}
+
+.toast{position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:13px 20px;font-size:14px;font-weight:600;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:.3s;z-index:50;display:flex;align-items:center;gap:10px}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast .ti{color:var(--good)}
+
+footer.app{text-align:center;padding:30px;color:var(--muted);font-size:13px;border-top:1px solid var(--border);margin-top:40px}
+footer.app b{color:var(--text);font-weight:700}
+</style>
+</head>
+<body>
+
+<header class="app">
+  <span style="display:inline-flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:-.02em">
+    <svg width="30" height="30" viewBox="0 0 48 48" fill="none"><defs><linearGradient id="tvx_takeoff_calculator" x1="0" y1="0" x2="48" y2="48"><stop offset="0" stop-color="#2e61fe"/><stop offset="1" stop-color="#00f0ff"/></linearGradient></defs><path d="M5 9 L24 41 L43 9 L33 9 L24 25 L15 9 Z" fill="url(#tvx_takeoff_calculator)"/><path d="M16 9 L24 22 L32 9 L24 9 Z" fill="url(#tvx_takeoff_calculator)" opacity=".5"/></svg>
+    Trivox<span style="color:var(--brand2)">AI</span>
+  </span>
+  <span class="hdr-title">AI Material Takeoff &amp; Cost</span>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <span class="tvx-badge">Estimating Pipeline</span>
+    <h1>From dimensions to a supplier-ready order — in seconds</h1>
+    <p>Select your assemblies, enter project dimensions, and let the AI takeoff engine compute material quantities with waste factors, current Ontario unit pricing, and live lead-time flags.</p>
+  </div>
+
+  <div class="grid">
+    <!-- CONFIG PANEL -->
+    <div class="tvx-card panel">
+      <h2>Project Configuration</h2>
+      <p class="sub">North York mixed-use build · Toronto, ON</p>
+
+      <div class="section-label">Assemblies</div>
+      <div id="assemblies"></div>
+
+      <div class="dims">
+        <div class="section-label">Dimensions</div>
+        <div class="field-row">
+          <div class="field">
+            <label>Length (ft)</label>
+            <input class="tvx" type="number" id="len" value="60" min="1">
+          </div>
+          <div class="field">
+            <label>Width (ft)</label>
+            <input class="tvx" type="number" id="wid" value="40" min="1">
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>Wall height (ft)</label>
+            <input class="tvx" type="number" id="hgt" value="9" min="1">
+          </div>
+          <div class="field">
+            <label>Stories</label>
+            <select class="tvx" id="stories">
+              <option value="1">1 story</option>
+              <option value="2" selected>2 stories</option>
+              <option value="3">3 stories</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Supplier</label>
+          <select class="tvx" id="supplier">
+            <option>Home Hardware Building Centre — Vaughan</option>
+            <option>Central Building Supplies — Etobicoke</option>
+            <option>TIMBER MART — Scarborough</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="runbar">
+        <button class="tvx-btn" id="runBtn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#04122e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3l14 9-14 9V3z"/></svg>
+          Run Takeoff
+        </button>
+        <div class="hint" id="hint">Select at least one assembly to begin</div>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <div class="tvx-card results" id="results">
+      <div class="empty" id="empty">
+        <div class="big-ico">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="url(#tvx_takeoff_calculator)" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11H3v10h6V11zM21 3h-6v18h6V3zM15 7h-6v14h6V7z"/></svg>
+        </div>
+        <h3>Your takeoff will appear here</h3>
+        <p>Quantities, waste factors, supplier pricing and lead-time flags — generated automatically from your dimensions.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="app"><b>TRIVOX AI</b> — Automation Infrastructure</footer>
+
+<div class="toast" id="toast"><span class="ti">✓</span><span id="toastMsg">Done</span></div>
+
+<script>
+"use strict";
+
+/* ---------- Mock data: assemblies ---------- */
+const ASSEMBLIES = [
+  { id:"framing", name:"Wood Framing", desc:"Walls, plates, headers", div:"06 10 00 — Rough Carpentry",
+    ico:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7fa8ff" stroke-width="1.8"><rect x="3" y="3" width="18" height="18" rx="1"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18"/></svg>' },
+  { id:"concrete", name:"Concrete Slab", desc:"Slab-on-grade + rebar", div:"03 30 00 — Cast-in-Place Concrete",
+    ico:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7fa8ff" stroke-width="1.8"><path d="M3 17l9-5 9 5M3 17v3h18v-3M3 17l9-5"/><path d="M12 12V4"/></svg>' },
+  { id:"drywall", name:"Drywall", desc:"Board, mud, screws", div:"09 29 00 — Gypsum Board",
+    ico:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7fa8ff" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 12h18"/></svg>' },
+  { id:"roofing", name:"Roofing", desc:"Shingles, felt, ridge", div:"07 31 00 — Shingles",
+    ico:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7fa8ff" stroke-width="1.8"><path d="M3 12l9-7 9 7M5 11v8h14v-8"/></svg>' },
+  { id:"electrical", name:"Electrical Rough-in", desc:"Wire, boxes, breakers", div:"26 05 00 — Electrical",
+    ico:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7fa8ff" stroke-width="1.8"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z"/></svg>' }
+];
+
+const selected = new Set(["framing","concrete","drywall"]);
+
+/* ---------- Render assemblies ---------- */
+const assemEl = document.getElementById("assemblies");
+function renderAssemblies(){
+  assemEl.innerHTML = "";
+  ASSEMBLIES.forEach(a=>{
+    const div = document.createElement("div");
+    div.className = "assembly" + (selected.has(a.id) ? " active":"");
+    div.innerHTML =
+      '<div class="ico">'+a.ico+'</div>'+
+      '<div class="meta"><div class="nm">'+a.name+'</div><div class="ds">'+a.div+'</div></div>'+
+      '<div class="chk"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#04122e" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div>';
+    div.onclick = ()=>{
+      if(selected.has(a.id)) selected.delete(a.id); else selected.add(a.id);
+      renderAssemblies();
+      updateHint();
+    };
+    assemEl.appendChild(div);
+  });
+}
+function updateHint(){
+  const btn = document.getElementById("runBtn");
+  const hint = document.getElementById("hint");
+  if(selected.size === 0){
+    btn.disabled = true;
+    hint.textContent = "Select at least one assembly to begin";
+  } else {
+    btn.disabled = false;
+    hint.textContent = selected.size + " assembl" + (selected.size===1?"y":"ies") + " selected · pricing as of Jun 2026";
+  }
+}
+renderAssemblies();
+updateHint();
+
+/* ---------- Formatting helpers ---------- */
+const CAD = n => "$" + n.toLocaleString("en-CA",{minimumFractionDigits:2,maximumFractionDigits:2});
+const num = n => n.toLocaleString("en-CA");
+const ceil = Math.ceil;
+
+/* ---------- Takeoff math ---------- */
+function computeTakeoff(){
+  const L = Math.max(1, +document.getElementById("len").value || 0);
+  const W = Math.max(1, +document.getElementById("wid").value || 0);
+  const H = Math.max(1, +document.getElementById("hgt").value || 0);
+  const stories = +document.getElementById("stories").value || 1;
+
+  const footprint = L * W;                       // sq ft per floor
+  const perimeter = 2 * (L + W);                 // linear ft
+  const wallArea = perimeter * H * stories;      // gross wall area (both faces handled per-trade)
+  const totalFloor = footprint * stories;
+
+  const sections = [];   // quantity sections
+  const lines = [];      // supplier order lines
+
+  // ---- WOOD FRAMING ----
+  if(selected.has("framing")){
+    const studSpacing = 16/12;                                   // 16" o.c.
+    const studs = ceil((perimeter/studSpacing) * stories) ;      // wall studs
+    const studsWaste = ceil(studs * 1.10);                       // 10% waste
+    const platesLF = perimeter * 3 * stories;                    // 1 bottom + 2 top plates
+    const platesWaste = ceil(platesLF * 1.08);
+    // board feet: 2x6 stud = 1 bf/ft, studs ~ (H) ft each
+    const studBF = studsWaste * H * 1.0;
+    const plateBF = platesWaste * 1.0;
+    const headerBF = ceil(footprint * 0.06);                     // headers/blocking est
+    const totalBF = ceil(studBF + plateBF + headerBF);
+    sections.push({
+      title:"Wood Framing", tag:"06 10 00",
+      rows:[
+        { mat:"2x6 SPF studs", spec:'92-5/8" · 16" o.c.', base:num(studs)+" pcs", waste:"+10%", qty:num(studsWaste)+" pcs" },
+        { mat:"2x6 plate stock", spec:"top + bottom plates", base:num(ceil(platesLF))+" lf", waste:"+8%", qty:num(platesWaste)+" lf" },
+        { mat:"Total dimensional lumber", spec:"board feet equivalent", base:"—", waste:"incl.", qty:num(totalBF)+" bf" }
+      ]
+    });
+    const studPrice = 7.85;   // 2x6x10 SPF
+    const plate10 = 7.85;
+    const plateUnits = ceil(platesWaste/10);
+    lines.push({ sku:"SPF-26-925", item:'2x6x9-1/4 ft SPF Stud', qty:studsWaste, unit:"ea", price:studPrice, lead:"In stock" });
+    lines.push({ sku:"SPF-26-10", item:'2x6x10 ft SPF (plates)', qty:plateUnits, unit:"ea", price:plate10, lead:"In stock" });
+    lines.push({ sku:"LVL-175-HD", item:'1-3/4" LVL header beam 16ft', qty:ceil(footprint/350), unit:"ea", price:96.40, lead:"3-5 day lead" });
+    lines.push({ sku:"FAST-FN16", item:"Framing nails 3-1/2\" (5000 ct)", qty:ceil(studsWaste/180), unit:"box", price:64.99, lead:"In stock" });
+  }
+
+  // ---- CONCRETE SLAB ----
+  if(selected.has("concrete")){
+    const slabThick = 4/12;                          // 4" slab
+    const cubicFt = footprint * slabThick;
+    const cubicYd = cubicFt / 27;
+    const cubicYdWaste = +(cubicYd * 1.05).toFixed(1); // 5% waste
+    // rebar: 15M grid @ 12" o.c. both ways
+    const rebarLF = ceil((L * ceil(W) + W * ceil(L)));
+    const rebarBars = ceil(rebarLF / 20);            // 20 ft bars
+    const rebarWaste = ceil(rebarBars * 1.07);
+    const meshRolls = ceil(footprint / 750);
+    sections.push({
+      title:"Concrete Slab", tag:"03 30 00",
+      rows:[
+        { mat:"Ready-mix concrete", spec:'4" slab · 32 MPa', base:cubicYd.toFixed(1)+" yd³", waste:"+5%", qty:cubicYdWaste+" yd³" },
+        { mat:"15M rebar", spec:'12" o.c. each way · 20ft bars', base:num(rebarBars)+" bars", waste:"+7%", qty:num(rebarWaste)+" bars" },
+        { mat:"Welded wire mesh", spec:'6x6 W2.9 · vapour barrier', base:"—", waste:"—", qty:num(meshRolls)+" rolls" }
+      ]
+    });
+    lines.push({ sku:"RMX-32MPA", item:"Ready-mix concrete 32 MPa (delivered)", qty:cubicYdWaste, unit:"yd³", price:248.00, lead:"Book 48h ahead" });
+    lines.push({ sku:"RB-15M-20", item:"15M rebar 20ft (Grade 400W)", qty:rebarWaste, unit:"ea", price:31.20, lead:"2-week lead" });
+    lines.push({ sku:"WWM-66W29", item:"Welded wire mesh 6x6 W2.9 roll", qty:meshRolls, unit:"roll", price:189.00, lead:"In stock" });
+    lines.push({ sku:"VB-6MIL", item:"6-mil poly vapour barrier (1000 sf)", qty:ceil(footprint/1000), unit:"roll", price:112.50, lead:"In stock" });
+  }
+
+  // ---- DRYWALL ----
+  if(selected.has("drywall")){
+    // interior wall + ceiling area
+    const interiorWall = wallArea * 1.6;             // interior partitions + both faces factor
+    const ceilingArea = totalFloor;
+    const gross = interiorWall + ceilingArea;
+    const sheetSize = 32;                            // 4x8 = 32 sf
+    const sheets = ceil(gross / sheetSize);
+    const sheetsWaste = ceil(sheets * 1.12);         // 12% waste
+    const mudBoxes = ceil(sheetsWaste / 28);
+    const screws = ceil(sheetsWaste * 32);           // ~32 screws/sheet
+    const screwBoxes = ceil(screws / 1000);
+    const tapeRolls = ceil(sheetsWaste / 18);
+    sections.push({
+      title:"Drywall", tag:"09 29 00",
+      rows:[
+        { mat:'1/2" gypsum board', spec:'4x8 sheets · walls + ceiling', base:num(sheets)+" sheets", waste:"+12%", qty:num(sheetsWaste)+" sheets" },
+        { mat:"Joint compound", spec:"all-purpose · 17L pails", base:"—", waste:"incl.", qty:num(mudBoxes)+" pails" },
+        { mat:"Drywall screws", spec:'1-1/4" coarse', base:num(screws)+" pcs", waste:"incl.", qty:num(screwBoxes)+" boxes" }
+      ]
+    });
+    lines.push({ sku:"GYP-12-48", item:'1/2" Gypsum board 4x8', qty:sheetsWaste, unit:"sheet", price:18.45, lead:"In stock" });
+    lines.push({ sku:"MUD-17AP", item:"All-purpose joint compound 17L", qty:mudBoxes, unit:"pail", price:21.99, lead:"In stock" });
+    lines.push({ sku:"SCR-DW125", item:'Drywall screws 1-1/4" (1000 ct)', qty:screwBoxes, unit:"box", price:24.50, lead:"In stock" });
+    lines.push({ sku:"TAPE-PMP", item:"Paper joint tape 250ft", qty:tapeRolls, unit:"roll", price:6.99, lead:"In stock" });
+  }
+
+  // ---- ROOFING ----
+  if(selected.has("roofing")){
+    const pitchFactor = 1.12;                         // ~5:12 pitch
+    const roofArea = footprint * pitchFactor;         // top floor footprint
+    const squares = roofArea / 100;                   // roofing square
+    const bundles = ceil(squares * 3 * 1.10);         // 3 bundles/square + 10% waste
+    const feltRolls = ceil(squares / 4);              // synthetic underlayment
+    const ridgeLF = ceil(L * 1.1);
+    const ridgeBundles = ceil(ridgeLF / 33);
+    sections.push({
+      title:"Roofing", tag:"07 31 00",
+      rows:[
+        { mat:"Architectural shingles", spec:roofArea.toFixed(0)+" sf · "+squares.toFixed(1)+" sq", base:num(ceil(squares*3))+" bdl", waste:"+10%", qty:num(bundles)+" bundles" },
+        { mat:"Synthetic underlayment", spec:"10 sq rolls", base:"—", waste:"—", qty:num(feltRolls)+" rolls" },
+        { mat:"Ridge cap shingles", spec:num(ridgeLF)+" lf ridge/hip", base:"—", waste:"incl.", qty:num(ridgeBundles)+" bundles" }
+      ]
+    });
+    lines.push({ sku:"SHG-ARCH-OAK", item:"IKO Cambridge architectural shingles", qty:bundles, unit:"bundle", price:42.75, lead:"In stock" });
+    lines.push({ sku:"UND-SYN10", item:"Synthetic underlayment 10sq roll", qty:feltRolls, unit:"roll", price:118.00, lead:"In stock" });
+    lines.push({ sku:"RDG-CAP", item:"Hip & ridge cap shingles", qty:ridgeBundles, unit:"bundle", price:58.20, lead:"In stock" });
+    lines.push({ sku:"NAIL-RF125", item:"Roofing nails 1-1/4\" (50 lb)", qty:ceil(bundles/22), unit:"box", price:89.00, lead:"In stock" });
+  }
+
+  // ---- ELECTRICAL ROUGH-IN ----
+  if(selected.has("electrical")){
+    const sqft = totalFloor;
+    const circuits = ceil(sqft / 600);                // est circuits
+    const devices = ceil(sqft / 110);                 // boxes (outlets+switches+fixtures)
+    const wireFt = ceil(sqft * 2.4);                  // 14/2 + 12/2 estimate
+    const wireRolls = ceil(wireFt / 75);              // 75m rolls
+    const breakers = circuits;
+    sections.push({
+      title:"Electrical Rough-in", tag:"26 05 00",
+      rows:[
+        { mat:"NMD90 14/2 + 12/2 wire", spec:num(wireFt)+" ft total run", base:"—", waste:"+10% incl.", qty:num(wireRolls)+" rolls" },
+        { mat:"Device boxes", spec:"outlets, switches, fixtures", base:num(devices)+" boxes", waste:"+5%", qty:num(ceil(devices*1.05))+" boxes" },
+        { mat:"Circuit breakers", spec:'15A/20A · panel circuits', base:"—", waste:"—", qty:num(breakers)+" breakers" }
+      ]
+    });
+    lines.push({ sku:"WIR-142-75", item:"NMD90 14/2 copper 75m roll", qty:ceil(wireRolls*0.6), unit:"roll", price:128.00, lead:"In stock" });
+    lines.push({ sku:"WIR-122-75", item:"NMD90 12/2 copper 75m roll", qty:ceil(wireRolls*0.4), unit:"roll", price:164.50, lead:"3-5 day lead" });
+    lines.push({ sku:"BOX-PVC-1G", item:"PVC device box single-gang", qty:ceil(devices*1.05), unit:"ea", price:1.85, lead:"In stock" });
+    lines.push({ sku:"BRK-1520", item:"Panel breakers 15A/20A (assorted)", qty:breakers, unit:"ea", price:12.40, lead:"2-week lead" });
+  }
+
+  // ---- Totals ----
+  let subtotal = 0;
+  lines.forEach(l=>{ l.total = +(l.qty * l.price).toFixed(2); subtotal += l.total; });
+  subtotal = +subtotal.toFixed(2);
+  const delivery = +(Math.max(180, subtotal*0.012)).toFixed(2);
+  const taxable = subtotal + delivery;
+  const hst = +(taxable * 0.13).toFixed(2);
+  const grand = +(taxable + hst).toFixed(2);
+
+  // lead flags
+  const leadFlags = lines.filter(l=>/lead|Book/.test(l.lead)).map(l=>({item:l.item, lead:l.lead}));
+
+  return {
+    meta:{ L, W, H, stories, footprint, perimeter, totalFloor },
+    sections, lines, subtotal, delivery, hst, grand, leadFlags,
+    supplier: document.getElementById("supplier").value
+  };
+}
+
+/* ---------- AI working animation ---------- */
+const resultsEl = document.getElementById("results");
+
+const STEPS = [
+  { s:"Reading project dimensions", t:"60 × 40 ft footprint · 2 stories" },
+  { s:"Mapping assemblies to CSI divisions", t:"06 10 00 · 03 30 00 · 09 29 00 …" },
+  { s:"Running quantity takeoff", t:"applying 16\" o.c. framing rules" },
+  { s:"Applying waste factors", t:"lumber 10% · drywall 12% · rebar 7%" },
+  { s:"Pricing against supplier catalogue", t:"Home Hardware — Vaughan · live rates" },
+  { s:"Checking lead times & stock", t:"flagging long-lead items" }
+];
+
+function runWorking(done){
+  resultsEl.innerHTML =
+    '<div class="working">'+
+      '<div class="orb"></div>'+
+      '<div class="status" id="wStatus">Initializing takeoff engine</div>'+
+      '<div class="substatus dots" id="wSub"><span></span><span></span><span></span></div>'+
+      '<div class="prog"><div class="bar" id="wBar"></div></div>'+
+      '<div class="steplist" id="wSteps"></div>'+
+    '</div>';
+
+  const stepsBox = document.getElementById("wSteps");
+  STEPS.forEach((st,i)=>{
+    const d = document.createElement("div");
+    d.className = "st"; d.id = "step"+i;
+    d.innerHTML = '<div class="tick"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#04122e" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></div><span>'+st.s+'</span>';
+    stepsBox.appendChild(d);
+  });
+
+  const statusEl = document.getElementById("wStatus");
+  const subEl = document.getElementById("wSub");
+  const barEl = document.getElementById("wBar");
+
+  let i = 0;
+  const total = STEPS.length;
+  const per = 340; // ms per step ~2s total
+
+  function tick(){
+    if(i < total){
+      const st = STEPS[i];
+      statusEl.textContent = st.s;
+      subEl.classList.remove("dots");
+      subEl.innerHTML = st.t;
+      const prev = document.getElementById("step"+(i-1));
+      if(prev) prev.classList.add("done");
+      const cur = document.getElementById("step"+i);
+      if(cur){ cur.style.opacity = "1"; cur.style.color = "var(--text)"; }
+      barEl.style.width = Math.round(((i+1)/total)*100) + "%";
+      i++;
+      setTimeout(tick, per);
+    } else {
+      const last = document.getElementById("step"+(total-1));
+      if(last) last.classList.add("done");
+      statusEl.textContent = "Takeoff complete";
+      subEl.innerHTML = "rendering supplier order…";
+      setTimeout(done, 380);
+    }
+  }
+  setTimeout(tick, 260);
+}
+
+/* ---------- Render output ---------- */
+function renderOutput(d){
+  let matCount = 0;
+  d.sections.forEach(s=> matCount += s.rows.length);
+
+  let html = '<div class="out">';
+
+  // head
+  html += '<div class="out-head">'+
+    '<div><h2>Material Takeoff — North York Mixed-Use</h2>'+
+    '<div class="pmeta">'+d.meta.L+' × '+d.meta.W+' ft · '+d.meta.stories+' stories · '+num(d.meta.totalFloor)+' sf gross floor · '+d.supplier+'</div></div>'+
+    '<div class="gt"><div class="lbl">Total incl. HST</div><div class="val">'+CAD(d.grand)+'</div></div>'+
+  '</div>';
+
+  // KPIs
+  html += '<div class="kpis">'+
+    '<div class="kpi"><div class="k">Assemblies</div><div class="v">'+d.sections.length+' <small>CSI divisions</small></div></div>'+
+    '<div class="kpi"><div class="k">Line items</div><div class="v">'+d.lines.length+' <small>SKUs</small></div></div>'+
+    '<div class="kpi"><div class="k">Material subtotal</div><div class="v">'+CAD(d.subtotal)+'</div></div>'+
+    '<div class="kpi"><div class="k">Lead-time flags</div><div class="v">'+d.leadFlags.length+' <small>items</small></div></div>'+
+  '</div>';
+
+  // quantity sections
+  d.sections.forEach(s=>{
+    html += '<div class="qsec"><h3>'+s.title+' <span class="tag">'+s.tag+'</span></h3>';
+    html += '<table class="qtable"><thead><tr><th>Material</th><th>Spec</th><th class="r">Base qty</th><th class="r">Waste</th><th class="r">Order qty</th></tr></thead><tbody>';
+    s.rows.forEach(r=>{
+      html += '<tr><td class="mat">'+r.mat+'</td><td class="spec">'+r.spec+'</td><td class="r">'+r.base+'</td><td class="r waste">'+r.waste+'</td><td class="r"><b>'+r.qty+'</b></td></tr>';
+    });
+    html += '</tbody></table></div>';
+  });
+
+  // lead flag banner
+  if(d.leadFlags.length){
+    let fl = d.leadFlags.map(f=>'<b>'+f.item.split("(")[0].trim()+'</b> ('+f.lead+')').join(' · ');
+    html += '<div class="flag-banner"><div class="fi"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 9v4M12 17h.01M10.3 3.9L1.8 18a2 2 0 001.7 3h17a2 2 0 001.7-3L13.7 3.9a2 2 0 00-3.4 0z"/></svg></div>'+
+      '<div class="ft">Order long-lead items now to protect the schedule: '+fl+'</div></div>';
+  }
+
+  // supplier order
+  html += '<div class="supplier"><h3>Supplier-Ready Order</h3><p class="sub">'+d.supplier+' · Account #TVX-44190 · Net-30 · Ref PO-2026-0612</p>';
+  html += '<table class="stable"><thead><tr><th>SKU</th><th>Item</th><th class="r">Qty</th><th class="r">Unit</th><th class="r">Line total</th><th>Availability</th></tr></thead><tbody>';
+  d.lines.forEach(l=>{
+    const isLead = /lead|Book/.test(l.lead);
+    html += '<tr>'+
+      '<td class="sku">'+l.sku+'</td>'+
+      '<td>'+l.item+'</td>'+
+      '<td class="r">'+num(l.qty)+' '+l.unit+'</td>'+
+      '<td class="r">'+CAD(l.price)+'</td>'+
+      '<td class="r"><b>'+CAD(l.total)+'</b></td>'+
+      '<td><span class="lead '+(isLead?'':'ok')+'">'+(isLead?'':'✓ ')+l.lead+'</span></td>'+
+    '</tr>';
+  });
+  html += '</tbody></table>';
+
+  // totals
+  html += '<div class="totrow">'+
+    '<div class="tr muted"><span>Material subtotal</span><span>'+CAD(d.subtotal)+'</span></div>'+
+    '<div class="tr muted"><span>Delivery &amp; handling</span><span>'+CAD(d.delivery)+'</span></div>'+
+    '<div class="tr muted"><span>HST (13%)</span><span>'+CAD(d.hst)+'</span></div>'+
+    '<div class="tr grand"><span>Total</span><span class="amt">'+CAD(d.grand)+'</span></div>'+
+  '</div>';
+  html += '</div>'; // end supplier
+
+  // actions
+  html += '<div class="actions">'+
+    '<button class="btn-ghost" id="emailBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16v16H4z"/><path d="M22 6l-10 7L2 6"/></svg>Email PO to supplier</button>'+
+    '<button class="btn-ghost" id="exportBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>Export takeoff (CSV)</button>'+
+    '<button class="btn-ghost" id="qbBtn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Push to QuickBooks</button>'+
+  '</div>';
+
+  html += '</div>'; // end out
+  resultsEl.innerHTML = html;
+
+  document.getElementById("emailBtn").onclick = ()=>toast("PO emailed to "+d.supplier.split("—")[0].trim());
+  document.getElementById("exportBtn").onclick = ()=>toast("Takeoff exported — takeoff-PO-2026-0612.csv");
+  document.getElementById("qbBtn").onclick = ()=>toast("Synced to QuickBooks Online — bill drafted");
+}
+
+/* ---------- Toast ---------- */
+let toastTimer;
+function toast(msg){
+  const t = document.getElementById("toast");
+  document.getElementById("toastMsg").textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove("show"), 2600);
+}
+
+/* ---------- Run handler ---------- */
+document.getElementById("runBtn").onclick = ()=>{
+  if(selected.size === 0) return;
+  const btn = document.getElementById("runBtn");
+  btn.disabled = true;
+  const data = computeTakeoff();
+  runWorking(()=>{
+    renderOutput(data);
+    btn.disabled = false;
+    updateHint();
+  });
+};
+</script>
+</body>
+</html>

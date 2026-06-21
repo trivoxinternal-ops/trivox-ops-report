@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>TRIVOX AI — Growth System · Maple &amp; Thyme</title>
+<link rel="icon" href="./assets/favicon.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+:root{
+  --bg:#070b18; --bg2:#0d1426; --surface:#121b30; --surface2:#16203a; --border:#1e2a44;
+  --text:#eaf0ff; --muted:#8a97b5;
+  --brand:#2e61fe; --brand2:#00f0ff; --grad:linear-gradient(135deg,#2e61fe,#00f0ff);
+  --good:#22c55e; --warn:#fbbf24; --bad:#ef4444;
+  --ig:#e1306c; --wa:#25d366; --fb:#1877f2; --web:#7fa8ff;
+  --radius:16px; --shadow:0 10px 40px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box} html,body{margin:0}
+html{scroll-behavior:smooth}
+body{
+  background:
+    radial-gradient(1100px 560px at 78% -12%,#15264f 0,transparent 58%),
+    linear-gradient(transparent 0,transparent calc(100% - 1px)),
+    var(--bg);
+  color:var(--text);font-family:'Sora',system-ui,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased
+}
+a{color:inherit;text-decoration:none}
+::selection{background:rgba(46,97,254,.35)}
+
+/* top accent hairline */
+body::before{content:"";position:fixed;top:0;left:0;right:0;height:2px;background:var(--grad);z-index:100;opacity:.9}
+
+.app{max-width:1280px;margin:0 auto;min-height:100vh;display:grid;grid-template-columns:248px 1fr}
+
+/* ===== SIDEBAR ===== */
+.side{border-right:1px solid var(--border);padding:22px 16px;display:flex;flex-direction:column;gap:5px;position:sticky;top:0;height:100vh;background:linear-gradient(180deg,rgba(13,20,38,.5),transparent)}
+.brand{display:flex;align-items:center;gap:11px;padding:4px 8px 20px}
+.brand img{width:30px;height:auto;filter:drop-shadow(0 2px 8px rgba(46,97,254,.4))}
+.brand .wm{font-weight:800;font-size:20px;letter-spacing:-.02em}
+.brand .wm .ai{color:var(--brand2)}
+.side-label{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:#566285;font-weight:700;padding:6px 12px 8px}
+.navitem{display:flex;align-items:center;gap:12px;padding:11px 12px;border-radius:11px;color:var(--muted);font-size:14px;font-weight:500;cursor:pointer;transition:.16s;border:1px solid transparent;user-select:none}
+.navitem svg{width:18px;height:18px;flex:0 0 auto}
+.navitem:hover{color:var(--text);background:rgba(46,97,254,.1)}
+.navitem.active{color:var(--text);background:linear-gradient(180deg,var(--surface),var(--bg2));border-color:var(--border);box-shadow:inset 2px 0 0 0 var(--brand2)}
+.navitem.active svg [stroke]{stroke:var(--brand2)}
+.navitem .badge{margin-left:auto;font-size:11px;font-weight:700;background:var(--grad);color:#04122e;border-radius:999px;padding:1px 8px}
+.side-foot{margin-top:auto;font-size:11.5px;color:var(--muted);padding:14px 8px 4px;border-top:1px solid var(--border)}
+.side-foot a{color:#9fc0ff;font-weight:600}
+
+.main{padding:26px 32px 64px;min-width:0}
+
+/* ===== TOPBAR ===== */
+.topbar{display:flex;align-items:center;gap:16px;margin-bottom:10px;flex-wrap:wrap}
+.biz{display:flex;align-items:center;gap:13px}
+.biz .logo{width:46px;height:46px;border-radius:13px;background:linear-gradient(135deg,#1d6b4f,#43b683);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:20px;color:#eafff4;box-shadow:0 6px 18px rgba(29,107,79,.45)}
+.biz h1{font-size:19px;margin:0;font-weight:700;letter-spacing:-.01em}
+.biz .sub{font-size:12.5px;color:var(--muted)}
+.live{margin-left:auto;display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:#9fc0ff;background:rgba(46,97,254,.1);border:1px solid rgba(46,97,254,.3);padding:7px 14px;border-radius:999px}
+.live .dot{width:7px;height:7px;border-radius:50%;background:var(--good);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.55)}70%{box-shadow:0 0 0 7px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+.demo-note{font-size:12px;color:var(--muted);margin:2px 0 24px;max-width:880px}
+.demo-note b{color:#9fc0ff;font-weight:600}
+
+/* ===== KPIs ===== */
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px}
+.kpi{background:linear-gradient(180deg,var(--surface),var(--bg2));border:1px solid var(--border);border-radius:var(--radius);padding:18px;position:relative;overflow:hidden}
+.kpi::after{content:"";position:absolute;inset:0;background:radial-gradient(280px 90px at 90% -30%,rgba(46,97,254,.16),transparent 70%);pointer-events:none}
+.kpi .n{font-size:30px;font-weight:800;letter-spacing:-.02em;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.kpi .l{font-size:12.5px;color:var(--muted);margin-top:4px;font-weight:500}
+.kpi .delta{position:absolute;top:16px;right:16px;font-size:11px;font-weight:700;color:#5ee79a;background:rgba(34,197,94,.12);padding:2px 8px;border-radius:999px}
+
+/* ===== VIEWS / PANELS ===== */
+.view{display:none;animation:fade .35s ease}
+.view.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.panel{background:linear-gradient(180deg,var(--surface),var(--bg2));border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+.panel-head{padding:17px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px}
+.panel-head h2{font-size:16px;margin:0;font-weight:700;letter-spacing:-.01em}
+.panel-head .c{font-size:12px;color:var(--muted)}
+.panel-head .rule{flex:1}
+
+/* ===== LEAD INBOX ===== */
+.leadrow{display:grid;grid-template-columns:34px 1.45fr 2fr 84px 116px 64px 16px;gap:14px;align-items:center;padding:15px 20px;border-bottom:1px solid rgba(30,42,68,.55);cursor:pointer;transition:.15s}
+.leadrow:last-child{border-bottom:0}
+.leadrow:hover{background:rgba(46,97,254,.07)}
+.leadrow:hover .go{opacity:1;transform:translateX(0)}
+.chan{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;letter-spacing:.02em}
+.chan.ig{background:linear-gradient(135deg,#f09433,#dc2743,#bc1888)} .chan.wa{background:var(--wa)} .chan.fb{background:var(--fb)} .chan.web{background:rgba(127,168,255,.18);color:#9fc0ff}
+.lead-name{font-weight:600;font-size:14px}
+.lead-name .t{display:block;font-size:11.5px;color:var(--muted);font-weight:400;margin-top:2px}
+.lead-msg{font-size:13px;color:#c5cfe6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.score{font-size:12px;font-weight:700;text-align:center;border-radius:999px;padding:4px 0}
+.score.hot{color:#ff8b8b;background:rgba(239,68,68,.12)}
+.score.warm{color:#fbd774;background:rgba(251,191,36,.12)}
+.score.cool{color:#8fd0ff;background:rgba(46,97,254,.12)}
+.lead-status{font-size:11.5px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+.lead-status .d{width:6px;height:6px;border-radius:50%}
+.st-ai{color:#5ee79a}.st-ai .d{background:var(--good)}
+.st-book{color:#8fd0ff}.st-book .d{background:var(--brand2)}
+.st-human{color:#fbd774}.st-human .d{background:var(--warn)}
+.lead-time{font-size:11.5px;color:var(--muted);text-align:right}
+.go{opacity:0;transform:translateX(-4px);transition:.18s;color:var(--brand2);font-weight:700}
+
+/* ===== CONVERSATION ===== */
+.convo-wrap{display:grid;grid-template-columns:1fr 304px;gap:18px}
+@media(max-width:940px){.convo-wrap{grid-template-columns:1fr}}
+.chat{padding:22px 20px;display:flex;flex-direction:column;gap:13px;min-height:440px}
+.chat-day{align-self:center;font-size:11px;color:var(--muted);background:var(--bg2);border:1px solid var(--border);padding:3px 12px;border-radius:999px;margin-bottom:2px}
+.bub{max-width:74%;padding:11px 15px;border-radius:16px;font-size:13.5px;line-height:1.46;animation:pop .3s ease;position:relative}
+@keyframes pop{from{opacity:0;transform:translateY(6px) scale(.985)}to{opacity:1;transform:none}}
+.bub.them{align-self:flex-start;background:var(--surface2);border:1px solid var(--border);border-bottom-left-radius:5px}
+.bub.ai{align-self:flex-end;background:linear-gradient(135deg,#1a3f96,#0f2a63);border:1px solid rgba(46,97,254,.45);border-bottom-right-radius:5px}
+.bub .meta{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--muted);margin-top:6px}
+.bub.ai .meta{color:#8fb4ff;justify-content:flex-end}
+.bub .tick{color:#5ee79a;font-weight:700}
+.typing{align-self:flex-end;display:inline-flex;gap:4px;padding:13px 16px;background:linear-gradient(135deg,#1a3f96,#0f2a63);border:1px solid rgba(46,97,254,.45);border-radius:16px;border-bottom-right-radius:5px}
+.typing span{width:6px;height:6px;border-radius:50%;background:#8fb4ff;animation:blink 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.2s}.typing span:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,60%,100%{opacity:.3}30%{opacity:1}}
+.chat-side{padding:20px}
+.chat-side h3{font-size:12px;margin:0 0 14px;color:var(--muted);text-transform:uppercase;letter-spacing:.09em;font-weight:700}
+.kv{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid rgba(30,42,68,.55);font-size:13px}
+.kv span:first-child{color:var(--muted);flex:0 0 auto}
+.kv span:last-child{font-weight:600;text-align:right}
+.outcome{margin-top:16px;border-radius:12px;padding:13px 15px;font-size:12.5px;line-height:1.5}
+.outcome.ok{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.35);color:#9af2bf}
+.outcome.warnh{background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.35);color:#ffe6a3}
+.outcome b{color:#fff}
+
+/* ===== CONTENT CALENDAR ===== */
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:10px;padding:20px}
+@media(max-width:940px){.cal{grid-template-columns:repeat(2,1fr)}}
+.day{min-height:152px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:10px}
+.day .dl{font-size:11px;color:var(--muted);font-weight:700;margin-bottom:9px;text-transform:uppercase;letter-spacing:.06em}
+.post{font-size:11px;border-radius:9px;padding:7px 9px;margin-bottom:7px;border:1px solid var(--border);line-height:1.35}
+.post .p{display:inline-flex;align-items:center;gap:5px;font-weight:700;font-size:9.5px;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px}
+.post .pd{width:6px;height:6px;border-radius:2px}
+.post.ig{background:rgba(225,48,108,.08)}.post.ig .pd{background:var(--ig)}
+.post.fb{background:rgba(24,119,242,.08)}.post.fb .pd{background:var(--fb)}
+.post.tk{background:rgba(0,240,255,.06)}.post.tk .pd{background:var(--brand2)}
+.post.li{background:rgba(46,97,254,.08)}.post.li .pd{background:var(--brand)}
+.post .cap{color:#c5cfe6}
+.post .tm{color:var(--muted);font-size:10px;margin-top:4px}
+
+/* ===== REVIEWS ===== */
+.rev{padding:18px 20px;border-bottom:1px solid rgba(30,42,68,.55)}
+.rev:last-child{border-bottom:0}
+.rev-top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.rev-av{width:32px;height:32px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+.rev-name{font-weight:600;font-size:13.5px}
+.stars{color:#fbbf24;font-size:13px;letter-spacing:1px}
+.rev-src{margin-left:auto;font-size:11px;color:var(--muted);display:inline-flex;align-items:center;gap:6px}
+.rev-body{font-size:13px;color:#c5cfe6;margin:0 0 12px}
+.rev-reply{background:rgba(46,97,254,.07);border-left:2px solid var(--brand);border-radius:0 10px 10px 0;padding:11px 14px;font-size:12.5px;color:#cbd6ee}
+.rev-reply .tag{display:inline-flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;color:#9fc0ff;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.rev-reply .tag .s{width:6px;height:6px;border-radius:50%;background:var(--brand2)}
+
+/* ===== DASHBOARD ===== */
+.dash{display:grid;grid-template-columns:1.25fr 1fr;gap:18px}
+@media(max-width:940px){.dash{grid-template-columns:1fr}}
+.bars{padding:0 20px 20px}
+.bar-row{display:grid;grid-template-columns:96px 1fr 38px;align-items:center;gap:12px;margin-bottom:15px}
+.bar-row .bl{font-size:12.5px;color:var(--muted)}
+.bar-track{height:10px;background:var(--bg2);border-radius:999px;overflow:hidden;border:1px solid var(--border)}
+.bar-fill{height:100%;border-radius:999px;width:0;transition:width 1.1s cubic-bezier(.2,.8,.2,1)}
+.bar-row .bv{font-size:12.5px;font-weight:700;text-align:right}
+.funnel{padding:0 20px 20px}
+.fstep{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-radius:11px;margin-bottom:9px;background:var(--bg2);border:1px solid var(--border);font-size:13px}
+.fstep .fn{font-weight:800;font-size:15px;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.rev-attr{margin-top:16px;text-align:center;padding:22px;background:linear-gradient(135deg,rgba(46,97,254,.14),rgba(0,240,255,.06));border:1px solid rgba(46,97,254,.3);border-radius:var(--radius)}
+.rev-attr .n{font-size:34px;font-weight:800;background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+.rev-attr .l{font-size:12.5px;color:var(--muted);margin-top:4px}
+
+@media(max-width:880px){
+  .app{grid-template-columns:1fr}
+  .side{position:fixed;left:-260px;z-index:90;transition:.25s;width:248px;background:var(--bg)}
+  .side.open{left:0}
+  .kpis{grid-template-columns:repeat(2,1fr)}
+  .leadrow{grid-template-columns:30px 1.4fr 70px 100px;gap:10px}
+  .leadrow .lead-msg,.leadrow .lead-time,.leadrow .go{display:none}
+  .menu-toggle{display:inline-flex!important}
+}
+.menu-toggle{display:none;background:transparent;border:1px solid var(--border);color:var(--text);border-radius:10px;padding:7px 11px;font-size:17px;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ===== SIDEBAR ===== -->
+  <aside class="side" id="side">
+    <div class="brand">
+      <img src="./assets/trivox-mark.png" alt="TRIVOX" />
+      <span class="wm">Trivox<span class="ai">AI</span></span>
+    </div>
+    <div class="side-label">Growth System</div>
+
+    <div class="navitem active" data-view="inbox">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M4 5h16a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H9l-4 4V6a1 1 0 0 1 1-1z" stroke="#7fa8ff" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      Lead Inbox <span class="badge">5</span>
+    </div>
+    <div class="navitem" data-view="convo">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 3c5 0 9 3.4 9 7.5S17 18 12 18a10 10 0 0 1-3-.5L4 19l1.3-3.4A6.7 6.7 0 0 1 3 10.5C3 6.4 7 3 12 3z" stroke="#7fa8ff" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      AI Conversations
+    </div>
+    <div class="navitem" data-view="content">
+      <svg viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="17" rx="2" stroke="#7fa8ff" stroke-width="1.6"/><path d="M3 9h18M8 2v4M16 2v4" stroke="#7fa8ff" stroke-width="1.6" stroke-linecap="round"/></svg>
+      Content Engine
+    </div>
+    <div class="navitem" data-view="reviews">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 3l2.5 5.3 5.5.6-4.2 3.8 1.2 5.5L12 21l-5 -2.8 1.2-5.5L4 8.9l5.5-.6z" stroke="#7fa8ff" stroke-width="1.6" stroke-linejoin="round"/></svg>
+      Reviews
+    </div>
+    <div class="navitem" data-view="dash">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M4 13a8 8 0 0 1 16 0" stroke="#7fa8ff" stroke-width="1.6"/><path d="M12 13l4-3" stroke="#7fa8ff" stroke-width="1.6" stroke-linecap="round"/></svg>
+      Growth Dashboard
+    </div>
+
+    <div class="side-foot">
+      Built by <b style="color:#eaf0ff">TRIVOX&nbsp;AI</b><br/>
+      <a href="../../index.html">← Back to demo hub</a>
+    </div>
+  </aside>
+
+  <!-- ===== MAIN ===== -->
+  <main class="main">
+
+    <div class="topbar">
+      <button class="menu-toggle" id="menuToggle" aria-label="Menu">☰</button>
+      <div class="biz">
+        <div class="logo">M</div>
+        <div>
+          <h1>Maple &amp; Thyme <span style="color:var(--muted);font-weight:400;font-size:13px">· Toronto</span></h1>
+          <div class="sub">Sample local business — the system adapts to any industry</div>
+        </div>
+      </div>
+      <span class="live"><span class="dot"></span> Live demo · running in real time</span>
+    </div>
+    <p class="demo-note">A <b>working demo</b> of the system TRIVOX builds: every lead — Instagram, WhatsApp, Facebook, website — captured in one inbox, answered by AI in seconds, escalated to a human only when it should be, content posted on autopilot, reviews handled, growth measured. <b>Swap the brand and the industry</b> and it runs a restaurant, a condo, a contractor or a clinic.</p>
+
+    <!-- KPIs -->
+    <div class="kpis">
+      <div class="kpi"><span class="delta">+38%</span><div class="n" data-final="47">0</div><div class="l">New leads this month</div></div>
+      <div class="kpi"><span class="delta">−92%</span><div class="n" data-final="38s">0</div><div class="l">Avg AI reply time</div></div>
+      <div class="kpi"><span class="delta">+41%</span><div class="n" data-final="29">0</div><div class="l">Bookings closed</div></div>
+      <div class="kpi"><span class="delta">+0.4</span><div class="n" data-final="4.8★">0</div><div class="l">Avg review rating</div></div>
+    </div>
+
+    <!-- INBOX -->
+    <section class="view active" id="view-inbox">
+      <div class="panel">
+        <div class="panel-head"><h2>Lead Inbox</h2><span class="rule"></span><span class="c">Every channel, unified &amp; AI-qualified · click a lead to open the conversation</span></div>
+        <div id="leadList"></div>
+      </div>
+    </section>
+
+    <!-- CONVO -->
+    <section class="view" id="view-convo">
+      <div class="convo-wrap">
+        <div class="panel">
+          <div class="panel-head" id="convoHead"></div>
+          <div class="chat" id="chat"></div>
+        </div>
+        <div class="panel chat-side" id="convoSide"></div>
+      </div>
+    </section>
+
+    <!-- CONTENT -->
+    <section class="view" id="view-content">
+      <div class="panel">
+        <div class="panel-head"><h2>Content Engine</h2><span class="rule"></span><span class="c">AI-planned &amp; scheduled across every platform — this week</span></div>
+        <div class="cal" id="cal"></div>
+      </div>
+    </section>
+
+    <!-- REVIEWS -->
+    <section class="view" id="view-reviews">
+      <div class="panel">
+        <div class="panel-head"><h2>Reviews</h2><span class="rule"></span><span class="c">Monitored across Google &amp; Yelp — AI-drafted replies, you approve in one tap</span></div>
+        <div id="revList"></div>
+      </div>
+    </section>
+
+    <!-- DASHBOARD -->
+    <section class="view" id="view-dash">
+      <div class="dash">
+        <div class="panel bars">
+          <div class="panel-head"><h2>Leads by channel</h2><span class="rule"></span><span class="c">last 30 days</span></div>
+          <div id="barList" style="padding-top:20px"></div>
+        </div>
+        <div class="panel funnel">
+          <div class="panel-head"><h2>Conversion funnel</h2><span class="rule"></span></div>
+          <div style="padding-top:20px">
+            <div class="fstep"><span>Leads captured</span><span class="fn">147</span></div>
+            <div class="fstep"><span>AI-qualified</span><span class="fn">112</span></div>
+            <div class="fstep"><span>Conversations booked</span><span class="fn">29</span></div>
+            <div class="fstep"><span>Repeat / referral</span><span class="fn">11</span></div>
+            <div class="rev-attr"><div class="n" data-final="$18.4K">$0</div><div class="l">Revenue attributed to the system this month</div></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+/* ================= DATA ================= */
+const LEADS = [
+  { ch:"ig", name:"Sofia R.", handle:"@sofia.rdz", chanLabel:"Instagram DM",
+    msg:"Hi! Do you have a table for 4 this Friday?", score:"hot", s:92, status:"book", sl:"Booked", t:"2m ago",
+    convo:[
+      {who:"them", txt:"Hi! Do you have a table for 4 this Friday?", meta:"11:41 PM"},
+      {who:"ai", txt:"Hi Sofia! 👋 This Friday we have <b>7:00 PM</b> and <b>8:30 PM</b> open for a party of 4. Which works best?", meta:"replied in 38s"},
+      {who:"them", txt:"8:30 would be perfect 🙌", meta:""},
+      {who:"ai", txt:"Locked in — <b>8:30 PM, party of 4</b> 🎉 Can I grab a name &amp; mobile for the confirmation?", meta:""},
+      {who:"them", txt:"Sofia Rodriguez, 416-555-0192", meta:""},
+      {who:"ai", txt:"All set, Sofia — see you Friday at 8:30! Confirmation texted, plus a link to pre-order our tasting menu if you'd like. 🍷", meta:"booked ✓"}
+    ],
+    extracted:[["Intent","Reservation"],["Party size","4 guests"],["Date","Fri · 8:30 PM"],["Lead score","Hot · 92"],["Staff involved","None"]],
+    outcome:{type:"ok", html:"✓ <b>Booked automatically</b> — pushed to the reservation calendar &amp; confirmation sent. Handled in <b>38 seconds</b> at 11:42 PM, after hours."} },
+
+  { ch:"wa", name:"Marcus T.", handle:"+1 416 ••• 0192", chanLabel:"WhatsApp",
+    msg:"Is catering for 30 people possible next month?", score:"hot", s:88, status:"book", sl:"Quote sent", t:"14m ago",
+    convo:[
+      {who:"them", txt:"Is catering for 30 people possible next month?", meta:"3:04 PM"},
+      {who:"ai", txt:"Absolutely, Marcus! For 30 we run a <b>Family-Style</b> menu at $42/pp or a <b>Plated</b> menu at $58/pp. What's the date &amp; occasion?", meta:"replied in 22s"},
+      {who:"them", txt:"March 14, corporate dinner", meta:""},
+      {who:"ai", txt:"March 14 is open ✅ Family-Style for 30 = <b>$1,260 + tax</b>. Want me to hold the date and send a formal quote?", meta:""},
+      {who:"them", txt:"Yes please", meta:""},
+      {who:"ai", txt:"Date held and quote PDF + deposit link sent to your email. I'll follow up in 2 days if I don't hear back. 🙌", meta:"quote sent ✓"}
+    ],
+    extracted:[["Intent","Catering"],["Guests","30"],["Date","Mar 14"],["Quote","$1,260 + tax"],["Lead score","Hot · 88"]],
+    outcome:{type:"ok", html:"✓ <b>Quote sent &amp; date held</b> — PDF + deposit link delivered, auto follow-up scheduled in 48h. No staff touched it."} },
+
+  { ch:"fb", name:"Priya K.", handle:"Priya Kapoor", chanLabel:"Facebook Messenger",
+    msg:"What time do you close on Sundays?", score:"warm", s:64, status:"ai", sl:"AI replied", t:"31m ago",
+    convo:[
+      {who:"them", txt:"What time do you close on Sundays?", meta:"1:18 PM"},
+      {who:"ai", txt:"Hi Priya! On Sundays we're open <b>10 AM – 9 PM</b> (brunch till 2). Anything you'd like me to book for you? 😊", meta:"replied in 19s"},
+      {who:"them", txt:"No just checking, thanks!", meta:""},
+      {who:"ai", txt:"Anytime! If you ever want our weekly specials, just reply <b>menu</b> and I'll send them over. 🌿", meta:""}
+    ],
+    extracted:[["Intent","Hours / FAQ"],["Booking?","Offered"],["Lead score","Warm · 64"],["Staff involved","None"]],
+    outcome:{type:"ok", html:"✓ <b>Answered instantly</b> &amp; nudged toward a booking — captured into the list for weekly-specials remarketing."} },
+
+  { ch:"web", name:"Daniel O.", handle:"website form", chanLabel:"Website form",
+    msg:"Private event inquiry — 25th birthday for ~40 people.", score:"hot", s:90, status:"human", sl:"Routed to you", t:"1h ago",
+    convo:[
+      {who:"them", txt:"Private event inquiry — 25th birthday dinner for ~40 people. Hoping to discuss a custom menu and exclusive use of the patio.", meta:"12:02 PM"},
+      {who:"ai", txt:"Hi Daniel! A 40-guest patio buyout with a custom menu is right up our alley 🎉 This one I'm handing to our events lead, <b>Elena</b>, so she can tailor it properly. Best number for her to call?", meta:"replied in 27s"},
+      {who:"them", txt:"416-555-0788", meta:""},
+      {who:"ai", txt:"Perfect — Elena will call you at 416-555-0788 <b>within the hour</b>. I've sent her your inquiry + our private-events deck so she's fully briefed. 🥂", meta:"escalated ✓"}
+    ],
+    extracted:[["Intent","Private event"],["Guests","~40"],["Need","Patio buyout + custom menu"],["Lead score","Hot · 90"],["Routed to","Elena (events)"]],
+    outcome:{type:"warnh", html:"⤴ <b>Escalated to a human</b> — high-value, custom scope. The AI qualified it, captured the details, briefed Elena and booked the callback. <b>It knows its limits.</b>"} },
+
+  { ch:"ig", name:"Liam C.", handle:"@liam.cooks", chanLabel:"Instagram DM",
+    msg:"Are you dog-friendly on the patio?", score:"cool", s:41, status:"ai", sl:"AI replied", t:"2h ago",
+    convo:[
+      {who:"them", txt:"Are you dog-friendly on the patio?", meta:"10:46 AM"},
+      {who:"ai", txt:"We sure are 🐾 Pups are welcome on the patio and there's a water bowl by the host stand. Want me to note a patio preference for your next visit?", meta:"replied in 31s"},
+      {who:"them", txt:"Maybe next week, I'll DM you", meta:""},
+      {who:"ai", txt:"Sounds good, Liam — I'll be right here. 🌿", meta:""}
+    ],
+    extracted:[["Intent","FAQ / patio"],["Lead score","Cool · 41"],["Follow-up","Tagged for next week"],["Staff involved","None"]],
+    outcome:{type:"ok", html:"✓ <b>Answered &amp; tagged</b> — low-intent now, but captured and flagged for a gentle nudge next week."} }
+];
+const CAL = [
+  {d:"Mon", posts:[{p:"ig",l:"Instagram",cap:"Reel — behind the pass, brunch prep",tm:"9:00 AM"},{p:"li",l:"LinkedIn",cap:"How we source our spring menu locally",tm:"12:30 PM"}]},
+  {d:"Tue", posts:[{p:"tk",l:"TikTok",cap:"60s — plating the heirloom tomato dish",tm:"6:00 PM"}]},
+  {d:"Wed", posts:[{p:"ig",l:"Instagram",cap:"Carousel — 5 patio favourites",tm:"11:00 AM"},{p:"fb",l:"Facebook",cap:"Midweek 2-for-1 cocktail promo",tm:"4:00 PM"}]},
+  {d:"Thu", posts:[{p:"ig",l:"Story",cap:"Poll — next week's special?",tm:"10:00 AM"}]},
+  {d:"Fri", posts:[{p:"tk",l:"TikTok",cap:"Weekend hype — chef's feature",tm:"5:30 PM"},{p:"ig",l:"Instagram",cap:"Reel — Friday night atmosphere",tm:"7:30 PM"}]},
+  {d:"Sat", posts:[{p:"fb",l:"Facebook",cap:"Live brunch availability + booking link",tm:"8:30 AM"}]},
+  {d:"Sun", posts:[{p:"ig",l:"Instagram",cap:"UGC repost — guest tag of the week",tm:"1:00 PM"}]}
+];
+const REVIEWS = [
+  {n:"Hannah W.", i:"H", stars:5, body:"Best brunch in the east end, hands down. The service was warm and the patio is gorgeous. Already booked again!", reply:"Hannah, this made our morning 🧡 So glad the patio treated you well — we've noted your favourite table for next time. See you soon!"},
+  {n:"Greg P.", i:"G", stars:4, body:"Food was excellent, service a touch slow on a busy Saturday. Would still come back.", reply:"Thanks for the honest note, Greg — Saturdays have been packed and we're adding staff to keep the pace up. Next round of coffee is on us. 🙏"},
+  {n:"Amara N.", i:"A", stars:5, body:"They answered my DM at midnight and booked my birthday dinner in two minutes. The whole table was blown away.", reply:"Amara, happy birthday again! 🎉 Thrilled the booking felt effortless — that's exactly how it should be. Thank you for celebrating with us."}
+];
+const BARS = [
+  {l:"Instagram", v:62, c:"#e1306c"},
+  {l:"WhatsApp", v:48, c:"#25d366"},
+  {l:"Website", v:22, c:"#7fa8ff"},
+  {l:"Facebook", v:15, c:"#1877f2"}
+];
+const CHAN_TXT = {ig:"IG", wa:"WA", fb:"FB", web:"•"};
+
+/* ================= RENDER ================= */
+const $ = s=>document.querySelector(s);
+
+$("#leadList").innerHTML = LEADS.map((l,i)=>`
+  <div class="leadrow" data-i="${i}">
+    <span class="chan ${l.ch}">${CHAN_TXT[l.ch]}</span>
+    <span class="lead-name">${l.name}<span class="t">${l.handle}</span></span>
+    <span class="lead-msg">${l.msg}</span>
+    <span class="score ${l.score}">${l.score==='hot'?'🔥 ':''}${l.s}</span>
+    <span class="lead-status st-${l.status}"><span class="d"></span>${l.sl}</span>
+    <span class="lead-time">${l.t}</span>
+    <span class="go">→</span>
+  </div>`).join('');
+
+$("#cal").innerHTML = CAL.map(d=>`
+  <div class="day"><div class="dl">${d.d}</div>
+  ${d.posts.map(p=>`<div class="post ${p.p}"><span class="p"><span class="pd"></span>${p.l}</span><span class="cap">${p.cap}</span><div class="tm">⏱ ${p.tm} · scheduled</div></div>`).join('')}
+  </div>`).join('');
+
+$("#revList").innerHTML = REVIEWS.map(r=>`
+  <div class="rev">
+    <div class="rev-top">
+      <span class="rev-av">${r.i}</span>
+      <div><div class="rev-name">${r.n}</div><div class="stars">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</div></div>
+      <span class="rev-src">Google · 2d ago</span>
+    </div>
+    <p class="rev-body">${r.body}</p>
+    <div class="rev-reply"><span class="tag"><span class="s"></span>AI-drafted reply · approved</span>${r.reply}</div>
+  </div>`).join('');
+
+$("#barList").innerHTML = BARS.map(b=>`
+  <div class="bar-row"><span class="bl">${b.l}</span><div class="bar-track"><div class="bar-fill" data-w="${b.v}" style="background:linear-gradient(90deg,${b.c},#00f0ff)"></div></div><span class="bv">${b.v}</span></div>`).join('');
+
+/* ================= NAV / ROUTING ================= */
+const items = document.querySelectorAll('.navitem[data-view]');
+let currentLead = 0;
+
+function show(view, leadIdx){
+  if(typeof leadIdx === 'number') currentLead = leadIdx;
+  items.forEach(n=>n.classList.toggle('active', n.dataset.view===view));
+  document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active', v.id==='view-'+view));
+  if(view==='convo') renderConvo(currentLead);
+  if(view==='dash') setTimeout(growBars,150);
+  $("#side").classList.remove('open');
+  const hash = view==='convo' ? `convo:${currentLead}` : view;
+  if(location.hash.slice(1)!==hash) history.replaceState(null,'','#'+hash);
+}
+items.forEach(n=> n.addEventListener('click', ()=> show(n.dataset.view)));
+document.querySelectorAll('.leadrow').forEach(r=> r.addEventListener('click', ()=> show('convo', +r.dataset.i)));
+$("#menuToggle").addEventListener('click', ()=> $("#side").classList.toggle('open'));
+
+/* ================= CONVERSATION ================= */
+let chatTimer=null;
+function renderConvo(i){
+  const L = LEADS[i];
+  $("#convoHead").innerHTML = `
+    <span class="chan ${L.ch}" style="width:28px;height:28px;font-size:10px">${CHAN_TXT[L.ch]}</span>
+    <h2>${L.name}</h2>
+    <span class="lead-status st-${L.status}" style="margin-left:2px"><span class="d"></span>${L.sl}</span>
+    <span class="rule"></span>
+    <span class="c">${L.chanLabel} · AI handled</span>
+    <span class="navitem" id="replayBtn" style="padding:6px 11px;border:1px solid var(--border);font-size:12px">↻ Replay</span>`;
+  $("#convoSide").innerHTML = `
+    <h3>AI extracted</h3>
+    ${L.extracted.map(([k,v])=>`<div class="kv"><span>${k}</span><span>${v}</span></div>`).join('')}
+    <div class="outcome ${L.outcome.type}">${L.outcome.html}</div>`;
+  $("#replayBtn").addEventListener('click', e=>{ e.stopPropagation(); playChat(L.convo); });
+  playChat(L.convo);
+}
+function playChat(convo){
+  const chat=$("#chat"); chat.innerHTML=''; if(chatTimer) clearTimeout(chatTimer);
+  const dayTag=document.createElement('div'); dayTag.className='chat-day'; dayTag.textContent='Today'; chat.appendChild(dayTag);
+  let i=0;
+  (function next(){
+    if(i>=convo.length) return;
+    const m=convo[i];
+    if(m.who==='ai'){
+      const typ=document.createElement('div'); typ.className='typing'; typ.innerHTML='<span></span><span></span><span></span>';
+      chat.appendChild(typ); chat.scrollTop=chat.scrollHeight;
+      chatTimer=setTimeout(()=>{ typ.remove(); add(m); i++; chatTimer=setTimeout(next,650); }, 950);
+    } else { add(m); i++; chatTimer=setTimeout(next,650); }
+  })();
+  function add(m){
+    const b=document.createElement('div'); b.className='bub '+(m.who==='ai'?'ai':'them');
+    const metaHtml = m.meta ? `<span class="meta">${m.who==='ai'?'<span class="tick">✓✓</span> ':''}${m.meta}</span>` : '';
+    b.innerHTML=m.txt+metaHtml; chat.appendChild(b); chat.scrollTop=chat.scrollHeight;
+  }
+}
+
+/* ================= ANIMATIONS ================= */
+function growBars(){ document.querySelectorAll('.bar-fill').forEach(f=> f.style.width=f.dataset.w+'%'); }
+function countUp(el){
+  const raw=el.dataset.final, m=raw.match(/([^\d]*)([\d.]+)(.*)/); if(!m){el.textContent=raw;return;}
+  const pre=m[1],target=parseFloat(m[2]),post=m[3],dec=(m[2].split('.')[1]||'').length,dur=1100,t0=performance.now();
+  (function step(t){ const p=Math.min(1,(t-t0)/dur),e=1-Math.pow(1-p,3); el.textContent=pre+(target*e).toFixed(dec)+post; if(p<1)requestAnimationFrame(step); else el.textContent=raw; })(performance.now());
+}
+const obs=new IntersectionObserver(es=>es.forEach(en=>{ if(en.isIntersecting){countUp(en.target);obs.unobserve(en.target);} }),{threshold:.4});
+document.querySelectorAll('[data-final]').forEach(el=>obs.observe(el));
+
+/* ================= DEEP LINK ON LOAD ================= */
+(function initHash(){
+  const h = location.hash.slice(1); if(!h){ return; }
+  const [v,idx] = h.split(':');
+  if(['inbox','convo','content','reviews','dash'].includes(v)) show(v, idx!==undefined ? +idx : undefined);
+})();
+</script>
+</body>
+</html>

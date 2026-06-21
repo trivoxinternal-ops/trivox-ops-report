@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dealership Lead Scraper — TRIVOX Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070b18;--bg2:#0d1426;--surface:#121b30;--surface2:#16203a;--border:#1e2a44;--text:#eaf0ff;--muted:#8a97b5;--brand:#2e61fe;--brand2:#00f0ff;--grad:linear-gradient(135deg,#2e61fe,#00f0ff);--good:#22c55e;--warn:#fbbf24;--bad:#ef4444;--radius:16px;--shadow:0 10px 40px rgba(0,0,0,.45);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;}
+
+nav{position:sticky;top:0;z-index:100;background:rgba(7,11,24,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.wordmark{font-weight:700;font-size:18px;letter-spacing:.04em;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.ai-pill{background:var(--grad);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.06em;line-height:1.6;}
+.nav-back{color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;transition:color .2s;}
+.nav-back:hover{color:var(--text);}
+
+.hero{padding:60px 32px 40px;max-width:1100px;margin:0 auto;}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--brand2);margin-bottom:14px;}
+.hero h1{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.02em;line-height:1.15;margin-bottom:12px;}
+.hero-sub{color:var(--muted);font-size:15px;max-width:640px;line-height:1.6;margin-bottom:36px;}
+.stats{display:flex;gap:20px;flex-wrap:wrap;}
+.stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 22px;min-width:160px;}
+.stat-num{font-size:22px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2;}
+.stat-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-top:3px;}
+
+.demo-wrap{max-width:1100px;margin:0 auto;padding:0 32px 60px;}
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+@media(max-width:900px){.demo-grid{grid-template-columns:1fr;}}
+
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);}
+.panel-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:22px;}
+
+.form-group{margin-bottom:18px;}
+.form-group label{display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;}
+.form-group input,.form-group select{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Sora',sans-serif;font-size:14px;padding:11px 14px;outline:none;transition:border-color .2s;}
+.form-group input:focus,.form-group select:focus{border-color:var(--brand);}
+.form-group select option{background:var(--bg2);}
+
+.toggles-label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;}
+.toggles{display:flex;flex-direction:column;gap:10px;margin-bottom:18px;}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:11px 14px;}
+.toggle-info{display:flex;flex-direction:column;gap:2px;}
+.toggle-name{font-size:13px;font-weight:500;}
+.toggle-sub{font-size:11px;color:var(--muted);}
+.toggle-switch{position:relative;width:40px;height:22px;flex-shrink:0;}
+.toggle-switch input{opacity:0;width:0;height:0;}
+.slider{position:absolute;inset:0;background:var(--border);border-radius:22px;cursor:pointer;transition:background .2s;}
+.slider:before{content:'';position:absolute;width:16px;height:16px;left:3px;bottom:3px;background:#fff;border-radius:50%;transition:transform .2s;}
+.toggle-switch input:checked+.slider{background:var(--brand);}
+.toggle-switch input:checked+.slider:before{transform:translateX(18px);}
+
+.btn-primary{width:100%;margin-top:8px;padding:14px;border:none;border-radius:12px;background:var(--grad);color:#fff;font-family:'Sora',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.03em;transition:opacity .2s,transform .1s;}
+.btn-primary:hover{opacity:.92;transform:translateY(-1px);}
+.btn-primary:active{transform:translateY(0);}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+
+.output-panel{min-height:480px;display:flex;flex-direction:column;}
+.output-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--muted);}
+.output-empty .icon{font-size:40px;opacity:.3;}
+.output-empty p{font-size:13px;}
+
+.working{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+.orb{width:72px;height:72px;border-radius:50%;background:var(--grad);opacity:.15;animation:pulse 1.2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:.15;}50%{transform:scale(1.18);opacity:.32;}}
+.progress-label{font-size:13px;color:var(--muted);text-align:center;}
+.progress-bar-wrap{width:220px;height:6px;background:var(--border);border-radius:6px;overflow:hidden;}
+.progress-bar{height:100%;width:100%;background:var(--grad);border-radius:6px;transform:scaleX(0);transform-origin:left;transition:transform .3s ease;}
+
+.results-wrap{display:flex;flex-direction:column;height:100%;}
+.results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;}
+.results-header h3{font-size:14px;font-weight:600;}
+.btn-export{padding:7px 14px;border:1px solid var(--brand);background:transparent;color:var(--brand2);font-family:'Sora',sans-serif;font-size:12px;font-weight:600;border-radius:8px;cursor:pointer;transition:background .2s;}
+.btn-export:hover{background:rgba(46,97,254,.15);}
+
+.summary-row{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+.sum-chip{flex:1;min-width:80px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;}
+.sum-num{font-size:18px;font-weight:700;}
+.sum-num.green{color:var(--good);}
+.sum-num.warn{color:var(--warn);}
+.sum-num.grad{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.sum-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-top:2px;}
+
+.table-wrap{overflow-x:auto;flex:1;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+thead th{text-align:left;padding:8px 10px;color:var(--muted);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;border-bottom:1px solid var(--border);}
+tbody tr{border-bottom:1px solid rgba(30,42,68,.5);transition:background .15s;}
+tbody tr:hover{background:var(--surface2);}
+tbody td{padding:9px 10px;vertical-align:middle;}
+.lead-name{font-weight:600;font-size:12px;}
+.lead-vehicle{color:var(--muted);font-size:11px;}
+.source-badge{font-size:10px;font-weight:600;padding:2px 7px;border-radius:6px;}
+.src-fb{background:rgba(46,97,254,.15);color:#7ca3ff;}
+.src-kij{background:rgba(0,240,255,.1);color:var(--brand2);}
+.score-bar-cell{min-width:80px;}
+.score-bar-bg{height:5px;background:var(--border);border-radius:5px;margin-bottom:3px;}
+.score-bar-fill{height:100%;border-radius:5px;}
+.score-hot{background:var(--good);}
+.score-warm{background:var(--warn);}
+.score-cold{background:var(--bad);}
+.score-txt{font-size:10px;font-weight:700;}
+.score-txt.hot{color:var(--good);}
+.score-txt.warm{color:var(--warn);}
+.score-txt.cold{color:var(--bad);}
+
+.row-appear{animation:rowIn .25s ease forwards;}
+@keyframes rowIn{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+.hidden{display:none!important;}
+
+footer{text-align:center;padding:28px 16px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="../../portfolio.html">
+    <span class="wordmark">TRIVOX</span>
+    <span class="ai-pill">AI</span>
+  </a>
+  <a class="nav-back" href="../../portfolio.html">← All Demos</a>
+</nav>
+
+<section class="hero">
+  <p class="eyebrow">Automotive / Lead Gen</p>
+  <h1>Dealership Lead Scraper</h1>
+  <p class="hero-sub">Scrapes FB Marketplace and Kijiji for private sellers and buyers, deduplicates contacts, scores intent, and delivers a ready-to-call list in under 60 seconds.</p>
+  <div class="stats">
+    <div class="stat-chip"><div class="stat-num">250</div><div class="stat-lbl">Leads Per Run</div></div>
+    <div class="stat-chip"><div class="stat-num">Auto</div><div class="stat-lbl">Deduped</div></div>
+    <div class="stat-chip"><div class="stat-num">Ready</div><div class="stat-lbl">To Call List</div></div>
+  </div>
+</section>
+
+<div class="demo-wrap">
+  <div class="demo-grid">
+
+    <div class="panel">
+      <p class="panel-title">Scraper Configuration</p>
+      <div class="form-group">
+        <label>Region</label>
+        <select id="region">
+          <option selected>Toronto GTA</option>
+          <option>Mississauga</option>
+          <option>Brampton</option>
+          <option>Hamilton</option>
+          <option>Vaughan</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Keywords</label>
+        <input type="text" id="keywords" value="used SUV, used sedan, looking to buy car, sell my car">
+      </div>
+      <div class="form-group">
+        <label>Price Range</label>
+        <select id="price-range">
+          <option>Under $10,000</option>
+          <option>$10,000 – $20,000</option>
+          <option selected>$15,000 – $35,000</option>
+          <option>$30,000 – $50,000</option>
+          <option>Any</option>
+        </select>
+      </div>
+      <div class="toggles-label">Sources</div>
+      <div class="toggles">
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <span class="toggle-name">Facebook Marketplace</span>
+            <span class="toggle-sub">Private sellers + buyers</span>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" checked id="src-fb"><span class="slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <span class="toggle-name">Kijiji Autos</span>
+            <span class="toggle-sub">Classified listings</span>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" checked id="src-kij"><span class="slider"></span></label>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <span class="toggle-name">AI Lead Scoring</span>
+            <span class="toggle-sub">Hot / Warm / Cold classification</span>
+          </div>
+          <label class="toggle-switch"><input type="checkbox" checked id="src-ai"><span class="slider"></span></label>
+        </div>
+      </div>
+      <button class="btn-primary" id="run-btn" onclick="runScraper()">Run Scraper</button>
+    </div>
+
+    <div class="panel output-panel" id="output">
+      <div id="state-empty" class="output-empty">
+        <div class="icon">🔍</div>
+        <p>Configure your search and click <strong>Run Scraper</strong></p>
+      </div>
+
+      <div id="state-working" class="working hidden">
+        <div class="orb"></div>
+        <p class="progress-label" id="progress-label">Connecting to sources...</p>
+        <div class="progress-bar-wrap"><div class="progress-bar" id="progress-bar"></div></div>
+      </div>
+
+      <div id="state-results" class="results-wrap hidden">
+        <div class="results-header">
+          <h3 id="results-title">25 leads found</h3>
+          <button class="btn-export" onclick="exportCSV()">Export CSV</button>
+        </div>
+        <div class="summary-row">
+          <div class="sum-chip"><div class="sum-num green" id="s-hot">0</div><div class="sum-lbl">Hot</div></div>
+          <div class="sum-chip"><div class="sum-num warn" id="s-warm">0</div><div class="sum-lbl">Warm</div></div>
+          <div class="sum-chip"><div class="sum-num" id="s-cold">0</div><div class="sum-lbl">Cold</div></div>
+          <div class="sum-chip"><div class="sum-num grad" id="s-val">$0</div><div class="sum-lbl">Est. Value</div></div>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Name / Vehicle</th>
+                <th>Price</th>
+                <th>Source</th>
+                <th>Phone</th>
+                <th>Score</th>
+              </tr>
+            </thead>
+            <tbody id="leads-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>Built by TRIVOX · AI automation that runs your business</footer>
+
+<script>
+const LEADS=[
+  {name:'Mike T.',vehicle:'2019 Honda CR-V',price:'$24,500',src:'fb',phone:'416-***-8821',score:95,tier:'hot'},
+  {name:'Sandra L.',vehicle:'2020 Toyota RAV4',price:'$28,900',src:'fb',phone:'647-***-3340',score:91,tier:'hot'},
+  {name:'Raj P.',vehicle:'Looking to buy SUV',price:'Up to $30k',src:'fb',phone:'905-***-7712',score:88,tier:'hot'},
+  {name:'David C.',vehicle:'2018 Mazda CX-5',price:'$21,000',src:'kij',phone:'416-***-0094',score:85,tier:'hot'},
+  {name:'Emma W.',vehicle:'2021 Nissan Rogue',price:'$26,400',src:'kij',phone:'647-***-5561',score:82,tier:'hot'},
+  {name:'Carlos M.',vehicle:'2017 Ford Escape',price:'$16,750',src:'fb',phone:'416-***-2293',score:76,tier:'warm'},
+  {name:'Priya S.',vehicle:'2020 Hyundai Tucson',price:'$23,200',src:'kij',phone:'905-***-4480',score:74,tier:'warm'},
+  {name:'James O.',vehicle:'2018 Chevrolet Equinox',price:'$19,900',src:'fb',phone:'416-***-8867',score:71,tier:'warm'},
+  {name:'Lisa N.',vehicle:'Buy sedan under $20k',price:'Budget $18k',src:'fb',phone:'647-***-1123',score:68,tier:'warm'},
+  {name:'Tony R.',vehicle:'2016 Subaru Outback',price:'$14,500',src:'kij',phone:'416-***-3390',score:65,tier:'warm'},
+  {name:'Anna K.',vehicle:'2019 VW Tiguan',price:'$25,700',src:'kij',phone:'905-***-9908',score:62,tier:'warm'},
+  {name:'Omar F.',vehicle:'2015 Toyota Highlander',price:'$18,200',src:'fb',phone:'416-***-6654',score:59,tier:'warm'},
+  {name:'Grace L.',vehicle:'2017 Honda Pilot',price:'$22,000',src:'kij',phone:'647-***-7721',score:55,tier:'warm'},
+  {name:'Steven B.',vehicle:'2016 Ford Edge',price:'$15,800',src:'fb',phone:'416-***-2287',score:48,tier:'cold'},
+  {name:'Maria V.',vehicle:'2014 Jeep Cherokee',price:'$12,400',src:'kij',phone:'905-***-3312',score:44,tier:'cold'},
+  {name:'Derek M.',vehicle:'2015 Dodge Journey',price:'$11,900',src:'fb',phone:'416-***-5540',score:41,tier:'cold'},
+  {name:'Jen H.',vehicle:'2013 Toyota Venza',price:'$10,500',src:'kij',phone:'647-***-8890',score:38,tier:'cold'},
+  {name:'Frank T.',vehicle:'2016 Nissan Pathfinder',price:'$17,300',src:'fb',phone:'416-***-1144',score:36,tier:'cold'},
+  {name:'Aisha D.',vehicle:'2014 Kia Sorento',price:'$13,100',src:'kij',phone:'905-***-6677',score:33,tier:'cold'},
+  {name:'Paul M.',vehicle:'2012 Honda Odyssey',price:'$9,800',src:'fb',phone:'416-***-9923',score:30,tier:'cold'},
+  {name:'Sarah J.',vehicle:'2017 Mitsubishi Outlander',price:'$16,600',src:'kij',phone:'647-***-4412',score:28,tier:'cold'},
+  {name:'Kevin L.',vehicle:'2015 Chevrolet Traverse',price:'$14,200',src:'fb',phone:'416-***-7756',score:25,tier:'cold'},
+  {name:'Diane R.',vehicle:'2013 Ford Flex',price:'$10,100',src:'kij',phone:'905-***-8823',score:22,tier:'cold'},
+  {name:'Nick O.',vehicle:'2016 Buick Encore',price:'$15,500',src:'fb',phone:'416-***-3341',score:20,tier:'cold'},
+  {name:'Tina C.',vehicle:'2012 Hyundai Santa Fe',price:'$8,900',src:'kij',phone:'647-***-6690',score:18,tier:'cold'},
+];
+
+const PROGRESS_STEPS=[
+  {pct:15,label:'Connecting to Facebook Marketplace...'},
+  {pct:32,label:'Scanning Kijiji Autos listings...'},
+  {pct:55,label:'Deduplicating contacts...'},
+  {pct:72,label:'Extracting phone numbers...'},
+  {pct:88,label:'Running AI lead scoring...'},
+  {pct:100,label:'Building ready-to-call list...'},
+];
+
+function setState(id){
+  ['state-empty','state-working','state-results'].forEach(s=>{
+    document.getElementById(s).classList.toggle('hidden',s!==id);
+  });
+}
+
+let running=false;
+function runScraper(){
+  if(running)return;
+  running=true;
+  document.getElementById('run-btn').disabled=true;
+  setState('state-working');
+  document.getElementById('leads-tbody').innerHTML='';
+  document.getElementById('progress-bar').style.transform='scaleX(0)';
+
+  let stepIdx=0;
+  function nextStep(){
+    if(stepIdx>=PROGRESS_STEPS.length){
+      renderResults();
+      return;
+    }
+    const s=PROGRESS_STEPS[stepIdx++];
+    document.getElementById('progress-label').textContent=s.label;
+    document.getElementById('progress-bar').style.transform='scaleX('+s.pct/100+')';
+    setTimeout(nextStep,320);
+  }
+  nextStep();
+}
+
+function renderResults(){
+  const tbody=document.getElementById('leads-tbody');
+  tbody.innerHTML='';
+  let hot=0,warm=0,cold=0;
+  LEADS.forEach((l,i)=>{
+    if(l.tier==='hot')hot++;
+    else if(l.tier==='warm')warm++;
+    else cold++;
+    setTimeout(()=>{
+      const tr=document.createElement('tr');
+      tr.className='row-appear';
+      const srcClass=l.src==='fb'?'src-fb':'src-kij';
+      const srcLabel=l.src==='fb'?'FB Mkt':'Kijiji';
+      const scoreCls=l.tier==='hot'?'hot':l.tier==='warm'?'warm':'cold';
+      const fillCls=l.tier==='hot'?'score-hot':l.tier==='warm'?'score-warm':'score-cold';
+      tr.innerHTML=`
+        <td><div class="lead-name">${l.name}</div><div class="lead-vehicle">${l.vehicle}</div></td>
+        <td>${l.price}</td>
+        <td><span class="source-badge ${srcClass}">${srcLabel}</span></td>
+        <td style="color:var(--muted);font-size:11px;">${l.phone}</td>
+        <td class="score-bar-cell">
+          <div class="score-bar-bg"><div class="score-bar-fill ${fillCls}" style="width:${l.score}%"></div></div>
+          <span class="score-txt ${scoreCls}">${l.score}</span>
+        </td>`;
+      tbody.appendChild(tr);
+      if(i===LEADS.length-1){
+        document.getElementById('s-hot').textContent=hot;
+        document.getElementById('s-warm').textContent=warm;
+        document.getElementById('s-cold').textContent=cold;
+        document.getElementById('s-val').textContent='$'+(hot*1400+warm*600).toLocaleString();
+        document.getElementById('results-title').textContent=`${LEADS.length} leads found — ${hot} hot`;
+        document.getElementById('run-btn').disabled=false;
+        running=false;
+      }
+    },i*60);
+  });
+  setState('state-results');
+}
+
+function exportCSV(){
+  const rows=[['Name','Vehicle','Price','Source','Phone','Score','Tier']];
+  LEADS.forEach(l=>rows.push([l.name,l.vehicle,l.price,l.src==='fb'?'Facebook Marketplace':'Kijiji',l.phone,l.score,l.tier]));
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='trivox-leads.csv';
+  a.click();
+}
+</script>
+</body>
+</html>

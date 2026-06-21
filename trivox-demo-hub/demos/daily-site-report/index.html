@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trivox AI — Daily Site Report</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070b18; --bg2:#0d1426; --surface:#121b30; --surface2:#16203a; --border:#1e2a44;
+  --text:#eaf0ff; --muted:#8a97b5;
+  --brand:#2e61fe; --brand2:#00f0ff; --grad:linear-gradient(135deg,#2e61fe,#00f0ff);
+  --good:#22c55e; --warn:#fbbf24; --bad:#ef4444;
+  --radius:16px; --shadow:0 10px 40px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box} html,body{margin:0}
+body{background:radial-gradient(1200px 600px at 70% -10%,#13224a 0,transparent 60%),var(--bg);color:var(--text);font-family:'Sora',system-ui,sans-serif;line-height:1.5;min-height:100vh}
+.tvx-btn{background:var(--grad);color:#04122e;border:0;border-radius:12px;padding:12px 20px;font-weight:700;font-family:inherit;cursor:pointer;transition:.2s;font-size:15px}
+.tvx-btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.tvx-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;filter:none}
+.tvx-card{background:linear-gradient(180deg,var(--surface),var(--bg2));border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+.tvx-badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:999px;background:rgba(46,97,254,.15);color:#7fa8ff;border:1px solid rgba(46,97,254,.35)}
+
+/* Header */
+header.tvx-head{display:flex;align-items:center;justify-content:space-between;padding:18px 28px;border-bottom:1px solid var(--border);background:rgba(7,11,24,.7);backdrop-filter:blur(10px);position:sticky;top:0;z-index:50}
+.tvx-head .title-wrap{display:flex;align-items:center;gap:14px}
+.tvx-head .demo-title{font-size:13px;color:var(--muted);font-weight:500;padding-left:14px;border-left:1px solid var(--border)}
+.tvx-head .head-right{display:flex;align-items:center;gap:14px;font-size:13px;color:var(--muted)}
+.live-dot{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--good);font-weight:600}
+.live-dot::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 0 0 rgba(34,197,94,.7);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.6)}70%{box-shadow:0 0 0 8px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+
+.wrap{max-width:1180px;margin:0 auto;padding:32px 24px 80px}
+.hero{margin-bottom:26px}
+.hero h1{font-size:30px;font-weight:800;letter-spacing:-.02em;margin:14px 0 8px}
+.hero p{color:var(--muted);max-width:620px;margin:0;font-size:15px}
+
+.grid{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:24px;align-items:start}
+@media(max-width:920px){.grid{grid-template-columns:1fr}}
+
+/* Input panel */
+.panel{padding:24px}
+.panel h2{font-size:16px;font-weight:700;margin:0 0 4px}
+.panel .sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+.field-label{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;display:block}
+.meta-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px}
+.tvx-input,.tvx-select{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:14px;padding:11px 12px;transition:.2s}
+.tvx-input:focus,.tvx-select:focus,textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(46,97,254,.18)}
+.tvx-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M3 4.5L6 7.5L9 4.5' stroke='%238a97b5' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:30px}
+.notes-wrap{position:relative}
+textarea#notes{width:100%;min-height:160px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:inherit;font-size:14px;padding:14px;resize:vertical;line-height:1.6}
+textarea#notes::placeholder{color:#56618a}
+.notes-tools{display:flex;align-items:center;gap:10px;margin-top:12px}
+.voice-btn{display:inline-flex;align-items:center;gap:9px;background:var(--surface2);border:1px solid var(--border);color:var(--text);border-radius:10px;padding:10px 15px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:.2s}
+.voice-btn:hover{border-color:var(--brand);color:#fff}
+.voice-btn.recording{border-color:var(--brand2);color:var(--brand2);background:rgba(0,240,255,.08)}
+.mic-ico{width:16px;height:16px;display:inline-block}
+.char-count{margin-left:auto;font-size:12px;color:var(--muted)}
+
+/* Waveform */
+.waveform{display:none;align-items:center;gap:3px;height:34px;padding:0 4px}
+.waveform.active{display:flex}
+.waveform span{width:3px;background:var(--brand2);border-radius:3px;animation:wave 1s infinite ease-in-out}
+@keyframes wave{0%,100%{height:6px;opacity:.4}50%{height:28px;opacity:1}}
+
+.gen-btn{width:100%;margin-top:18px;font-size:16px;padding:15px}
+.hint{font-size:12px;color:var(--muted);text-align:center;margin-top:12px}
+
+/* AI working overlay */
+.ai-stage{padding:0;min-height:560px;display:flex;flex-direction:column;overflow:hidden;position:relative}
+.ai-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:48px;color:var(--muted)}
+.ai-empty svg{margin-bottom:20px;opacity:.5}
+.ai-empty h3{color:var(--text);font-weight:600;font-size:18px;margin:0 0 6px}
+.ai-empty p{margin:0;font-size:14px;max-width:340px}
+
+.ai-working{flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;padding:48px;text-align:center}
+.ai-working.active{display:flex}
+.ai-orb{width:80px;height:80px;border-radius:50%;background:var(--grad);position:relative;margin-bottom:28px;animation:orbpulse 1.6s infinite ease-in-out;box-shadow:0 0 40px rgba(0,240,255,.4)}
+.ai-orb::after{content:"";position:absolute;inset:-8px;border-radius:50%;border:2px solid rgba(0,240,255,.3);animation:orbring 1.6s infinite ease-out}
+@keyframes orbpulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+@keyframes orbring{0%{transform:scale(.9);opacity:.8}100%{transform:scale(1.5);opacity:0}}
+.ai-status{font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px;min-height:24px}
+.ai-substatus{font-size:13px;color:var(--muted);margin-bottom:24px;min-height:20px}
+.typing-dots{display:inline-flex;gap:5px;margin-left:4px}
+.typing-dots i{width:6px;height:6px;border-radius:50%;background:var(--brand2);display:inline-block;animation:typing 1.2s infinite}
+.typing-dots i:nth-child(2){animation-delay:.2s}.typing-dots i:nth-child(3){animation-delay:.4s}
+@keyframes typing{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
+.progress-track{width:280px;max-width:80%;height:6px;background:var(--bg2);border-radius:999px;overflow:hidden;border:1px solid var(--border)}
+.progress-fill{height:100%;width:0;background:var(--grad);border-radius:999px;transition:width .4s ease}
+.step-list{margin-top:26px;text-align:left;width:300px;max-width:90%}
+.step-item{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);padding:5px 0;opacity:.35;transition:.3s}
+.step-item.done{opacity:1;color:var(--text)}
+.step-item .step-ico{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--border);display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;transition:.3s}
+.step-item.done .step-ico{background:var(--good);border-color:var(--good)}
+.step-item.done .step-ico svg{display:block}
+.step-item .step-ico svg{display:none}
+
+/* Report output */
+.report-scroll{display:none;flex:1;overflow:auto;padding:0}
+.report-scroll.active{display:block;animation:fadein .5s ease}
+@keyframes fadein{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+.report-doc{background:#0a1020;margin:0}
+.report-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--surface2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:5}
+.report-bar .left{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+.report-bar .actions{display:flex;gap:8px}
+.icon-btn{display:inline-flex;align-items:center;gap:7px;background:var(--bg2);border:1px solid var(--border);color:var(--text);border-radius:9px;padding:8px 13px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;transition:.2s}
+.icon-btn:hover{border-color:var(--brand);color:#fff}
+.icon-btn.primary{background:var(--grad);color:#04122e;border:0}
+
+/* The "PDF page" */
+.page{background:linear-gradient(180deg,#0e1729,#0a1020);margin:22px;border-radius:14px;border:1px solid var(--border);overflow:hidden;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.page-head{padding:26px 30px;background:linear-gradient(120deg,rgba(46,97,254,.18),rgba(0,240,255,.06));border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:16px}
+.page-head .ph-left .doc-type{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--brand2);font-weight:700;margin-bottom:6px}
+.page-head .ph-left h2{margin:0 0 4px;font-size:23px;font-weight:800;letter-spacing:-.02em}
+.page-head .ph-left .proj-meta{color:var(--muted);font-size:13px}
+.page-head .ph-right{text-align:right;font-size:12px;color:var(--muted)}
+.page-head .ph-right .rep-no{font-weight:700;color:var(--text);font-size:14px}
+
+.weather-strip{display:flex;flex-wrap:wrap;gap:0;border-bottom:1px solid var(--border)}
+.weather-cell{flex:1;min-width:110px;padding:16px 18px;border-right:1px solid var(--border);text-align:center}
+.weather-cell:last-child{border-right:0}
+.weather-cell .wlabel{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
+.weather-cell .wval{font-size:17px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px}
+
+.page-body{padding:8px 30px 30px}
+.section{padding:22px 0;border-bottom:1px solid var(--border)}
+.section:last-child{border-bottom:0}
+.section-title{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text);margin-bottom:16px}
+.section-title .st-ico{width:26px;height:26px;border-radius:8px;background:rgba(46,97,254,.18);display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
+
+/* Crew table */
+.crew-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.crew-card{background:var(--bg2);border:1px solid var(--border);border-radius:11px;padding:13px 15px}
+.crew-card .trade{font-size:13px;color:var(--muted);margin-bottom:4px}
+.crew-card .num{font-size:24px;font-weight:800;display:flex;align-items:baseline;gap:6px}
+.crew-card .num small{font-size:12px;color:var(--muted);font-weight:500}
+.crew-total{display:flex;align-items:center;gap:10px;margin-top:14px;padding-top:14px;border-top:1px dashed var(--border);font-size:14px}
+.crew-total b{font-size:18px;color:var(--brand2)}
+
+/* Work completed */
+.trade-block{margin-bottom:16px}
+.trade-block:last-child{margin-bottom:0}
+.trade-block .tb-head{font-size:13px;font-weight:700;color:var(--brand2);margin-bottom:8px;display:flex;align-items:center;gap:8px}
+.trade-block .tb-head .pct{margin-left:auto;font-size:12px;color:var(--muted);font-weight:600}
+.trade-block ul{margin:0;padding-left:20px}
+.trade-block li{font-size:14px;margin-bottom:5px;color:#d4ddf5}
+
+/* two-col lists */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+@media(max-width:680px){.two-col{grid-template-columns:1fr}}
+.list-clean{list-style:none;margin:0;padding:0}
+.list-clean li{display:flex;gap:10px;font-size:14px;padding:7px 0;border-bottom:1px solid rgba(30,42,68,.5);color:#d4ddf5}
+.list-clean li:last-child{border-bottom:0}
+.list-clean li .dot{width:7px;height:7px;border-radius:50%;background:var(--brand);margin-top:8px;flex:0 0 auto}
+.list-clean li .qty{margin-left:auto;color:var(--muted);font-size:13px;white-space:nowrap}
+
+.issue{display:flex;gap:12px;padding:13px;border-radius:11px;margin-bottom:10px;border:1px solid var(--border);background:var(--bg2)}
+.issue:last-child{margin-bottom:0}
+.issue .sev{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 8px;border-radius:6px;height:fit-content;white-space:nowrap}
+.sev.high{background:rgba(239,68,68,.16);color:#fca5a5;border:1px solid rgba(239,68,68,.4)}
+.sev.med{background:rgba(251,191,36,.16);color:#fcd34d;border:1px solid rgba(251,191,36,.4)}
+.sev.low{background:rgba(34,197,94,.16);color:#86efac;border:1px solid rgba(34,197,94,.4)}
+.issue .itext{font-size:14px;color:#d4ddf5}
+.issue .itext .imeta{display:block;font-size:12px;color:var(--muted);margin-top:3px}
+
+.safety-row{display:flex;align-items:flex-start;gap:10px;font-size:14px;padding:8px 0;color:#d4ddf5}
+.safety-row .check{width:20px;height:20px;border-radius:6px;background:rgba(34,197,94,.18);display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
+.safety-row.flag .check{background:rgba(251,191,36,.18)}
+
+/* Photo grid */
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.photo-tile{aspect-ratio:4/3;border-radius:11px;border:1px solid var(--border);position:relative;overflow:hidden;background:var(--bg2);display:flex;align-items:flex-end}
+.photo-tile .ph-img{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:.5}
+.photo-tile .cap{position:relative;width:100%;padding:9px 11px;font-size:11px;font-weight:600;background:linear-gradient(0deg,rgba(7,11,24,.92),transparent);color:#fff;z-index:1}
+.photo-tile .cap span{display:block;font-size:10px;color:var(--muted);font-weight:500;margin-top:1px}
+.photo-tile .tag{position:absolute;top:8px;left:8px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 7px;border-radius:6px;background:rgba(7,11,24,.7);color:var(--brand2);border:1px solid rgba(0,240,255,.3);z-index:1}
+
+/* Tomorrow plan */
+.plan-list{counter-reset:plan;list-style:none;margin:0;padding:0}
+.plan-list li{display:flex;gap:14px;padding:12px 0;border-bottom:1px solid rgba(30,42,68,.5);font-size:14px;color:#d4ddf5;align-items:flex-start}
+.plan-list li:last-child{border-bottom:0}
+.plan-list li::before{counter-increment:plan;content:counter(plan);width:26px;height:26px;border-radius:8px;background:var(--grad);color:#04122e;font-weight:800;font-size:13px;display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto}
+.plan-list li .pt-meta{display:block;font-size:12px;color:var(--muted);margin-top:2px}
+
+.sign-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-top:8px;padding:20px 30px;background:var(--surface2);border-top:1px solid var(--border)}
+.sign-row .sig{font-size:13px;color:var(--muted)}
+.sign-row .sig b{display:block;color:var(--text);font-size:14px;margin-top:2px;font-family:'Sora';font-style:italic;font-weight:600}
+.ai-stamp{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);background:var(--bg2);border:1px solid var(--border);padding:8px 12px;border-radius:9px}
+
+footer.tvx-foot{text-align:center;padding:26px;color:var(--muted);font-size:13px;border-top:1px solid var(--border);margin-top:40px}
+footer.tvx-foot b{color:var(--text);font-weight:600}
+
+.toast{position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:13px 20px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:var(--shadow);z-index:200;opacity:0;transition:.35s;display:flex;align-items:center;gap:10px}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast .tcheck{width:20px;height:20px;border-radius:50%;background:var(--good);display:inline-flex;align-items:center;justify-content:center}
+
+@media print{
+  header.tvx-head,.hero,.panel,.report-bar,footer.tvx-foot,.toast{display:none!important}
+  body{background:#fff}
+  .grid{display:block}
+  .page{box-shadow:none;border:0;margin:0}
+}
+</style>
+</head>
+<body>
+<header class="tvx-head">
+  <div class="title-wrap">
+    <span style="display:inline-flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:-.02em">
+      <svg width="30" height="30" viewBox="0 0 48 48" fill="none"><defs><linearGradient id="tvx_daily_site_report" x1="0" y1="0" x2="48" y2="48"><stop offset="0" stop-color="#2e61fe"/><stop offset="1" stop-color="#00f0ff"/></linearGradient></defs><path d="M5 9 L24 41 L43 9 L33 9 L24 25 L15 9 Z" fill="url(#tvx_daily_site_report)"/><path d="M16 9 L24 22 L32 9 L24 9 Z" fill="url(#tvx_daily_site_report)" opacity=".5"/></svg>
+      Trivox<span style="color:var(--brand2)">AI</span>
+    </span>
+    <span class="demo-title">AI Daily Site Report</span>
+  </div>
+  <div class="head-right">
+    <span class="live-dot">Live Demo</span>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <span class="tvx-badge">Field Automation</span>
+    <h1>Field notes in. Professional daily log out.</h1>
+    <p>Dictate or type rough site notes. Trivox AI structures them into a clean, branded daily construction report — weather, crew, work completed, materials, safety and tomorrow's plan — in seconds.</p>
+  </div>
+
+  <div class="grid">
+    <!-- INPUT -->
+    <div class="tvx-card panel">
+      <h2>Field Notes</h2>
+      <p class="sub">Captured on site by the superintendent.</p>
+
+      <div class="meta-row">
+        <div>
+          <label class="field-label">Project</label>
+          <select class="tvx-select" id="project">
+            <option>Harbourview Condos — Tower B</option>
+            <option>Lakeshore Medical Centre</option>
+            <option>King St. Mixed-Use Podium</option>
+            <option>Mississauga Logistics Warehouse</option>
+          </select>
+        </div>
+        <div>
+          <label class="field-label">Report Date</label>
+          <input class="tvx-input" id="repdate" type="text" value="" readonly>
+        </div>
+      </div>
+
+      <label class="field-label">Raw site notes</label>
+      <div class="notes-wrap">
+        <textarea id="notes" placeholder="Tap the mic and talk, or type your notes here… e.g. 'Poured slab on grade east side, 6 carpenters framing level 3, rebar delivery came in around 10, light rain in the afternoon slowed us down…'"></textarea>
+      </div>
+
+      <div class="notes-tools">
+        <button class="voice-btn" id="voiceBtn" type="button">
+          <svg class="mic-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+          <span id="voiceLabel">Dictate</span>
+        </button>
+        <div class="waveform" id="waveform"></div>
+        <span class="char-count" id="charCount">0 chars</span>
+      </div>
+
+      <button class="tvx-btn gen-btn" id="genBtn" type="button">Generate Daily Report</button>
+      <p class="hint">Trivox AI auto-pulls weather for the site location and structures everything by trade.</p>
+    </div>
+
+    <!-- OUTPUT -->
+    <div class="tvx-card ai-stage">
+      <!-- empty -->
+      <div class="ai-empty" id="aiEmpty">
+        <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#2e61fe" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M9 13h6M9 17h6M9 9h1"/></svg>
+        <h3>Your daily log will appear here</h3>
+        <p>Add field notes and hit Generate. The AI will compile a structured, signature-ready report.</p>
+      </div>
+
+      <!-- working -->
+      <div class="ai-working" id="aiWorking">
+        <div class="ai-orb"></div>
+        <div class="ai-status" id="aiStatus">Reading field notes</div>
+        <div class="ai-substatus" id="aiSub">Parsing dictation<span class="typing-dots"><i></i><i></i><i></i></span></div>
+        <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        <div class="step-list" id="stepList"></div>
+      </div>
+
+      <!-- result -->
+      <div class="report-scroll" id="reportScroll">
+        <div class="report-bar">
+          <div class="left">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>
+            Report generated <span id="genTime"></span>
+          </div>
+          <div class="actions">
+            <button class="icon-btn" id="copyBtn" type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Copy
+            </button>
+            <button class="icon-btn primary" id="pdfBtn" type="button">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z"/></svg>
+              Export PDF
+            </button>
+          </div>
+        </div>
+        <div class="report-doc" id="reportDoc"><!-- built by JS --></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="tvx-foot"><b>TRIVOX AI</b> — Automation Infrastructure</footer>
+
+<div class="toast" id="toast"><span class="tcheck"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#04122e" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span><span id="toastMsg">Copied</span></div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ---------- Date setup ---------- */
+  var today = new Date(2026,5,9); // June 9 2026
+  var dateLong = today.toLocaleDateString('en-CA',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  var dateShort = today.toLocaleDateString('en-CA',{year:'numeric',month:'2-digit',day:'2-digit'});
+  document.getElementById('repdate').value = dateLong;
+
+  /* ---------- Waveform bars ---------- */
+  var waveform = document.getElementById('waveform');
+  for(var i=0;i<28;i++){
+    var s=document.createElement('span');
+    s.style.animationDelay=(i*0.05)+'s';
+    s.style.animationDuration=(0.7+Math.random()*0.6)+'s';
+    waveform.appendChild(s);
+  }
+
+  /* ---------- Elements ---------- */
+  var notes = document.getElementById('notes');
+  var charCount = document.getElementById('charCount');
+  var voiceBtn = document.getElementById('voiceBtn');
+  var voiceLabel = document.getElementById('voiceLabel');
+  var genBtn = document.getElementById('genBtn');
+  var aiEmpty = document.getElementById('aiEmpty');
+  var aiWorking = document.getElementById('aiWorking');
+  var reportScroll = document.getElementById('reportScroll');
+  var aiStatus = document.getElementById('aiStatus');
+  var aiSub = document.getElementById('aiSub');
+  var progressFill = document.getElementById('progressFill');
+  var stepList = document.getElementById('stepList');
+  var reportDoc = document.getElementById('reportDoc');
+
+  notes.addEventListener('input',function(){
+    charCount.textContent = notes.value.length + ' chars';
+  });
+
+  /* ---------- Sample dictation ---------- */
+  var sampleNotes = "Crew on site at 6:45. Six carpenters framing the level 3 demising walls, two more setting hoarding on the north side. Concrete sub poured the slab on grade for the east bay around 9 — came out clean, finished by early afternoon. Rebar delivery from Harris Steel showed up about 10:30, dropped two bundles of 15M near gridline C. The tower crane was running most of the day, mobile crane offloaded the steel. Electrical rough-in continued on level 2, four guys. Light rain came in after lunch and slowed the masonry crew so we pulled them inside. One near miss — a panel wasn't tied off near the level 3 edge, talked to the foreman, fixed right away. Drywall material is staged but we're still short on track. Tomorrow want to keep framing level 3, start the slab cure checks, and get the elevator sub mobilized.";
+
+  /* ---------- Voice dictation simulation ---------- */
+  var dictating = false;
+  voiceBtn.addEventListener('click',function(){
+    if(dictating) return;
+    dictating = true;
+    notes.value = '';
+    charCount.textContent = '0 chars';
+    voiceBtn.classList.add('recording');
+    voiceLabel.textContent = 'Listening…';
+    waveform.classList.add('active');
+    genBtn.disabled = true;
+
+    var words = sampleNotes.split(' ');
+    var idx = 0;
+    var timer = setInterval(function(){
+      if(idx >= words.length){
+        clearInterval(timer);
+        finishDictation();
+        return;
+      }
+      // reveal a few words at a time for a natural cadence
+      var chunk = 1 + Math.floor(Math.random()*2);
+      for(var k=0;k<chunk && idx<words.length;k++){
+        notes.value += (notes.value ? ' ' : '') + words[idx];
+        idx++;
+      }
+      charCount.textContent = notes.value.length + ' chars';
+      notes.scrollTop = notes.scrollHeight;
+    },95);
+
+    function finishDictation(){
+      dictating = false;
+      voiceBtn.classList.remove('recording');
+      voiceLabel.textContent = 'Dictate';
+      waveform.classList.remove('active');
+      genBtn.disabled = false;
+    }
+  });
+
+  /* ---------- AI working steps ---------- */
+  var steps = [
+    {status:'Reading field notes', sub:'Transcribing dictation', label:'Transcribe & clean notes'},
+    {status:'Pulling site weather', sub:'Querying Toronto, ON conditions', label:'Fetch weather for site'},
+    {status:'Identifying trades & crew', sub:'Detecting headcount by trade', label:'Classify crew by trade'},
+    {status:'Structuring work completed', sub:'Grouping tasks by division', label:'Organize work completed'},
+    {status:'Flagging delays & safety', sub:'Extracting issues and observations', label:'Extract delays & safety'},
+    {status:'Compiling daily log', sub:'Formatting branded report', label:'Generate report'}
+  ];
+
+  function buildSteps(){
+    stepList.innerHTML = '';
+    steps.forEach(function(st){
+      var d = document.createElement('div');
+      d.className = 'step-item';
+      d.innerHTML = '<span class="step-ico"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#04122e" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg></span>' + st.label;
+      stepList.appendChild(d);
+    });
+  }
+
+  /* ---------- Generate flow ---------- */
+  var working = false;
+  genBtn.addEventListener('click',function(){
+    if(working) return;
+    if(notes.value.trim().length < 10){
+      showToast('Add some field notes first', false);
+      return;
+    }
+    working = true;
+    genBtn.disabled = true;
+    genBtn.textContent = 'Generating…';
+    aiEmpty.style.display = 'none';
+    reportScroll.classList.remove('active');
+    aiWorking.classList.add('active');
+    progressFill.style.width = '0';
+    buildSteps();
+
+    var stepEls = stepList.querySelectorAll('.step-item');
+    var i = 0;
+    var totalMs = 2100;
+    var per = totalMs / steps.length;
+
+    function runStep(){
+      if(i >= steps.length){
+        progressFill.style.width = '100%';
+        setTimeout(revealReport, 320);
+        return;
+      }
+      aiStatus.textContent = steps[i].status;
+      aiSub.innerHTML = steps[i].sub + '<span class="typing-dots"><i></i><i></i><i></i></span>';
+      progressFill.style.width = Math.round(((i+1)/steps.length)*100) + '%';
+      if(i>0) stepEls[i-1].classList.add('done');
+      i++;
+      setTimeout(runStep, per);
+    }
+    runStep();
+  });
+
+  function revealReport(){
+    // mark all steps done
+    var stepEls = stepList.querySelectorAll('.step-item');
+    stepEls.forEach(function(e){e.classList.add('done');});
+    aiWorking.classList.remove('active');
+    renderReport();
+    reportScroll.classList.add('active');
+    reportScroll.scrollTop = 0;
+    document.getElementById('genTime').textContent = 'at ' + new Date().toLocaleTimeString('en-CA',{hour:'2-digit',minute:'2-digit'});
+    genBtn.disabled = false;
+    genBtn.textContent = 'Regenerate Report';
+    working = false;
+  }
+
+  /* ---------- Report data ---------- */
+  var crew = [
+    {trade:'Carpenters', n:8},
+    {trade:'Concrete / Finishers', n:5},
+    {trade:'Electricians', n:4},
+    {trade:'Masons', n:3},
+    {trade:'Labourers', n:6},
+    {trade:'Crane / Rigging', n:2}
+  ];
+
+  var work = [
+    {trade:'Concrete — Div 03', pct:'100%', items:[
+      'Poured slab-on-grade, east bay (Gridlines C–F) — approx. 42 m³, 30 MPa mix.',
+      'Power-trowel finish completed by 2:30 PM; curing blankets placed.',
+      'Formwork stripped from level 2 columns (north elevation).'
+    ]},
+    {trade:'Rough Carpentry — Div 06', pct:'On track', items:[
+      'Framed Level 3 demising walls — 6 of 9 layouts complete.',
+      'Installed exterior hoarding and edge protection, north side.'
+    ]},
+    {trade:'Electrical — Div 26', pct:'On track', items:[
+      'Level 2 branch rough-in continued; ~70% of unit boxes set.',
+      'Pulled feeder conduit to Panel L2-A.'
+    ]},
+    {trade:'Masonry — Div 04', pct:'Delayed', items:[
+      'Block laying on stair core paused early due to afternoon rain.',
+      'Crew redeployed to interior staging and material prep.'
+    ]}
+  ];
+
+  var materials = [
+    {name:'Rebar — 15M reinforcing bar', qty:'2 bundles', supp:'Harris Steel', time:'10:30 AM'},
+    {name:'Ready-mix concrete (30 MPa)', qty:'42 m³', supp:'St. Marys CBM', time:'8:45 AM'},
+    {name:'2x6 SPF framing lumber', qty:'1 unit', supp:'Central Fairbank', time:'11:15 AM'},
+    {name:'Drywall — 5/8" Type X', qty:'180 sheets (staged)', supp:'Georgia-Pacific', time:'Yesterday'}
+  ];
+
+  var equipment = [
+    {name:'Tower crane — Potain MDT 219', qty:'In operation'},
+    {name:'Mobile crane — 90-ton', qty:'On site (steel offload)'},
+    {name:'Concrete pump truck', qty:'Demobilized 3:00 PM'},
+    {name:'Scissor lift x2', qty:'On site'},
+    {name:'Generator — 60 kVA', qty:'Running'}
+  ];
+
+  var issues = [
+    {sev:'high', text:'Fall-protection tie-off missing near Level 3 slab edge.', meta:'Corrected immediately — foreman re-briefed crew. Logged as near-miss.'},
+    {sev:'med', text:'Afternoon rain (≈4 mm) halted exterior masonry ~1.5 hrs.', meta:'Schedule impact: minimal. Crew redeployed indoors.'},
+    {sev:'low', text:'Short on metal stud track for Level 3 drywall.', meta:'Reorder placed; delivery expected tomorrow AM.'}
+  ];
+
+  var safety = [
+    {ok:true, text:'Daily toolbox talk held at 7:00 AM — topic: ladder safety. 28 attendees.'},
+    {ok:false, text:'One near-miss recorded (fall protection). Corrected on the spot.'},
+    {ok:true, text:'PPE compliance check passed — hard hats, hi-vis, boots, eye protection.'},
+    {ok:true, text:'Site housekeeping inspected — no obstructions in egress paths.'}
+  ];
+
+  var photos = [
+    {tag:'Concrete', cap:'Slab pour — east bay', sub:'09:42 AM'},
+    {tag:'Framing', cap:'Level 3 demising walls', sub:'11:20 AM'},
+    {tag:'Delivery', cap:'15M rebar staged @ Grid C', sub:'10:34 AM'},
+    {tag:'Safety', cap:'Edge protection installed', sub:'01:15 PM'},
+    {tag:'Crane', cap:'Steel offload — mobile crane', sub:'02:05 PM'},
+    {tag:'Site', cap:'North hoarding progress', sub:'03:40 PM'}
+  ];
+
+  var plan = [
+    {t:'Continue Level 3 framing', m:'Complete remaining 3 demising wall layouts. Carpentry crew (8).'},
+    {t:'Slab cure monitoring', m:'48-hr cure checks on east-bay pour; protect during forecast rain.'},
+    {t:'Mobilize elevator subcontractor', m:'Coordinate hoistway survey with site super at 8:00 AM.'},
+    {t:'Receive metal stud track', m:'Confirm AM delivery; resume Level 3 drywall prep.'},
+    {t:'Resume masonry on stair core', m:'Weather permitting — masons (3) back to block laying.'}
+  ];
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>"]/g,function(c){
+      return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+    });
+  }
+
+  function renderReport(){
+    var proj = document.getElementById('project').value;
+    var totalCrew = crew.reduce(function(a,c){return a+c.n;},0);
+
+    var crewCards = crew.map(function(c){
+      return '<div class="crew-card"><div class="trade">'+escapeHtml(c.trade)+'</div><div class="num">'+c.n+' <small>on site</small></div></div>';
+    }).join('');
+
+    var workHtml = work.map(function(w){
+      var lis = w.items.map(function(it){return '<li>'+escapeHtml(it)+'</li>';}).join('');
+      return '<div class="trade-block"><div class="tb-head">'+escapeHtml(w.trade)+'<span class="pct">'+escapeHtml(w.pct)+'</span></div><ul>'+lis+'</ul></div>';
+    }).join('');
+
+    var matHtml = materials.map(function(m){
+      return '<li><span class="dot"></span><div>'+escapeHtml(m.name)+'<br><span style="color:var(--muted);font-size:12px">'+escapeHtml(m.supp)+' · '+escapeHtml(m.time)+'</span></div><span class="qty">'+escapeHtml(m.qty)+'</span></li>';
+    }).join('');
+
+    var eqHtml = equipment.map(function(e){
+      return '<li><span class="dot"></span><div>'+escapeHtml(e.name)+'</div><span class="qty">'+escapeHtml(e.qty)+'</span></li>';
+    }).join('');
+
+    var issueHtml = issues.map(function(it){
+      var lbl = it.sev==='high'?'High':(it.sev==='med'?'Medium':'Low');
+      return '<div class="issue"><span class="sev '+it.sev+'">'+lbl+'</span><div class="itext">'+escapeHtml(it.text)+'<span class="imeta">'+escapeHtml(it.meta)+'</span></div></div>';
+    }).join('');
+
+    var checkSvg = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="3"><path d="M20 6L9 17l-5-5"/></svg>';
+    var flagSvg = '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.5"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></svg>';
+    var safetyHtml = safety.map(function(s){
+      return '<div class="safety-row'+(s.ok?'':' flag')+'"><span class="check">'+(s.ok?checkSvg:flagSvg)+'</span><div>'+escapeHtml(s.text)+'</div></div>';
+    }).join('');
+
+    var camSvg = '<svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#2e61fe" stroke-width="1.5"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>';
+    var photoHtml = photos.map(function(p){
+      return '<div class="photo-tile"><span class="tag">'+escapeHtml(p.tag)+'</span><div class="ph-img">'+camSvg+'</div><div class="cap">'+escapeHtml(p.cap)+'<span>'+escapeHtml(p.sub)+'</span></div></div>';
+    }).join('');
+
+    var planHtml = plan.map(function(p){
+      return '<li><div>'+escapeHtml(p.t)+'<span class="pt-meta">'+escapeHtml(p.m)+'</span></div></li>';
+    }).join('');
+
+    function ico(path){return '<span class="st-ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#7fa8ff" stroke-width="2">'+path+'</svg></span>';}
+
+    var html =
+    '<div class="page">'+
+      '<div class="page-head">'+
+        '<div class="ph-left">'+
+          '<div class="doc-type">Daily Construction Log</div>'+
+          '<h2>'+escapeHtml(proj)+'</h2>'+
+          '<div class="proj-meta">Trivox Construction Group · 240 Lake Shore Blvd W, Toronto, ON</div>'+
+        '</div>'+
+        '<div class="ph-right">'+
+          '<div class="rep-no">Report #DCR-2026-0142</div>'+
+          escapeHtml(dateLong)+'<br>'+
+          'Project #'+(proj.indexOf('Harbourview')>-1?'TCG-2024-118':'TCG-2025-204')+
+        '</div>'+
+      '</div>'+
+
+      '<div class="weather-strip">'+
+        '<div class="weather-cell"><div class="wlabel">Conditions</div><div class="wval">⛅ Partly Cloudy</div></div>'+
+        '<div class="weather-cell"><div class="wlabel">High / Low</div><div class="wval">18° / 11°C</div></div>'+
+        '<div class="weather-cell"><div class="wlabel">Precip.</div><div class="wval">4 mm 🌧</div></div>'+
+        '<div class="weather-cell"><div class="wlabel">Wind</div><div class="wval">22 km/h SW</div></div>'+
+        '<div class="weather-cell"><div class="wlabel">Work Hours</div><div class="wval">6:45a – 4:30p</div></div>'+
+      '</div>'+
+
+      '<div class="page-body">'+
+
+        '<div class="section">'+
+          '<div class="section-title">'+ico('<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>')+'Crew on Site by Trade</div>'+
+          '<div class="crew-grid">'+crewCards+'</div>'+
+          '<div class="crew-total">Total headcount on site <b>'+totalCrew+'</b> <span style="color:var(--muted)">· 1 site superintendent · 2 trade foremen</span></div>'+
+        '</div>'+
+
+        '<div class="section">'+
+          '<div class="section-title">'+ico('<path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>')+'Work Completed</div>'+
+          workHtml+
+        '</div>'+
+
+        '<div class="section">'+
+          '<div class="two-col">'+
+            '<div><div class="section-title">'+ico('<path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.27 6.96L12 12.01l8.73-5.05M12 22.08V12"/>')+'Materials Delivered</div><ul class="list-clean">'+matHtml+'</ul></div>'+
+            '<div><div class="section-title">'+ico('<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9z"/>')+'Equipment on Site</div><ul class="list-clean">'+eqHtml+'</ul></div>'+
+          '</div>'+
+        '</div>'+
+
+        '<div class="section">'+
+          '<div class="section-title">'+ico('<path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><path d="M12 9v4M12 17h.01"/>')+'Delays & Issues</div>'+
+          issueHtml+
+        '</div>'+
+
+        '<div class="section">'+
+          '<div class="section-title">'+ico('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>')+'Safety Observations</div>'+
+          safetyHtml+
+        '</div>'+
+
+        '<div class="section">'+
+          '<div class="section-title">'+ico('<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/>')+'Site Photos <span style="margin-left:auto;font-size:11px;font-weight:600;color:var(--muted);text-transform:none;letter-spacing:0">6 captured · geotagged</span></div>'+
+          '<div class="photo-grid">'+photoHtml+'</div>'+
+        '</div>'+
+
+        '<div class="section">'+
+          '<div class="section-title">'+ico('<rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/>')+'Tomorrow\'s Plan</div>'+
+          '<ol class="plan-list">'+planHtml+'</ol>'+
+        '</div>'+
+
+      '</div>'+
+
+      '<div class="sign-row">'+
+        '<div class="sig">Prepared by<b>M. Caldwell, Site Superintendent</b></div>'+
+        '<div class="sig">Reviewed by<b>S. Tremblay, Project Manager</b></div>'+
+        '<div class="ai-stamp"><svg width="14" height="14" viewBox="0 0 48 48" fill="none"><path d="M5 9 L24 41 L43 9 L33 9 L24 25 L15 9 Z" fill="#2e61fe"/></svg> Compiled by Trivox AI · '+escapeHtml(dateShort)+'</div>'+
+      '</div>'+
+    '</div>';
+
+    reportDoc.innerHTML = html;
+  }
+
+  /* ---------- Toast ---------- */
+  var toast = document.getElementById('toast');
+  var toastMsg = document.getElementById('toastMsg');
+  var toastTimer = null;
+  function showToast(msg){
+    toastMsg.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function(){toast.classList.remove('show');},2200);
+  }
+
+  /* ---------- Copy & PDF ---------- */
+  document.getElementById('copyBtn').addEventListener('click',function(){
+    var text = reportDoc.innerText || reportDoc.textContent || '';
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){
+        showToast('Daily log copied to clipboard');
+      }).catch(function(){ showToast('Daily log ready'); });
+    } else {
+      showToast('Daily log ready');
+    }
+  });
+
+  document.getElementById('pdfBtn').addEventListener('click',function(){
+    showToast('Preparing branded PDF…');
+    setTimeout(function(){ window.print(); }, 600);
+  });
+
+})();
+</script>
+</body>
+</html>

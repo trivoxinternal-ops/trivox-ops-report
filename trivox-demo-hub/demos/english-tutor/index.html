@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI English Tutor — TRIVOX Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070b18;--bg2:#0d1426;--surface:#121b30;--surface2:#16203a;--border:#1e2a44;--text:#eaf0ff;--muted:#8a97b5;--brand:#2e61fe;--brand2:#00f0ff;--grad:linear-gradient(135deg,#2e61fe,#00f0ff);--good:#22c55e;--warn:#fbbf24;--bad:#ef4444;--radius:16px;--shadow:0 10px 40px rgba(0,0,0,.45);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(7,11,24,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 24px;}
+.nav-inner{max-width:1200px;margin:0 auto;height:60px;display:flex;align-items:center;justify-content:space-between;}
+.nav-brand{display:flex;align-items:center;gap:10px;}
+.nav-logo{font-size:18px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-.02em;}
+.nav-pill{font-size:10px;font-weight:600;padding:3px 8px;border-radius:20px;background:var(--grad);color:#fff;letter-spacing:.06em;}
+.nav-back{font-size:13px;color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:6px;transition:color .2s;}
+.nav-back:hover{color:var(--text);}
+
+/* HERO */
+.hero{max-width:1200px;margin:0 auto;padding:64px 24px 48px;}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px;}
+.hero h1{font-size:clamp(28px,4vw,40px);font-family:'DM Serif Display',serif;font-weight:400;letter-spacing:-.01em;line-height:1.15;margin-bottom:16px;}
+.hero p{font-size:15px;color:var(--muted);max-width:640px;line-height:1.7;margin-bottom:32px;}
+.stats{display:flex;gap:12px;flex-wrap:wrap;}
+.stat-chip{padding:8px 16px;background:var(--surface);border:1px solid var(--border);border-radius:40px;font-size:12px;font-weight:600;color:var(--text);}
+.stat-chip span{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+/* GRID */
+.grid{max-width:1200px;margin:0 auto;padding:0 24px 80px;display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+@media(max-width:900px){.grid{grid-template-columns:1fr;}}
+
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);}
+.panel-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:20px;}
+
+/* LEFT */
+.input-group{margin-bottom:18px;}
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;letter-spacing:.04em;}
+textarea{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;color:var(--text);font-family:'Sora',sans-serif;font-size:14px;line-height:1.6;resize:vertical;min-height:100px;transition:border-color .2s;outline:none;}
+textarea:focus{border-color:var(--brand);}
+.btn{width:100%;padding:14px 24px;background:var(--grad);border:none;border-radius:10px;color:#fff;font-family:'Sora',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .2s,transform .15s;letter-spacing:.02em;}
+.btn:hover{opacity:.88;transform:translateY(-1px);}
+.btn:active{transform:translateY(0);}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.hint{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5;}
+
+/* RIGHT */
+.right-panel{min-height:480px;position:relative;}
+.placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:420px;gap:12px;color:var(--muted);}
+.placeholder svg{opacity:.25;}
+.placeholder p{font-size:13px;text-align:center;opacity:.6;}
+
+/* ORB */
+.orb-wrap{display:none;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:420px;gap:24px;}
+.orb-wrap.active{display:flex;}
+.orb{width:72px;height:72px;border-radius:50%;background:var(--grad);animation:pulse 1.4s ease-in-out infinite;box-shadow:0 0 40px rgba(46,97,254,.5);}
+@keyframes pulse{0%,100%{transform:scale(.9);opacity:.7;}50%{transform:scale(1.1);opacity:1;}}
+.checklist{list-style:none;display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px;}
+.checklist li{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:10px;transition:color .3s;}
+.checklist li.done{color:var(--text);}
+.check-icon{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .3s;}
+.check-icon.filled{background:var(--good);border-color:var(--good);}
+
+/* RESULT */
+.result-wrap{display:none;flex-direction:column;gap:18px;}
+.result-wrap.active{display:flex;}
+
+.corrected-box{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;}
+.corrected-box .box-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.corrected-sentence{font-size:15px;line-height:1.7;}
+.fix{background:rgba(46,97,254,.18);border-bottom:2px solid var(--brand2);color:var(--brand2);border-radius:3px;padding:1px 3px;}
+
+.errors-box{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;}
+.error-item{display:flex;gap:10px;margin-bottom:12px;}
+.error-item:last-child{margin-bottom:0;}
+.error-badge{background:rgba(239,68,68,.15);color:var(--bad);font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;white-space:nowrap;height:fit-content;margin-top:2px;}
+.error-text{font-size:13px;line-height:1.6;color:var(--text);}
+.error-text strong{color:var(--warn);}
+
+.tip-box{background:rgba(46,97,254,.1);border:1px solid rgba(46,97,254,.25);border-radius:10px;padding:14px 16px;display:flex;gap:10px;align-items:flex-start;}
+.tip-icon{font-size:16px;flex-shrink:0;}
+.tip-text{font-size:13px;line-height:1.6;color:var(--text);}
+
+.practice-box{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;}
+.practice-item{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid var(--border);}
+.practice-item:last-child{border-bottom:none;}
+.practice-num{width:22px;height:22px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:#fff;flex-shrink:0;}
+.practice-text{font-size:13px;line-height:1.6;color:var(--text);}
+
+.streak-card{background:linear-gradient(135deg,rgba(46,97,254,.15),rgba(0,240,255,.1));border:1px solid rgba(46,97,254,.3);border-radius:10px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;}
+.streak-left{display:flex;align-items:center;gap:10px;}
+.streak-fire{font-size:22px;}
+.streak-info .streak-num{font-size:20px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.streak-info .streak-label{font-size:11px;color:var(--muted);}
+.streak-right{font-size:11px;color:var(--muted);text-align:right;}
+
+/* FOOTER */
+footer{text-align:center;padding:28px 24px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="nav-brand">
+      <span class="nav-logo">TRIVOX</span>
+      <span class="nav-pill">AI</span>
+    </div>
+    <a class="nav-back" href="../../portfolio.html">&#8592; All Demos</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="eyebrow">Education / Vertical AI</div>
+  <h1>AI English Tutor<br>That Actually Teaches</h1>
+  <p>Instant corrections, plain-language explanations, and personalized practice prompts. Productized as <em>Profe Marco</em> — available 24/7 for $199/mo.</p>
+  <div class="stats">
+    <div class="stat-chip"><span>Instant</span> feedback</div>
+    <div class="stat-chip"><span>24/7</span> tutor</div>
+    <div class="stat-chip"><span>$199/mo</span> product</div>
+  </div>
+</section>
+
+<div class="grid">
+  <!-- LEFT -->
+  <div class="panel">
+    <div class="panel-label">Student Input</div>
+    <div class="input-group">
+      <label>Your sentence in English</label>
+      <textarea id="student-input">I have 25 years and I working in construction since 3 years. Yesterday I go to work very early and my boss say me that my english need improve a lot.</textarea>
+    </div>
+    <button class="btn" id="correct-btn" onclick="runCorrection()">Correct &amp; Coach</button>
+    <p class="hint">The AI corrects errors, explains each mistake, and assigns 3 personalized practice prompts.</p>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="panel right-panel">
+    <div class="panel-label">AI Tutor Response</div>
+
+    <div class="placeholder" id="placeholder">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="22" stroke="#8a97b5" stroke-width="2"/><path d="M16 24h16M24 16v16" stroke="#8a97b5" stroke-width="2" stroke-linecap="round"/></svg>
+      <p>Paste a sentence and click<br>"Correct &amp; Coach" to begin.</p>
+    </div>
+
+    <div class="orb-wrap" id="orb-wrap">
+      <div class="orb"></div>
+      <ul class="checklist" id="checklist">
+        <li id="step1"><span class="check-icon"></span>Detecting grammar errors…</li>
+        <li id="step2"><span class="check-icon"></span>Building corrections…</li>
+        <li id="step3"><span class="check-icon"></span>Writing explanations…</li>
+        <li id="step4"><span class="check-icon"></span>Generating practice prompts…</li>
+      </ul>
+    </div>
+
+    <div class="result-wrap" id="result-wrap">
+
+      <div class="corrected-box">
+        <div class="box-label">Corrected Sentence</div>
+        <div class="corrected-sentence" id="corrected-text"></div>
+      </div>
+
+      <div class="errors-box">
+        <div class="box-label" style="margin-bottom:10px;">Error Breakdown</div>
+        <div id="errors-list"></div>
+      </div>
+
+      <div class="tip-box">
+        <span class="tip-icon">💡</span>
+        <span class="tip-text" id="grammar-tip"></span>
+      </div>
+
+      <div class="practice-box">
+        <div class="box-label" style="margin-bottom:6px;">Personalized Practice Prompts</div>
+        <div id="practice-list"></div>
+      </div>
+
+      <div class="streak-card">
+        <div class="streak-left">
+          <span class="streak-fire">🔥</span>
+          <div class="streak-info">
+            <div class="streak-num">7</div>
+            <div class="streak-label">day streak</div>
+          </div>
+        </div>
+        <div class="streak-right">Keep going!<br>Next milestone: <strong style="color:var(--warn)">14 days</strong></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<footer>Built by TRIVOX · AI automation that runs your business</footer>
+
+<script>
+const CORRECTIONS = {
+  corrected: [
+    { text: "I am ", fix: false },
+    { text: "25 years old", fix: true },
+    { text: " and ", fix: false },
+    { text: "I have been working", fix: true },
+    { text: " in construction ", fix: false },
+    { text: "for 3 years", fix: true },
+    { text: ". Yesterday ", fix: false },
+    { text: "I went", fix: true },
+    { text: " to work very early and my boss ", fix: false },
+    { text: "told me", fix: true },
+    { text: " that my English ", fix: false },
+    { text: "needs a lot of improvement", fix: true },
+    { text: ".", fix: false }
+  ],
+  errors: [
+    { badge: "Age", original: '"I have 25 years"', fix: 'Use "I am 25 years old". In English, age uses the verb <strong>to be</strong>, not "to have".' },
+    { badge: "Tense", original: '"I working"', fix: 'Use "I have been working" — this is the <strong>Present Perfect Continuous</strong>, used for actions that started in the past and continue now.' },
+    { badge: "Preposition", original: '"since 3 years"', fix: 'Use <strong>"for 3 years"</strong>. "Since" pairs with a point in time (since 2021). "For" pairs with a duration.' },
+    { badge: "Past tense", original: '"I go" / "boss say me"', fix: 'Past simple: <strong>"I went"</strong> and <strong>"my boss told me"</strong>. Regular verbs add -ed; "go" and "say" are irregular.' }
+  ],
+  tip: "Grammar tip: English does not use 'have' for age. Think of age as a state of being — 'I AM 25'. The same applies to hunger, thirst, and emotions: I am hungry (not 'I have hunger').",
+  practice: [
+    "Write 3 sentences about your job using the Present Perfect Continuous: "I have been working…"",
+    "Rewrite this sentence using past simple: "Last week, I (go) _____ to the office and my manager (tell) _____ me about a new project."",
+    "Translate to English: "Tengo 30 años, llevo 5 años en este trabajo, y ayer llegué temprano.""
+  ]
+};
+
+function runCorrection() {
+  const btn = document.getElementById('correct-btn');
+  const placeholder = document.getElementById('placeholder');
+  const orbWrap = document.getElementById('orb-wrap');
+  const resultWrap = document.getElementById('result-wrap');
+
+  btn.disabled = true;
+  placeholder.style.display = 'none';
+  resultWrap.classList.remove('active');
+  orbWrap.classList.add('active');
+
+  const steps = ['step1','step2','step3','step4'];
+  steps.forEach(s => {
+    const li = document.getElementById(s);
+    li.classList.remove('done');
+    li.querySelector('.check-icon').classList.remove('filled');
+    li.querySelector('.check-icon').innerHTML = '';
+  });
+
+  let i = 0;
+  const interval = setInterval(() => {
+    if (i < steps.length) {
+      const li = document.getElementById(steps[i]);
+      li.classList.add('done');
+      const icon = li.querySelector('.check-icon');
+      icon.classList.add('filled');
+      icon.innerHTML = '<svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      i++;
+    } else {
+      clearInterval(interval);
+      setTimeout(() => showResult(orbWrap, resultWrap, btn), 400);
+    }
+  }, 420);
+}
+
+function showResult(orbWrap, resultWrap, btn) {
+  orbWrap.classList.remove('active');
+  resultWrap.classList.add('active');
+  btn.disabled = false;
+
+  // Build corrected sentence
+  const correctedEl = document.getElementById('corrected-text');
+  correctedEl.innerHTML = CORRECTIONS.corrected.map(p =>
+    p.fix ? `<span class="fix">${p.text}</span>` : p.text
+  ).join('');
+
+  // Build errors
+  const errorsEl = document.getElementById('errors-list');
+  errorsEl.innerHTML = CORRECTIONS.errors.map(e => `
+    <div class="error-item">
+      <span class="error-badge">${e.badge}</span>
+      <div class="error-text"><strong>${e.original}</strong> — ${e.fix}</div>
+    </div>
+  `).join('');
+
+  document.getElementById('grammar-tip').textContent = CORRECTIONS.tip;
+
+  const practiceEl = document.getElementById('practice-list');
+  practiceEl.innerHTML = CORRECTIONS.practice.map((p,i) => `
+    <div class="practice-item">
+      <div class="practice-num">${i+1}</div>
+      <div class="practice-text">${p}</div>
+    </div>
+  `).join('');
+}
+</script>
+</body>
+</html>

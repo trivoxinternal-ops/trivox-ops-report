@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Real Estate AI Agent — TRIVOX Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070b18;--bg2:#0d1426;--surface:#121b30;--surface2:#16203a;--border:#1e2a44;--text:#eaf0ff;--muted:#8a97b5;--brand:#2e61fe;--brand2:#00f0ff;--grad:linear-gradient(135deg,#2e61fe,#00f0ff);--good:#22c55e;--warn:#fbbf24;--bad:#ef4444;--radius:16px;--shadow:0 10px 40px rgba(0,0,0,.45);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;}
+
+nav{position:sticky;top:0;z-index:100;background:rgba(7,11,24,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 24px;}
+.nav-inner{max-width:1200px;margin:0 auto;height:60px;display:flex;align-items:center;justify-content:space-between;}
+.nav-brand{display:flex;align-items:center;gap:10px;}
+.nav-logo{font-size:18px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-.02em;}
+.nav-pill{font-size:10px;font-weight:600;padding:3px 8px;border-radius:20px;background:var(--grad);color:#fff;letter-spacing:.06em;}
+.nav-back{font-size:13px;color:var(--muted);text-decoration:none;display:flex;align-items:center;gap:6px;transition:color .2s;}
+.nav-back:hover{color:var(--text);}
+
+.hero{max-width:1200px;margin:0 auto;padding:64px 24px 48px;}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px;}
+.hero h1{font-size:clamp(28px,4vw,40px);font-family:'DM Serif Display',serif;font-weight:400;letter-spacing:-.01em;line-height:1.15;margin-bottom:16px;}
+.hero p{font-size:15px;color:var(--muted);max-width:640px;line-height:1.7;margin-bottom:32px;}
+.stats{display:flex;gap:12px;flex-wrap:wrap;}
+.stat-chip{padding:8px 16px;background:var(--surface);border:1px solid var(--border);border-radius:40px;font-size:12px;font-weight:600;color:var(--text);}
+.stat-chip span{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+.grid{max-width:1200px;margin:0 auto;padding:0 24px 80px;display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+@media(max-width:900px){.grid{grid-template-columns:1fr;}}
+
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);}
+.panel-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:20px;}
+
+.input-group{margin-bottom:18px;}
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;letter-spacing:.04em;}
+textarea{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;color:var(--text);font-family:'Sora',sans-serif;font-size:14px;line-height:1.6;resize:vertical;min-height:90px;transition:border-color .2s;outline:none;}
+textarea:focus{border-color:var(--brand);}
+.btn{width:100%;padding:14px 24px;background:var(--grad);border:none;border-radius:10px;color:#fff;font-family:'Sora',sans-serif;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .2s,transform .15s;letter-spacing:.02em;}
+.btn:hover{opacity:.88;transform:translateY(-1px);}
+.btn:active{transform:translateY(0);}
+.btn:disabled{opacity:.5;cursor:not-allowed;transform:none;}
+.hint{font-size:11px;color:var(--muted);margin-top:10px;line-height:1.5;}
+
+.right-panel{min-height:480px;position:relative;}
+.placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:420px;gap:12px;color:var(--muted);}
+.placeholder svg{opacity:.25;}
+.placeholder p{font-size:13px;text-align:center;opacity:.6;}
+
+.orb-wrap{display:none;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:420px;gap:24px;}
+.orb-wrap.active{display:flex;}
+.orb{width:72px;height:72px;border-radius:50%;background:var(--grad);animation:pulse 1.4s ease-in-out infinite;box-shadow:0 0 40px rgba(46,97,254,.5);}
+@keyframes pulse{0%,100%{transform:scale(.9);opacity:.7;}50%{transform:scale(1.1);opacity:1;}}
+.checklist{list-style:none;display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px;}
+.checklist li{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:10px;transition:color .3s;}
+.checklist li.done{color:var(--text);}
+.check-icon{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .3s;}
+.check-icon.filled{background:var(--good);border-color:var(--good);}
+
+.result-wrap{display:none;flex-direction:column;gap:16px;}
+.result-wrap.active{display:flex;}
+
+.ai-reply{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:16px;}
+.box-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+.ai-reply-text{font-size:13px;line-height:1.7;color:var(--text);}
+
+.listings-wrap{display:flex;flex-direction:column;gap:10px;}
+.listing-card{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:14px 16px;display:flex;gap:14px;align-items:flex-start;}
+.listing-img{width:52px;height:52px;border-radius:8px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;}
+.listing-body{flex:1;min-width:0;}
+.listing-price{font-size:16px;font-weight:700;color:var(--text);}
+.listing-meta{font-size:12px;color:var(--muted);margin:2px 0 6px;}
+.listing-address{font-size:12px;color:var(--muted);margin-bottom:6px;}
+.listing-tags{display:flex;gap:6px;flex-wrap:wrap;}
+.listing-tag{font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;background:rgba(46,97,254,.15);color:var(--brand2);}
+.match-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:4px;background:rgba(34,197,94,.15);color:var(--good);white-space:nowrap;margin-left:auto;}
+
+.confirm-card{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.2);border-radius:10px;padding:14px 16px;display:flex;gap:12px;align-items:center;}
+.confirm-icon{font-size:22px;}
+.confirm-body .confirm-title{font-size:13px;font-weight:600;color:var(--good);margin-bottom:3px;}
+.confirm-body .confirm-detail{font-size:12px;color:var(--muted);}
+
+.lead-card{background:rgba(46,97,254,.08);border:1px solid rgba(46,97,254,.2);border-radius:10px;padding:14px 16px;display:flex;gap:12px;align-items:center;}
+.lead-icon{font-size:22px;}
+.lead-body .lead-title{font-size:13px;font-weight:600;color:var(--brand2);margin-bottom:3px;}
+.lead-body .lead-detail{font-size:12px;color:var(--muted);}
+
+footer{text-align:center;padding:28px 24px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="nav-brand">
+      <span class="nav-logo">TRIVOX</span>
+      <span class="nav-pill">AI</span>
+    </div>
+    <a class="nav-back" href="../../portfolio.html">&#8592; All Demos</a>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="eyebrow">Real Estate / Vertical AI</div>
+  <h1>Real Estate AI Agent<br>That Closes for You</h1>
+  <p>Qualifies buyers instantly, matches them to live listings, and auto-books showings — so your agents spend time closing, not chasing leads.</p>
+  <div class="stats">
+    <div class="stat-chip"><span>Seconds</span> to match</div>
+    <div class="stat-chip"><span>Auto-booked</span> showings</div>
+    <div class="stat-chip"><span>+3x</span> buyer response</div>
+  </div>
+</section>
+
+<div class="grid">
+  <!-- LEFT -->
+  <div class="panel">
+    <div class="panel-label">Buyer Message</div>
+    <div class="input-group">
+      <label>Incoming buyer inquiry</label>
+      <textarea id="buyer-input">Hey, looking for a 3BR under $850k near good schools in Mississauga. We have 2 kids so the school rating is really important. Prefer something move-in ready, detached if possible.</textarea>
+    </div>
+    <button class="btn" id="match-btn" onclick="runMatch()">Match &amp; Respond</button>
+    <p class="hint">The AI qualifies the buyer, matches listings, drafts a reply, and books a showing — in seconds.</p>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="panel right-panel">
+    <div class="panel-label">AI Agent Response</div>
+
+    <div class="placeholder" id="placeholder">
+      <svg width="48" height="48" viewBox="0 0 48 48" fill="none"><circle cx="24" cy="24" r="22" stroke="#8a97b5" stroke-width="2"/><path d="M14 28s2-4 10-4 10 4 10 4" stroke="#8a97b5" stroke-width="2" stroke-linecap="round"/><circle cx="18" cy="20" r="2" fill="#8a97b5"/><circle cx="30" cy="20" r="2" fill="#8a97b5"/></svg>
+      <p>Paste a buyer message and click<br>"Match &amp; Respond" to see the agent work.</p>
+    </div>
+
+    <div class="orb-wrap" id="orb-wrap">
+      <div class="orb"></div>
+      <ul class="checklist" id="checklist">
+        <li id="step1"><span class="check-icon"></span>Qualifying buyer criteria…</li>
+        <li id="step2"><span class="check-icon"></span>Searching MLS listings…</li>
+        <li id="step3"><span class="check-icon"></span>Scoring school districts…</li>
+        <li id="step4"><span class="check-icon"></span>Drafting reply + booking…</li>
+      </ul>
+    </div>
+
+    <div class="result-wrap" id="result-wrap">
+
+      <div class="ai-reply">
+        <div class="box-label">AI Reply to Buyer</div>
+        <div class="ai-reply-text">Hi! Great news — I found 3 detached homes in Mississauga that match your criteria perfectly. All are under $850k, move-in ready, and located in neighbourhoods with school ratings of 8/10 or higher. I've pulled your top matches below. Want to book a showing for any of them this weekend?</div>
+      </div>
+
+      <div>
+        <div class="box-label" style="margin-bottom:10px;">Matched Listings</div>
+        <div class="listings-wrap">
+
+          <div class="listing-card">
+            <div class="listing-img">🏡</div>
+            <div class="listing-body">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
+                <span class="listing-price">$829,000</span>
+                <span class="match-badge">98% match</span>
+              </div>
+              <div class="listing-meta">3 bed · 2 bath · Detached · Move-in ready</div>
+              <div class="listing-address">142 Confederation Pkwy, Mississauga</div>
+              <div class="listing-tags">
+                <span class="listing-tag">School 9/10</span>
+                <span class="listing-tag">Finished basement</span>
+                <span class="listing-tag">Large backyard</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="listing-card">
+            <div class="listing-img">🏠</div>
+            <div class="listing-body">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
+                <span class="listing-price">$799,900</span>
+                <span class="match-badge">94% match</span>
+              </div>
+              <div class="listing-meta">3 bed · 3 bath · Detached · Updated kitchen</div>
+              <div class="listing-address">57 Turtle Creek Dr, Mississauga</div>
+              <div class="listing-tags">
+                <span class="listing-tag">School 8/10</span>
+                <span class="listing-tag">Double garage</span>
+                <span class="listing-tag">Quiet street</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="listing-card">
+            <div class="listing-img">🏘️</div>
+            <div class="listing-body">
+              <div style="display:flex;align-items:center;gap:8px;margin-bottom:2px;">
+                <span class="listing-price">$844,500</span>
+                <span class="match-badge">91% match</span>
+              </div>
+              <div class="listing-meta">4 bed · 2 bath · Detached · New roof 2023</div>
+              <div class="listing-address">311 Mississauga Valley Blvd</div>
+              <div class="listing-tags">
+                <span class="listing-tag">School 8/10</span>
+                <span class="listing-tag">Corner lot</span>
+                <span class="listing-tag">Park nearby</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="confirm-card">
+        <span class="confirm-icon">📅</span>
+        <div class="confirm-body">
+          <div class="confirm-title">Showing Auto-Booked</div>
+          <div class="confirm-detail">142 Confederation Pkwy · Saturday June 21, 11:00 AM · Agent: Sarah K. · Confirmation sent to buyer</div>
+        </div>
+      </div>
+
+      <div class="lead-card">
+        <span class="lead-icon">✅</span>
+        <div class="lead-body">
+          <div class="lead-title">Lead Captured to CRM</div>
+          <div class="lead-detail">Budget $850k · 3BR detached · Mississauga · School priority · Stage: Showing Booked</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<footer>Built by TRIVOX · AI automation that runs your business</footer>
+
+<script>
+function runMatch() {
+  const btn = document.getElementById('match-btn');
+  const placeholder = document.getElementById('placeholder');
+  const orbWrap = document.getElementById('orb-wrap');
+  const resultWrap = document.getElementById('result-wrap');
+
+  btn.disabled = true;
+  placeholder.style.display = 'none';
+  resultWrap.classList.remove('active');
+  orbWrap.classList.add('active');
+
+  const steps = ['step1','step2','step3','step4'];
+  steps.forEach(s => {
+    const li = document.getElementById(s);
+    li.classList.remove('done');
+    li.querySelector('.check-icon').classList.remove('filled');
+    li.querySelector('.check-icon').innerHTML = '';
+  });
+
+  let i = 0;
+  const interval = setInterval(() => {
+    if (i < steps.length) {
+      const li = document.getElementById(steps[i]);
+      li.classList.add('done');
+      const icon = li.querySelector('.check-icon');
+      icon.classList.add('filled');
+      icon.innerHTML = '<svg width="10" height="8" viewBox="0 0 10 8" fill="none"><path d="M1 4l3 3 5-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      i++;
+    } else {
+      clearInterval(interval);
+      setTimeout(() => {
+        orbWrap.classList.remove('active');
+        resultWrap.classList.add('active');
+        btn.disabled = false;
+      }, 400);
+    }
+  }, 430);
+}
+</script>
+</body>
+</html>

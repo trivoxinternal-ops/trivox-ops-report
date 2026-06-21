@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SEO Content Agent — TRIVOX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070b18;--bg2:#0d1426;--surface:#121b30;--surface2:#16203a;--border:#1e2a44;--text:#eaf0ff;--muted:#8a97b5;--brand:#2e61fe;--brand2:#00f0ff;--grad:linear-gradient(135deg,#2e61fe,#00f0ff);--good:#22c55e;--warn:#fbbf24;--bad:#ef4444;--radius:16px;--shadow:0 10px 40px rgba(0,0,0,.45);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(7,11,24,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 32px;height:64px;display:flex;align-items:center;justify-content:space-between;}
+.nav-brand{display:flex;align-items:center;gap:10px;}
+.nav-logo{font-size:20px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-.02em;}
+.nav-pill{background:var(--grad);color:#fff;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:.08em;}
+.nav-back{color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;display:flex;align-items:center;gap:6px;transition:color .2s;}
+.nav-back:hover{color:var(--text);}
+
+/* HERO */
+.hero{text-align:center;padding:80px 24px 60px;max-width:800px;margin:0 auto;}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:var(--brand2);margin-bottom:16px;}
+h1{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.02em;line-height:1.15;margin-bottom:16px;}
+h1 span{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{color:var(--muted);font-size:16px;line-height:1.6;max-width:640px;margin:0 auto 40px;}
+.stats{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;}
+.stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 24px;text-align:center;min-width:140px;}
+.stat-num{font-size:22px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:block;margin-bottom:4px;}
+.stat-label{font-size:12px;color:var(--muted);font-weight:500;}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:1100px;margin:0 auto;padding:0 24px 80px;}
+@media(max-width:900px){.grid{grid-template-columns:1fr;}}
+
+/* PANEL */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);}
+.panel-title{font-size:13px;font-weight:600;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-bottom:24px;}
+
+/* FORM */
+.field{margin-bottom:20px;}
+label{display:block;font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px;}
+input,select,textarea{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Sora',sans-serif;font-size:14px;padding:12px 16px;outline:none;transition:border-color .2s;}
+input:focus,select:focus,textarea:focus{border-color:var(--brand);}
+select option{background:var(--bg2);}
+.btn{width:100%;background:var(--grad);border:none;border-radius:10px;color:#fff;font-family:'Sora',sans-serif;font-size:14px;font-weight:600;padding:14px;cursor:pointer;letter-spacing:.02em;transition:opacity .2s,transform .1s;margin-top:4px;}
+.btn:hover{opacity:.9;}
+.btn:active{transform:scale(.99);}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+
+/* RIGHT PANEL */
+.right-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);min-height:480px;padding:28px;box-shadow:var(--shadow);display:flex;flex-direction:column;}
+
+/* EMPTY STATE */
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--muted);gap:12px;}
+.empty-icon{width:48px;height:48px;border-radius:50%;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;}
+.empty-state p{font-size:13px;text-align:center;max-width:200px;line-height:1.5;}
+
+/* WORKING STATE */
+.working-state{flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;gap:24px;}
+.orb{width:64px;height:64px;border-radius:50%;background:var(--grad);animation:pulse 1.4s ease-in-out infinite;box-shadow:0 0 30px rgba(46,97,254,.4);}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.12);opacity:.7;}}
+.checklist{list-style:none;width:100%;max-width:260px;}
+.checklist li{font-size:13px;color:var(--muted);padding:6px 0;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);}
+.checklist li:last-child{border-bottom:none;}
+.check-dot{width:8px;height:8px;border-radius:50%;background:var(--border);flex-shrink:0;transition:background .3s;}
+.check-dot.done{background:var(--good);}
+
+/* RESULT */
+.result-state{display:none;flex-direction:column;gap:16px;}
+.result-state.show{display:flex;}
+
+.badge-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px;}
+.badge{font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;letter-spacing:.05em;}
+.badge-blue{background:rgba(46,97,254,.15);color:#7fa3ff;border:1px solid rgba(46,97,254,.3);}
+.badge-cyan{background:rgba(0,240,255,.1);color:var(--brand2);border:1px solid rgba(0,240,255,.2);}
+.badge-green{background:rgba(34,197,94,.1);color:var(--good);border:1px solid rgba(34,197,94,.2);}
+
+.brief-section{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.brief-label{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;}
+.brief-value{font-size:13px;line-height:1.6;color:var(--text);}
+
+.kw-list{display:flex;flex-direction:column;gap:6px;}
+.kw-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;}
+.kw-name{color:var(--text);}
+.kw-vol{font-size:11px;font-weight:600;color:var(--brand2);}
+
+.outline-tree{list-style:none;display:flex;flex-direction:column;gap:4px;}
+.outline-tree li{font-size:13px;color:var(--text);}
+.outline-tree li.h2{padding-left:12px;color:var(--muted);}
+.outline-tree li.h3{padding-left:24px;color:var(--muted);font-size:12px;}
+.outline-tree li.h1{font-weight:600;}
+
+.meta-field{margin-bottom:10px;}
+.meta-key{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px;}
+.meta-val{font-size:13px;color:var(--text);line-height:1.5;}
+.char-count{font-size:11px;margin-left:6px;padding:2px 7px;border-radius:6px;font-weight:600;}
+.char-ok{background:rgba(34,197,94,.15);color:var(--good);}
+.char-warn{background:rgba(251,191,36,.15);color:var(--warn);}
+
+/* DIFFICULTY GAUGE */
+.gauge-wrap{display:flex;align-items:center;gap:12px;}
+.gauge-bar{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden;}
+.gauge-fill{height:100%;border-radius:4px;transform:scaleX(0);transform-origin:left;transition:transform .8s ease;}
+.gauge-label{font-size:12px;font-weight:600;min-width:36px;text-align:right;}
+
+/* FOOTER */
+footer{text-align:center;padding:32px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);}
+footer span{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-weight:600;}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <span class="nav-logo">TRIVOX</span>
+    <span class="nav-pill">AI</span>
+  </div>
+  <a class="nav-back" href="../../portfolio.html">&#8592; All Demos</a>
+</nav>
+
+<section class="hero">
+  <div class="eyebrow">Marketing &amp; Content</div>
+  <h1>Your AI <span>SEO Content Agent</span><br>writes briefs that rank</h1>
+  <p class="hero-sub">Drop a keyword. Get a battle-ready article outline, meta copy, target keywords, and predicted difficulty — in under a minute.</p>
+  <div class="stats">
+    <div class="stat-chip"><span class="stat-num">40s</span><span class="stat-label">Brief in 40s</span></div>
+    <div class="stat-chip"><span class="stat-num">Top-3</span><span class="stat-label">Top-3 ready</span></div>
+    <div class="stat-chip"><span class="stat-num">10x</span><span class="stat-label">Content speed</span></div>
+  </div>
+</section>
+
+<div class="grid">
+  <!-- LEFT -->
+  <div class="panel">
+    <div class="panel-title">Input</div>
+    <div class="field">
+      <label for="keyword">Target Keyword</label>
+      <input type="text" id="keyword" value="emergency plumber toronto" placeholder="e.g. emergency plumber toronto">
+    </div>
+    <div class="field">
+      <label for="tone">Content Tone</label>
+      <select id="tone">
+        <option value="authoritative" selected>Authoritative &amp; Trustworthy</option>
+        <option value="conversational">Conversational</option>
+        <option value="technical">Technical / Expert</option>
+        <option value="local">Local &amp; Community-Focused</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="intent">Search Intent</label>
+      <select id="intent">
+        <option value="transactional" selected>Transactional</option>
+        <option value="informational">Informational</option>
+        <option value="navigational">Navigational</option>
+        <option value="commercial">Commercial Investigation</option>
+      </select>
+    </div>
+    <button class="btn" id="generateBtn" onclick="runGenerate()">Generate SEO Brief</button>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right-panel" id="rightPanel">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">&#128269;</div>
+      <p>Enter a keyword and generate your SEO brief</p>
+    </div>
+    <div class="working-state" id="workingState">
+      <div class="orb"></div>
+      <ul class="checklist" id="checklist">
+        <li><span class="check-dot" id="c1"></span> Analysing search intent</li>
+        <li><span class="check-dot" id="c2"></span> Pulling keyword clusters</li>
+        <li><span class="check-dot" id="c3"></span> Building content outline</li>
+        <li><span class="check-dot" id="c4"></span> Crafting meta copy</li>
+        <li><span class="check-dot" id="c5"></span> Scoring difficulty</li>
+      </ul>
+    </div>
+    <div class="result-state" id="resultState"></div>
+  </div>
+</div>
+
+<footer>Built by <span>TRIVOX</span> &middot; AI automation that runs your business</footer>
+
+<script>
+const BRIEFS = {
+  "emergency plumber toronto": {
+    intent: "Transactional — user needs immediate help, high purchase intent. Target service-area pages + fast CTA.",
+    keywords: [
+      { kw: "emergency plumber toronto", vol: "4,400/mo" },
+      { kw: "24 hour plumber toronto", vol: "2,900/mo" },
+      { kw: "plumber near me open now", vol: "1,600/mo" },
+      { kw: "burst pipe repair toronto", vol: "880/mo" },
+      { kw: "same day plumber toronto", vol: "590/mo" },
+    ],
+    outline: [
+      { tag: "h1", text: "24/7 Emergency Plumber in Toronto — Same-Hour Response" },
+      { tag: "h2", text: "What Counts as a Plumbing Emergency?" },
+      { tag: "h3", text: "Burst Pipes & Water Damage" },
+      { tag: "h3", text: "Gas Leaks & Sewage Backups" },
+      { tag: "h2", text: "How Our Emergency Dispatch Works" },
+      { tag: "h3", text: "Step 1: Call or Book Online" },
+      { tag: "h3", text: "Step 2: Licensed Tech On-Site in 60 min" },
+      { tag: "h2", text: "Emergency Plumbing Costs in Toronto (2025)" },
+      { tag: "h2", text: "Service Areas We Cover" },
+      { tag: "h2", text: "FAQs About Emergency Plumbing" },
+    ],
+    metaTitle: "24/7 Emergency Plumber Toronto | Same-Hour Response",
+    metaDesc: "Need an emergency plumber in Toronto? We dispatch licensed plumbers in under 60 minutes — burst pipes, gas leaks, no-heat calls. Call now, fixed fast.",
+    internalLinks: ["Service areas page", "Pricing & estimates page", "Reviews / testimonials", "Contact / booking page"],
+    difficulty: 58,
+    difficultyLabel: "Medium",
+    difficultyColor: "var(--warn)",
+  },
+};
+
+const DEFAULT_BRIEF = (kw, tone, intent) => ({
+  intent: `${intent.charAt(0).toUpperCase()+intent.slice(1)} — users searching "${kw}" show ${intent === 'transactional' ? 'high purchase' : 'research'} intent. Match page format to SERP leaders.`,
+  keywords: [
+    { kw: kw, vol: "3,200/mo" },
+    { kw: kw + " near me", vol: "1,800/mo" },
+    { kw: "best " + kw, vol: "960/mo" },
+    { kw: kw + " cost", vol: "720/mo" },
+    { kw: kw + " reviews", vol: "540/mo" },
+  ],
+  outline: [
+    { tag: "h1", text: "The Complete Guide to " + toTitle(kw) + " (2025)" },
+    { tag: "h2", text: "What Is " + toTitle(kw) + "?" },
+    { tag: "h3", text: "Key Definitions & Context" },
+    { tag: "h2", text: "Top Benefits & Why It Matters" },
+    { tag: "h3", text: "Practical Use Cases" },
+    { tag: "h2", text: "How to Choose the Right Option" },
+    { tag: "h3", text: "Pricing Breakdown" },
+    { tag: "h2", text: "FAQs About " + toTitle(kw) },
+  ],
+  metaTitle: toTitle(kw) + " — Expert Guide & Top Picks (2025)",
+  metaDesc: "Looking for " + kw + "? Our expert guide covers everything — pricing, tips, and how to choose. Read in 5 minutes and decide with confidence.",
+  internalLinks: ["Related services page", "Pricing page", "About / credibility page", "Contact page"],
+  difficulty: 42,
+  difficultyLabel: "Low–Medium",
+  difficultyColor: "var(--good)",
+});
+
+function toTitle(str) {
+  return str.replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function countChars(str) { return str.length; }
+
+function diffColor(score) {
+  if (score < 35) return "var(--good)";
+  if (score < 65) return "var(--warn)";
+  return "var(--bad)";
+}
+
+function buildResult(brief, kw) {
+  const titleLen = countChars(brief.metaTitle);
+  const descLen = countChars(brief.metaDesc);
+  const titleClass = titleLen <= 60 ? "char-ok" : "char-warn";
+  const descClass = descLen <= 160 ? "char-ok" : "char-warn";
+
+  const outlineHTML = brief.outline.map(o => {
+    const cls = o.tag === 'h1' ? 'h1' : o.tag === 'h2' ? 'h2' : 'h3';
+    const prefix = o.tag === 'h1' ? 'H1' : o.tag === 'h2' ? 'H2' : 'H3';
+    return `<li class="${cls}"><span style="color:var(--brand2);font-size:10px;font-weight:700;margin-right:6px;">${prefix}</span>${o.text}</li>`;
+  }).join('');
+
+  const kwHTML = brief.keywords.map(k =>
+    `<div class="kw-row"><span class="kw-name">${k.kw}</span><span class="kw-vol">${k.vol}</span></div>`
+  ).join('');
+
+  const linksHTML = brief.internalLinks.map(l => `<span class="badge badge-blue">${l}</span>`).join('');
+
+  return `
+    <div class="panel-title">SEO Brief — ${kw}</div>
+    <div class="badge-row">
+      <span class="badge badge-cyan">Intent: ${brief.difficultyLabel} Competition</span>
+      <span class="badge badge-green">Brief Ready</span>
+    </div>
+    <div class="brief-section">
+      <div class="brief-label">Search Intent</div>
+      <div class="brief-value">${brief.intent}</div>
+    </div>
+    <div class="brief-section">
+      <div class="brief-label">Target Keywords &amp; Volume</div>
+      <div class="kw-list">${kwHTML}</div>
+    </div>
+    <div class="brief-section">
+      <div class="brief-label">Content Outline</div>
+      <ul class="outline-tree">${outlineHTML}</ul>
+    </div>
+    <div class="brief-section">
+      <div class="brief-label">Meta Copy</div>
+      <div class="meta-field">
+        <div class="meta-key">Title Tag <span class="char-count ${titleClass}">${titleLen} chars</span></div>
+        <div class="meta-val">${brief.metaTitle}</div>
+      </div>
+      <div class="meta-field">
+        <div class="meta-key">Meta Description <span class="char-count ${descClass}">${descLen} chars</span></div>
+        <div class="meta-val">${brief.metaDesc}</div>
+      </div>
+    </div>
+    <div class="brief-section">
+      <div class="brief-label">Internal Link Suggestions</div>
+      <div class="badge-row" style="margin-bottom:0;">${linksHTML}</div>
+    </div>
+    <div class="brief-section">
+      <div class="brief-label">Predicted Keyword Difficulty</div>
+      <div class="gauge-wrap">
+        <div class="gauge-bar"><div class="gauge-fill" id="gaugeFill" style="width:0%;background:${diffColor(brief.difficulty)};"></div></div>
+        <span class="gauge-label" style="color:${diffColor(brief.difficulty)};">${brief.difficulty}/100</span>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-top:6px;">${brief.difficultyLabel} — ${brief.difficulty < 50 ? 'Achievable with quality content + 3–5 backlinks.' : 'Requires strong domain authority + content depth.'}</div>
+    </div>
+  `;
+}
+
+function runGenerate() {
+  const kw = document.getElementById('keyword').value.trim() || 'emergency plumber toronto';
+  const tone = document.getElementById('tone').value;
+  const intent = document.getElementById('intent').value;
+  const btn = document.getElementById('generateBtn');
+
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('workingState').style.display = 'flex';
+  document.getElementById('resultState').style.display = 'none';
+  document.getElementById('resultState').classList.remove('show');
+  btn.disabled = true;
+
+  const dots = ['c1','c2','c3','c4','c5'];
+  dots.forEach(id => document.getElementById(id).classList.remove('done'));
+
+  let step = 0;
+  const interval = setInterval(() => {
+    if (step < dots.length) {
+      document.getElementById(dots[step]).classList.add('done');
+      step++;
+    } else {
+      clearInterval(interval);
+    }
+  }, 340);
+
+  setTimeout(() => {
+    const brief = BRIEFS[kw.toLowerCase()] || DEFAULT_BRIEF(kw, tone, intent);
+    document.getElementById('workingState').style.display = 'none';
+    const rs = document.getElementById('resultState');
+    rs.innerHTML = buildResult(brief, kw);
+    rs.style.display = 'flex';
+    rs.classList.add('show');
+    btn.disabled = false;
+
+    setTimeout(() => {
+      const gf = document.getElementById('gaugeFill');
+      if (gf) gf.style.transform = `scaleX(${brief.difficulty / 100})`;
+    }, 100);
+  }, 1850);
+}
+</script>
+</body>
+</html>

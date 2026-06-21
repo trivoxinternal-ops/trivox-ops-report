@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TrivoxAI — Construction Voice Agent</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070b18; --bg2:#0d1426; --surface:#121b30; --surface2:#16203a; --border:#1e2a44;
+  --text:#eaf0ff; --muted:#8a97b5;
+  --brand:#2e61fe; --brand2:#00f0ff; --grad:linear-gradient(135deg,#2e61fe,#00f0ff);
+  --good:#22c55e; --warn:#fbbf24; --bad:#ef4444;
+  --radius:16px; --shadow:0 10px 40px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box} html,body{margin:0}
+body{background:radial-gradient(1200px 600px at 70% -10%,#13224a 0,transparent 60%),var(--bg);color:var(--text);font-family:'Sora',system-ui,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+.tvx-btn{background:var(--grad);color:#04122e;border:0;border-radius:12px;padding:12px 20px;font-weight:700;font-family:inherit;cursor:pointer;transition:.2s}
+.tvx-btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.tvx-card{background:linear-gradient(180deg,var(--surface),var(--bg2));border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+.tvx-badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:999px;background:rgba(46,97,254,.15);color:#7fa8ff;border:1px solid rgba(46,97,254,.35)}
+
+/* Header */
+header{display:flex;align-items:center;justify-content:space-between;padding:18px 28px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(7,11,24,.82);backdrop-filter:blur(14px);z-index:50}
+.demo-title{font-size:13px;color:var(--muted);font-weight:500;display:flex;align-items:center;gap:8px}
+.demo-title .dot{width:7px;height:7px;border-radius:50%;background:var(--good);box-shadow:0 0 10px var(--good);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+
+.wrap{max-width:1180px;margin:0 auto;padding:34px 24px 60px}
+.hero{text-align:center;margin-bottom:30px}
+.hero h1{font-size:clamp(28px,4vw,42px);font-weight:800;letter-spacing:-.02em;margin:14px 0 8px;background:linear-gradient(120deg,#eaf0ff 30%,#7fa8ff);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{color:var(--muted);max-width:560px;margin:0 auto;font-size:15px}
+
+.layout{display:grid;grid-template-columns:1fr 360px;gap:22px;margin-top:26px}
+@media(max-width:920px){.layout{grid-template-columns:1fr}}
+
+/* Phone / call panel */
+.callpanel{padding:0;overflow:hidden;display:flex;flex-direction:column;min-height:560px}
+.calltop{padding:22px 24px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:linear-gradient(180deg,rgba(46,97,254,.08),transparent)}
+.caller{display:flex;align-items:center;gap:14px}
+.avatar{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,#1c2b4d,#0f1830);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-weight:700;color:#7fa8ff;font-size:18px;position:relative}
+.avatar.ringing{animation:ring 1.1s infinite}
+@keyframes ring{0%,100%{transform:rotate(0)}20%{transform:rotate(-9deg)}40%{transform:rotate(9deg)}60%{transform:rotate(-6deg)}80%{transform:rotate(6deg)}}
+.caller .nm{font-weight:700;font-size:15px}
+.caller .sub{font-size:12px;color:var(--muted)}
+.calltimer{font-variant-numeric:tabular-nums;font-size:13px;color:var(--muted);display:flex;align-items:center;gap:7px}
+.recdot{width:8px;height:8px;border-radius:50%;background:var(--bad);box-shadow:0 0 8px var(--bad);animation:pulse 1.4s infinite}
+
+/* waveform */
+.wavewrap{padding:26px 24px 10px;display:flex;flex-direction:column;align-items:center;gap:14px;border-bottom:1px solid var(--border)}
+.agent-orb{width:96px;height:96px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#2e61fe,#0a1430);position:relative;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 0 rgba(46,97,254,.4)}
+.agent-orb.speaking{animation:orbpulse 1.4s infinite}
+@keyframes orbpulse{0%{box-shadow:0 0 0 0 rgba(0,240,255,.35)}70%{box-shadow:0 0 0 22px rgba(0,240,255,0)}100%{box-shadow:0 0 0 0 rgba(0,240,255,0)}}
+.agent-orb svg{width:40px;height:40px;opacity:.95}
+.wave{display:flex;align-items:center;gap:4px;height:46px}
+.wave span{width:4px;border-radius:4px;background:linear-gradient(180deg,#00f0ff,#2e61fe);height:6px;transition:height .12s ease;opacity:.5}
+.wave.active span{opacity:1}
+.speaker-label{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.05em;text-transform:uppercase;min-height:16px}
+
+/* transcript */
+.transcript{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:14px;scrollbar-width:thin}
+.transcript::-webkit-scrollbar{width:6px}
+.transcript::-webkit-scrollbar-thumb{background:var(--border);border-radius:6px}
+.bubble{max-width:80%;padding:11px 15px;border-radius:14px;font-size:14px;line-height:1.45;animation:rise .35s ease both}
+@keyframes rise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.bubble.ai{align-self:flex-start;background:linear-gradient(135deg,rgba(46,97,254,.22),rgba(0,240,255,.08));border:1px solid rgba(46,97,254,.35);border-bottom-left-radius:4px}
+.bubble.caller{align-self:flex-end;background:var(--surface2);border:1px solid var(--border);border-bottom-right-radius:4px}
+.bubble .who{font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;margin-bottom:3px;opacity:.7}
+.bubble.ai .who{color:var(--brand2)}
+.bubble.caller .who{color:var(--muted)}
+.typing{display:inline-flex;gap:4px;align-items:center;padding:4px 0}
+.typing span{width:7px;height:7px;border-radius:50%;background:var(--brand2);animation:tdot 1.2s infinite}
+.typing span:nth-child(2){animation-delay:.18s}.typing span:nth-child(3){animation-delay:.36s}
+@keyframes tdot{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-5px);opacity:1}}
+
+.placeholder{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;color:var(--muted);padding:30px;gap:14px}
+.placeholder .pi{width:64px;height:64px;border-radius:18px;background:linear-gradient(135deg,rgba(46,97,254,.18),rgba(0,240,255,.06));border:1px solid var(--border);display:flex;align-items:center;justify-content:center}
+
+/* Side panel */
+.side{display:flex;flex-direction:column;gap:18px}
+.panel{padding:20px}
+.panel h3{margin:0 0 4px;font-size:14px;font-weight:700}
+.panel .ph-sub{font-size:12px;color:var(--muted);margin-bottom:14px}
+.scenario-btn{width:100%;text-align:left;display:flex;align-items:center;gap:13px;padding:13px 14px;border-radius:12px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;font-family:inherit;font-size:14px;font-weight:600;transition:.18s;margin-bottom:10px}
+.scenario-btn:hover:not(:disabled){border-color:var(--brand);transform:translateX(2px)}
+.scenario-btn:disabled{opacity:.45;cursor:not-allowed}
+.scenario-btn.active{border-color:var(--brand2);background:linear-gradient(135deg,rgba(46,97,254,.2),rgba(0,240,255,.06))}
+.scenario-btn .ico{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,#1c2b4d,#0f1830);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--brand2)}
+.scenario-btn .meta{display:flex;flex-direction:column}
+.scenario-btn .meta small{font-weight:400;color:var(--muted);font-size:11.5px}
+
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.stat{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:13px}
+.stat .v{font-size:22px;font-weight:800;background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;line-height:1.1}
+.stat .l{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* Outcome card */
+.outcome{margin:6px 24px 22px;border-radius:14px;border:1px solid rgba(34,197,94,.4);background:linear-gradient(180deg,rgba(34,197,94,.12),rgba(34,197,94,.03));padding:18px 20px;animation:rise .5s ease both}
+.outcome .ohead{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.outcome .ock{width:30px;height:30px;border-radius:9px;background:rgba(34,197,94,.18);border:1px solid rgba(34,197,94,.5);display:flex;align-items:center;justify-content:center;color:var(--good)}
+.outcome h4{margin:0;font-size:15px}
+.outcome .ohead small{display:block;color:var(--muted);font-size:11.5px;font-weight:400}
+.orow{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed var(--border);font-size:13.5px}
+.orow:last-child{border-bottom:0}
+.orow .k{color:var(--muted)}
+.orow .vv{font-weight:600;text-align:right}
+.osent{margin-top:14px;display:flex;gap:10px;flex-wrap:wrap}
+.osent .chip{font-size:11.5px;padding:6px 11px;border-radius:999px;background:var(--surface2);border:1px solid var(--border);color:#9fd6ff;display:flex;align-items:center;gap:6px}
+
+.controls{display:flex;gap:10px;padding:0 24px 22px;flex-wrap:wrap}
+.ghost{background:transparent;border:1px solid var(--border);color:var(--text);border-radius:12px;padding:11px 18px;font-weight:600;font-family:inherit;cursor:pointer;font-size:13.5px;transition:.18s}
+.ghost:hover{border-color:var(--brand)}
+
+footer{text-align:center;padding:26px;color:var(--muted);font-size:12.5px;border-top:1px solid var(--border);margin-top:20px}
+.live-feed{font-size:12px}
+.live-feed .lf{display:flex;align-items:flex-start;gap:9px;padding:8px 0;border-bottom:1px solid var(--border);color:var(--muted)}
+.live-feed .lf:last-child{border-bottom:0}
+.live-feed .lf b{color:var(--text);font-weight:600}
+.live-feed .lf .tg{flex-shrink:0;width:6px;height:6px;border-radius:50%;margin-top:6px;background:var(--brand2)}
+</style>
+</head>
+<body>
+<header>
+  <span style="display:inline-flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:-.02em">
+    <svg width="30" height="30" viewBox="0 0 48 48" fill="none"><defs><linearGradient id="tvx_voice_agent" x1="0" y1="0" x2="48" y2="48"><stop offset="0" stop-color="#2e61fe"/><stop offset="1" stop-color="#00f0ff"/></linearGradient></defs><path d="M5 9 L24 41 L43 9 L33 9 L24 25 L15 9 Z" fill="url(#tvx_voice_agent)"/><path d="M16 9 L24 22 L32 9 L24 9 Z" fill="url(#tvx_voice_agent)" opacity=".5"/></svg>
+    Trivox<span style="color:var(--brand2)">AI</span>
+  </span>
+  <div class="demo-title"><span class="dot"></span> Construction AI Voice Agent</div>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <span class="tvx-badge">24/7 Inbound Call Automation</span>
+    <h1>Never miss another lead call.</h1>
+    <p>Trivox answers every inbound call, qualifies the lead, books site visits, and pushes details to your CRM — in real time, around the clock.</p>
+  </div>
+
+  <div class="layout">
+    <!-- CALL PANEL -->
+    <div class="tvx-card callpanel">
+      <div class="calltop">
+        <div class="caller">
+          <div class="avatar" id="avatar">TV</div>
+          <div>
+            <div class="nm" id="callerName">Trivox Voice Line</div>
+            <div class="sub" id="callerSub">+1 (416) 555‑0148 · Ready</div>
+          </div>
+        </div>
+        <div class="calltimer" id="callTimer" style="visibility:hidden"><span class="recdot"></span><span id="timerVal">00:00</span></div>
+      </div>
+
+      <div class="wavewrap">
+        <div class="agent-orb" id="orb">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" fill="url(#tvx_voice_agent)"/><path d="M5 10v1a7 7 0 0 0 14 0v-1M12 18v3" stroke="#00f0ff" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </div>
+        <div class="wave" id="wave"></div>
+        <div class="speaker-label" id="speakerLabel"></div>
+      </div>
+
+      <div class="transcript" id="transcript">
+        <div class="placeholder" id="placeholder">
+          <div class="pi">
+            <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z" stroke="#7fa8ff" stroke-width="1.5"/></svg>
+          </div>
+          <div>
+            <div style="color:var(--text);font-weight:600;margin-bottom:4px">Simulate an incoming call</div>
+            Pick a scenario on the right and watch the AI agent handle the call live — qualify, book, and capture.
+          </div>
+        </div>
+      </div>
+
+      <div class="controls" id="controls" style="display:none">
+        <button class="ghost" id="replayBtn">Replay call</button>
+        <button class="ghost" id="endBtn">New simulation</button>
+      </div>
+    </div>
+
+    <!-- SIDE -->
+    <div class="side">
+      <div class="tvx-card panel">
+        <h3>Run a live scenario</h3>
+        <div class="ph-sub">Each plays a real inbound call, handled end‑to‑end.</div>
+        <button class="scenario-btn" data-key="quote">
+          <span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+          <span class="meta">Request a quote<small>Kitchen + basement renovation</small></span>
+        </button>
+        <button class="scenario-btn" data-key="visit">
+          <span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="18" rx="2" stroke="currentColor" stroke-width="1.6"/><path d="M16 2v4M8 2v4M3 10h18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+          <span class="meta">Schedule a site visit<small>Commercial roof inspection</small></span>
+        </button>
+        <button class="scenario-btn" data-key="status">
+          <span class="ico"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 22a10 10 0 1 0 0-20 10 10 0 0 0 0 20Z" stroke="currentColor" stroke-width="1.6"/><path d="M12 6v6l4 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
+          <span class="meta">Project status<small>Existing client update</small></span>
+        </button>
+      </div>
+
+      <div class="tvx-card panel">
+        <h3>This month</h3>
+        <div class="ph-sub">Trivox voice line · live metrics</div>
+        <div class="stat-grid">
+          <div class="stat"><div class="v" id="mCalls">312</div><div class="l">Calls answered</div></div>
+          <div class="stat"><div class="v" id="mLeads">87</div><div class="l">Leads captured</div></div>
+          <div class="stat"><div class="v" id="mBooked">41</div><div class="l">Visits booked</div></div>
+          <div class="stat"><div class="v">100%</div><div class="l">Answer rate</div></div>
+        </div>
+      </div>
+
+      <div class="tvx-card panel">
+        <h3>Automation feed</h3>
+        <div class="ph-sub">What happens after each call</div>
+        <div class="live-feed" id="liveFeed">
+          <div class="lf"><span class="tg"></span><div><b>Idle.</b> Waiting for the next inbound call.</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>TRIVOX AI — Automation Infrastructure</footer>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------- Scenario scripts ----------
+  // turn: {who:'ai'|'caller', text, dur (speaking ms)}
+  var SCENARIOS = {
+    quote: {
+      name: "Marcus Bellini",
+      sub: "+1 (416) 555‑0192 · Etobicoke, ON",
+      script: [
+        {who:"ai", text:"Good afternoon, thanks for calling Northgate Construction — this is Ava, your scheduling assistant. How can I help you today?", dur:2600},
+        {who:"caller", text:"Hi, yeah, I'm looking to get a quote on a kitchen and basement renovation.", dur:2100},
+        {who:"ai", text:"Happy to help with that. Is this for a residential property, and are you the homeowner?", dur:2200},
+        {who:"caller", text:"Yes, it's my house. A detached home in Etobicoke.", dur:1900},
+        {who:"ai", text:"Perfect. For the kitchen, are we talking a full gut renovation — cabinets, countertops, flooring — or more of a refresh?", dur:2900},
+        {who:"caller", text:"Full gut. New cabinets, quartz counters, and we want to open up the wall to the dining room.", dur:2600},
+        {who:"ai", text:"Got it — and opening that wall may involve structural work, so I'll flag it for our site lead. For the basement, is it currently unfinished?", dur:3000},
+        {who:"caller", text:"Completely unfinished. About 700 square feet, we'd want a rec room and a three‑piece bathroom.", dur:2700},
+        {who:"ai", text:"Understood. Do you have a target budget range and an ideal start window? That helps us match you with the right crew.", dur:2900},
+        {who:"caller", text:"Maybe 90 to 120 thousand, and we'd like to start in the fall, September if possible.", dur:2500},
+        {who:"ai", text:"That's a great fit for our renovations division. I've captured everything — I'll have an estimator prepare a preliminary quote and reach out within one business day. What's the best email for you?", dur:3400},
+        {who:"caller", text:"It's marcus.bellini@gmail.com.", dur:1600},
+        {who:"ai", text:"Wonderful, Marcus. You're all set — you'll hear from our estimating team tomorrow with next steps. Thanks for calling Northgate, have a great day!", dur:3000}
+      ],
+      feed: [
+        "Lead record created in <b>CRM</b> (HubSpot) — stage: Qualified",
+        "Project type tagged: <b>Reno · Kitchen + Basement</b>",
+        "Structural flag routed to <b>Site Lead</b>",
+        "Estimator task assigned · due <b>tomorrow 5:00 PM</b>",
+        "Confirmation email queued to <b>marcus.bellini@gmail.com</b>"
+      ],
+      outcome: {
+        type:"lead",
+        title:"Lead captured & qualified",
+        sub:"Routed to Renovations estimating team",
+        rows:[
+          ["Contact","Marcus Bellini"],
+          ["Property","Detached home · Etobicoke, ON"],
+          ["Scope","Full kitchen gut + 700 sq ft basement"],
+          ["Budget range","$90,000 – $120,000 CAD"],
+          ["Target start","September 2026"],
+          ["Lead score","92 / 100 · Hot"]
+        ],
+        chips:["CRM record created","Estimator assigned","Email confirmation sent"]
+      }
+    },
+
+    visit: {
+      name: "Dana Whitfield",
+      sub: "+1 (905) 555‑0461 · Mississauga, ON",
+      script: [
+        {who:"ai", text:"Good morning, Northgate Construction, this is Ava. How can I help?", dur:1900},
+        {who:"caller", text:"Hi, we manage a commercial plaza and we think we've got a roof leak. Can someone come take a look?", dur:2800},
+        {who:"ai", text:"Absolutely, I can get a site visit booked for you. Is this a flat commercial roof, and roughly what's the square footage?", dur:2900},
+        {who:"caller", text:"Flat roof, it's a strip plaza, probably around 12,000 square feet total.", dur:2400},
+        {who:"ai", text:"Got it. And is the leak active right now, or is this preventative? That tells me whether to prioritize it.", dur:2700},
+        {who:"caller", text:"It's active — there's water coming into one of the units, so fairly urgent.", dur:2200},
+        {who:"ai", text:"Understood, I'll flag this as priority. Our commercial roofing inspector, Priya, has availability this Thursday morning or Friday afternoon. Which works better?", dur:3300},
+        {who:"caller", text:"Thursday morning is good.", dur:1400},
+        {who:"ai", text:"Great. I have Thursday, June 11th at 9:00 AM. What's the site address and the best contact number for the day of?", dur:2900},
+        {who:"caller", text:"It's 2240 Dundas Street West in Mississauga, and you can reach me on this number.", dur:2600},
+        {who:"ai", text:"Perfect — you're booked. Priya will arrive Thursday at 9 AM, and I'll text you a confirmation and her ETA that morning. Is there anything else I can help with?", dur:3300},
+        {who:"caller", text:"No, that's everything, thank you so much.", dur:1700},
+        {who:"ai", text:"My pleasure, Dana. We'll see you Thursday. Take care!", dur:1900}
+      ],
+      feed: [
+        "Site visit created in <b>Calendar</b> · Thu Jun 11, 9:00 AM",
+        "Assigned to inspector <b>Priya Nandakumar</b>",
+        "Job tagged <b>Priority · Active leak</b>",
+        "Address geocoded & route added to <b>field app</b>",
+        "SMS confirmation sent to <b>(905) 555‑0461</b>"
+      ],
+      outcome: {
+        type:"booked",
+        title:"Site visit booked",
+        sub:"Added to inspector's calendar & dispatched",
+        rows:[
+          ["Client","Dana Whitfield · Plaza Mgmt"],
+          ["Service","Commercial flat roof inspection"],
+          ["Site","2240 Dundas St W, Mississauga"],
+          ["Date / time","Thursday, Jun 11 · 9:00 AM"],
+          ["Inspector","Priya Nandakumar"],
+          ["Priority","Urgent · active leak (~12,000 sq ft)"]
+        ],
+        chips:["Calendar event created","Inspector dispatched","SMS confirmation sent"]
+      }
+    },
+
+    status: {
+      name: "Robert Tran",
+      sub: "+1 (647) 555‑0238 · Existing client",
+      script: [
+        {who:"ai", text:"Thanks for calling Northgate Construction, this is Ava. How can I help you today?", dur:2300},
+        {who:"caller", text:"Hi Ava, it's Robert Tran. I just wanted a quick update on my project — the second‑floor addition.", dur:2700},
+        {who:"ai", text:"Of course, Robert — let me pull up your file. One moment.", dur:2100},
+        {who:"ai", text:"Found it: the Tran residence addition on Beechwood Avenue. You're currently in the framing phase, which is about 70% complete.", dur:3200},
+        {who:"caller", text:"Oh great. And are we still on track with the timeline?", dur:1900},
+        {who:"ai", text:"You are. Framing inspection is scheduled for next Tuesday, and once that passes, the crew moves to rough‑in electrical and plumbing the following week.", dur:3500},
+        {who:"caller", text:"Perfect. There was a question about the window package — any word on that?", dur:2300},
+        {who:"ai", text:"Yes — your project manager, Liam, noted the windows were delivered Monday and passed inspection. No delays there. Anything you'd like me to pass along to Liam?", dur:3500},
+        {who:"caller", text:"Just ask him to call me about the exterior siding colour when he gets a chance.", dur:2400},
+        {who:"ai", text:"Done — I've logged a callback request for Liam regarding the siding colour selection. I'll also text you a summary of today's status. Anything else?", dur:3400},
+        {who:"caller", text:"That's everything, thanks Ava!", dur:1500},
+        {who:"ai", text:"You're very welcome, Robert. We'll keep things moving — have a great day!", dur:2200}
+      ],
+      feed: [
+        "Client verified against <b>active projects</b>",
+        "Status pulled from <b>project management</b> system",
+        "Callback task created for PM <b>Liam Doyle</b>",
+        "Note added: <b>siding colour selection</b>",
+        "Status summary SMS sent to <b>(647) 555‑0238</b>"
+      ],
+      outcome: {
+        type:"status",
+        title:"Status update delivered",
+        sub:"Client verified · summary sent & callback logged",
+        rows:[
+          ["Client","Robert Tran (verified)"],
+          ["Project","2nd‑floor addition · Beechwood Ave"],
+          ["Current phase","Framing — 70% complete"],
+          ["On schedule","Yes · inspection Tue Jun 16"],
+          ["Next milestone","Rough‑in electrical & plumbing"],
+          ["Action logged","Callback request → PM Liam Doyle"]
+        ],
+        chips:["Project status sent","Callback task created","SMS summary delivered"]
+      }
+    }
+  };
+
+  // ---------- DOM ----------
+  var transcript = document.getElementById("transcript");
+  var placeholder = document.getElementById("placeholder");
+  var wave = document.getElementById("wave");
+  var orb = document.getElementById("orb");
+  var avatar = document.getElementById("avatar");
+  var speakerLabel = document.getElementById("speakerLabel");
+  var callerName = document.getElementById("callerName");
+  var callerSub = document.getElementById("callerSub");
+  var callTimer = document.getElementById("callTimer");
+  var timerVal = document.getElementById("timerVal");
+  var controls = document.getElementById("controls");
+  var replayBtn = document.getElementById("replayBtn");
+  var endBtn = document.getElementById("endBtn");
+  var liveFeed = document.getElementById("liveFeed");
+  var btns = Array.prototype.slice.call(document.querySelectorAll(".scenario-btn"));
+
+  // build waveform bars
+  var BARS = 26;
+  for (var i=0;i<BARS;i++){ var s=document.createElement("span"); wave.appendChild(s); }
+  var waveBars = Array.prototype.slice.call(wave.children);
+
+  // ---------- State ----------
+  var timers = [];
+  var waveRAF = null, waveTimer = null;
+  var timerInt = null, seconds = 0;
+  var running = false;
+  var currentKey = null;
+
+  function clearAll(){
+    timers.forEach(clearTimeout); timers = [];
+    if (timerInt){ clearInterval(timerInt); timerInt=null; }
+    stopWave();
+  }
+  function later(fn, ms){ var t=setTimeout(fn, ms); timers.push(t); return t; }
+
+  function pad(n){ return (n<10?"0":"")+n; }
+
+  // ---------- Waveform animation ----------
+  function startWave(){
+    wave.classList.add("active");
+    orb.classList.add("speaking");
+    if (waveTimer) return;
+    waveTimer = setInterval(function(){
+      for (var i=0;i<waveBars.length;i++){
+        var h = 6 + Math.random()*38;
+        // center weighting for a nicer shape
+        var dist = Math.abs(i - waveBars.length/2)/(waveBars.length/2);
+        h = 6 + (h-6)*(1-dist*0.55);
+        waveBars[i].style.height = h.toFixed(0)+"px";
+      }
+    }, 90);
+  }
+  function stopWave(){
+    if (waveTimer){ clearInterval(waveTimer); waveTimer=null; }
+    wave.classList.remove("active");
+    orb.classList.remove("speaking");
+    waveBars.forEach(function(b){ b.style.height="6px"; });
+  }
+
+  // ---------- Timer ----------
+  function startTimer(){
+    seconds = 0; timerVal.textContent = "00:00";
+    callTimer.style.visibility = "visible";
+    timerInt = setInterval(function(){
+      seconds++;
+      timerVal.textContent = pad(Math.floor(seconds/60))+":"+pad(seconds%60);
+    }, 1000);
+  }
+  function stopTimer(){ if (timerInt){ clearInterval(timerInt); timerInt=null; } }
+
+  // ---------- Transcript ----------
+  function clearTranscript(){
+    transcript.innerHTML = "";
+  }
+
+  function addTypingBubble(who){
+    var b = document.createElement("div");
+    b.className = "bubble "+who;
+    var label = who==="ai" ? "Ava · AI Agent" : "Caller";
+    b.innerHTML = '<div class="who">'+label+'</div><div class="typing"><span></span><span></span><span></span></div>';
+    transcript.appendChild(b);
+    scrollDown();
+    return b;
+  }
+
+  function fillBubble(b, who, text){
+    var label = who==="ai" ? "Ava · AI Agent" : "Caller";
+    b.innerHTML = '<div class="who">'+label+'</div><div class="txt"></div>';
+    var txtEl = b.querySelector(".txt");
+    // stream text word by word
+    var words = text.split(" ");
+    var idx = 0;
+    function step(){
+      if (idx < words.length){
+        txtEl.textContent += (idx===0?"":" ") + words[idx];
+        idx++;
+        scrollDown();
+        later(step, 42);
+      }
+    }
+    step();
+  }
+
+  function scrollDown(){ transcript.scrollTop = transcript.scrollHeight; }
+
+  // ---------- Feed ----------
+  function resetFeed(){
+    liveFeed.innerHTML = '<div class="lf"><span class="tg"></span><div><b>Call connected.</b> Trivox is handling the conversation…</div></div>';
+  }
+  function pushFeed(html){
+    var d = document.createElement("div");
+    d.className = "lf";
+    d.innerHTML = '<span class="tg"></span><div>'+html+'</div>';
+    liveFeed.appendChild(d);
+  }
+
+  // ---------- Outcome ----------
+  function renderOutcome(o){
+    var card = document.createElement("div");
+    card.className = "outcome";
+    var iconMap = {
+      lead:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8ZM19 8v6M22 11h-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>',
+      booked:'<path d="M3 4h18v18H3zM16 2v4M8 2v4M3 10h18M9 16l2 2 4-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>',
+      status:'<path d="M9 11l3 3 8-8M21 12a9 9 0 1 1-5.6-8.3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>'
+    };
+    var html = '<div class="ohead"><span class="ock"><svg width="18" height="18" viewBox="0 0 24 24" fill="none">'+(iconMap[o.type]||iconMap.lead)+'</svg></span>'+
+      '<div><h4>'+o.title+'</h4><small>'+o.sub+'</small></div></div>';
+    o.rows.forEach(function(r){
+      html += '<div class="orow"><span class="k">'+r[0]+'</span><span class="vv">'+r[1]+'</span></div>';
+    });
+    html += '<div class="osent">';
+    o.chips.forEach(function(c){
+      html += '<span class="chip"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M20 6 9 17l-5-5" stroke="#22c55e" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>'+c+'</span>';
+    });
+    html += '</div>';
+    card.innerHTML = html;
+    transcript.appendChild(card);
+    scrollDown();
+  }
+
+  // ---------- Play scenario ----------
+  function setButtonsDisabled(state){
+    btns.forEach(function(b){ b.disabled = state; });
+  }
+
+  function play(key){
+    if (running) return;
+    var sc = SCENARIOS[key];
+    if (!sc) return;
+    currentKey = key;
+    running = true;
+
+    clearAll();
+    clearTranscript();
+    controls.style.display = "none";
+    setButtonsDisabled(true);
+    btns.forEach(function(b){ b.classList.toggle("active", b.getAttribute("data-key")===key); });
+
+    // incoming-call sequence
+    avatar.textContent = sc.name.split(" ").map(function(w){return w[0];}).join("").slice(0,2);
+    avatar.classList.add("ringing");
+    callerName.textContent = "Incoming call…";
+    callerSub.textContent = sc.sub;
+    speakerLabel.textContent = "Incoming call";
+    startWave(); // brief ring shimmer
+
+    // show "connecting" placeholder inside transcript
+    var connecting = document.createElement("div");
+    connecting.className = "placeholder";
+    connecting.innerHTML = '<div class="pi"><svg width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0 1 22 16.92Z" stroke="#7fa8ff" stroke-width="1.5"/></svg></div><div style="color:var(--text);font-weight:600">Connecting call…</div>';
+    transcript.appendChild(connecting);
+
+    later(function(){
+      // answered
+      avatar.classList.remove("ringing");
+      callerName.textContent = sc.name;
+      callerSub.textContent = sc.sub.replace("Ready","").replace(" · ", " · ");
+      clearTranscript();
+      resetFeed();
+      startTimer();
+      runTurns(sc, 0);
+    }, 1700);
+  }
+
+  function runTurns(sc, i){
+    if (i >= sc.script.length){
+      // finish call
+      later(function(){ finishCall(sc); }, 700);
+      return;
+    }
+    var turn = sc.script[i];
+    speakerLabel.textContent = turn.who==="ai" ? "Ava is speaking…" : sc.name + " is speaking…";
+
+    // typing/thinking indicator
+    startWave();
+    var b = addTypingBubble(turn.who);
+
+    // think pause then reveal streaming text while waveform animates
+    var think = turn.who==="ai" ? 650 : 400;
+    later(function(){
+      fillBubble(b, turn.who, turn.text);
+    }, think);
+
+    // total visible time for this turn
+    var total = think + turn.dur;
+    later(function(){
+      stopWave();
+      speakerLabel.textContent = "";
+      // trickle automation feed entries during the AI side of the call
+      maybeFeed(sc, i);
+      // small gap then next turn
+      later(function(){ runTurns(sc, i+1); }, 350);
+    }, total);
+  }
+
+  // distribute feed items across the call
+  function maybeFeed(sc, i){
+    var total = sc.script.length;
+    var feedItems = sc.feed;
+    // map turn index -> feed index, push near the back half
+    var startAt = Math.floor(total*0.45);
+    var slot = i - startAt;
+    if (slot >= 0 && slot < feedItems.length){
+      pushFeed(feedItems[slot]);
+    }
+  }
+
+  function finishCall(sc){
+    stopWave();
+    stopTimer();
+    speakerLabel.textContent = "Call ended";
+    callerSub.textContent = sc.sub + " · Completed";
+    callTimer.querySelector(".recdot").style.background = "var(--muted)";
+    callTimer.querySelector(".recdot").style.boxShadow = "none";
+    callTimer.querySelector(".recdot").style.animation = "none";
+
+    // ensure all feed items are present
+    var present = liveFeed.querySelectorAll(".lf").length - 1; // minus the "connected" header
+    for (var k=present;k<sc.feed.length;k++){
+      pushFeed(sc.feed[k]);
+    }
+
+    later(function(){
+      renderOutcome(sc.outcome);
+      // bump the dashboard metrics for realism
+      bumpMetric("mCalls",1);
+      if (sc.outcome.type==="lead") bumpMetric("mLeads",1);
+      if (sc.outcome.type==="booked"){ bumpMetric("mBooked",1); bumpMetric("mLeads",1); }
+      controls.style.display = "flex";
+      setButtonsDisabled(false);
+      running = false;
+    }, 600);
+  }
+
+  function bumpMetric(id, by){
+    var el = document.getElementById(id);
+    if (!el) return;
+    var cur = parseInt(el.textContent,10) || 0;
+    el.textContent = cur + by;
+  }
+
+  // ---------- Events ----------
+  btns.forEach(function(b){
+    b.addEventListener("click", function(){
+      if (running) return;
+      play(b.getAttribute("data-key"));
+    });
+  });
+
+  replayBtn.addEventListener("click", function(){
+    if (running || !currentKey) return;
+    play(currentKey);
+  });
+
+  endBtn.addEventListener("click", function(){
+    if (running) return;
+    clearAll(); stopTimer();
+    clearTranscript();
+    transcript.appendChild(placeholder);
+    controls.style.display = "none";
+    btns.forEach(function(b){ b.classList.remove("active"); });
+    avatar.textContent = "TV";
+    avatar.classList.remove("ringing");
+    callerName.textContent = "Trivox Voice Line";
+    callerSub.textContent = "+1 (416) 555‑0148 · Ready";
+    speakerLabel.textContent = "";
+    callTimer.style.visibility = "hidden";
+    var rd = callTimer.querySelector(".recdot");
+    rd.style.background = "var(--bad)"; rd.style.boxShadow="0 0 8px var(--bad)"; rd.style.animation="pulse 1.4s infinite";
+    liveFeed.innerHTML = '<div class="lf"><span class="tg"></span><div><b>Idle.</b> Waiting for the next inbound call.</div></div>';
+    currentKey = null;
+  });
+
+})();
+</script>
+</body>
+</html>

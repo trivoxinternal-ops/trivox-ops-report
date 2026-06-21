@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Content Engine · TRIVOX Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#070b18;--bg2:#0d1426;--surface:#121b30;--surface2:#16203a;--border:#1e2a44;--text:#eaf0ff;--muted:#8a97b5;--brand:#2e61fe;--brand2:#00f0ff;--grad:linear-gradient(135deg,#2e61fe,#00f0ff);--good:#22c55e;--warn:#fbbf24;--bad:#ef4444;--radius:16px;--shadow:0 10px 40px rgba(0,0,0,.45);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;}
+a{color:inherit;text-decoration:none;}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(7,11,24,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;}
+.nav-brand{font-size:18px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:flex;align-items:center;gap:8px;}
+.nav-brand .ai-pill{font-size:10px;font-weight:600;padding:2px 8px;background:var(--grad);-webkit-text-fill-color:#070b18;border-radius:20px;letter-spacing:.08em;}
+.nav-back{font-size:13px;color:var(--muted);transition:color .2s;}
+.nav-back:hover{color:var(--text);}
+
+/* HERO */
+.hero{padding:64px 32px 48px;max-width:1100px;margin:0 auto;}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--brand2);margin-bottom:16px;}
+h1{font-size:clamp(28px,4vw,40px);font-family:'DM Serif Display',serif;font-weight:400;letter-spacing:-.01em;line-height:1.15;margin-bottom:16px;}
+.subhead{color:var(--muted);font-size:16px;max-width:640px;line-height:1.65;margin-bottom:32px;}
+.stats{display:flex;gap:12px;flex-wrap:wrap;}
+.stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:40px;padding:8px 18px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;}
+.stat-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--grad);flex-shrink:0;}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:1fr 1.6fr;gap:20px;max-width:1100px;margin:0 auto;padding:0 32px 64px;}
+@media(max-width:900px){.grid{grid-template-columns:1fr;}}
+
+/* PANEL */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);}
+.panel-label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:20px;}
+
+/* FORM */
+.field-group{margin-bottom:18px;}
+.field-group label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;letter-spacing:.06em;}
+.field-group input,.field-group select,.field-group textarea{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px 14px;color:var(--text);font-family:'Sora',sans-serif;font-size:14px;outline:none;transition:border-color .2s;resize:none;}
+.field-group input:focus,.field-group select:focus,.field-group textarea:focus{border-color:var(--brand);}
+.field-group textarea{min-height:80px;line-height:1.55;}
+.field-group select option{background:var(--surface2);}
+
+.platform-toggles{display:flex;flex-wrap:wrap;gap:8px;}
+.ptog{padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-family:'Sora',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px;}
+.ptog.active{border-color:var(--brand);background:rgba(46,97,254,.12);color:var(--text);}
+.ptog-icon{font-size:14px;}
+
+.btn-grad{width:100%;padding:14px;border:none;border-radius:12px;background:var(--grad);color:#070b18;font-family:'Sora',sans-serif;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:.02em;margin-top:8px;transition:opacity .2s,transform .1s;}
+.btn-grad:hover{opacity:.9;}
+.btn-grad:active{transform:scale(.98);}
+
+/* RIGHT PANEL */
+.right-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);min-height:480px;box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;}
+
+/* EMPTY STATE */
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:40px;opacity:.5;}
+.empty-icon{width:56px;height:56px;border-radius:50%;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:22px;}
+.empty-state p{font-size:14px;color:var(--muted);text-align:center;}
+
+/* LOADING */
+.loading-state{flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:40px;}
+.orb{width:72px;height:72px;border-radius:50%;background:var(--grad);animation:pulse 1.4s ease-in-out infinite;}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.15);opacity:.7;}}
+.checklist{list-style:none;display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px;}
+.checklist li{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:10px;transition:color .3s;}
+.checklist li.done{color:var(--text);}
+.check-icon{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;transition:background .3s,border-color .3s;}
+.checklist li.done .check-icon{background:var(--good);border-color:var(--good);color:#fff;}
+
+/* RESULT */
+.result-state{flex:1;display:none;flex-direction:column;overflow-y:auto;}
+
+.result-header{padding:18px 24px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.result-header h3{font-size:14px;font-weight:600;}
+.repurposed-badge{font-size:11px;font-weight:600;padding:4px 12px;background:rgba(0,240,255,.08);border:1px solid rgba(0,240,255,.2);color:var(--brand2);border-radius:20px;letter-spacing:.04em;}
+
+/* CALENDAR */
+.calendar{padding:16px 20px 20px;display:flex;flex-direction:column;gap:12px;}
+
+.day-row{display:flex;flex-direction:column;gap:0;background:var(--surface2);border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.day-label{padding:8px 14px;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);background:rgba(30,42,68,.5);border-bottom:1px solid var(--border);}
+
+.post-cards{display:flex;flex-direction:column;gap:0;}
+.post-card{padding:12px 14px;border-bottom:1px solid rgba(30,42,68,.6);display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;}
+.post-card:last-child{border-bottom:none;}
+.post-platform{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;margin-top:1px;}
+.pp-li{background:#0a66c2;}
+.pp-ig{background:linear-gradient(135deg,#f09433,#e6683c,#dc2743,#cc2366,#bc1888);}
+.pp-tw{background:#000;}
+.post-body{}
+.post-hook{font-size:12px;font-weight:600;color:var(--text);line-height:1.4;margin-bottom:4px;}
+.post-caption{font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:5px;}
+.post-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.hashtags{font-size:10px;color:var(--brand);font-weight:500;}
+.visual-pill{font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(46,97,254,.1);border:1px solid rgba(46,97,254,.2);color:var(--brand);white-space:nowrap;}
+
+/* FOOTER */
+footer{text-align:center;padding:32px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">TRIVOX <span class="ai-pill">AI</span></div>
+  <a class="nav-back" href="../../portfolio.html">← All Demos</a>
+</nav>
+
+<section class="hero">
+  <div class="eyebrow">Marketing &amp; Content</div>
+  <h1>Content Engine</h1>
+  <p class="subhead">Turn one idea into a full week of platform-ready posts: hook, caption, hashtags, and visual brief generated in seconds.</p>
+  <div class="stats">
+    <div class="stat-chip"><span class="dot"></span>1 idea → 15 posts</div>
+    <div class="stat-chip"><span class="dot"></span>5-day calendar</div>
+    <div class="stat-chip"><span class="dot"></span>Post-ready</div>
+  </div>
+</section>
+
+<div class="grid">
+  <!-- LEFT -->
+  <div class="panel">
+    <div class="panel-label">Content Brief</div>
+
+    <div class="field-group">
+      <label>CORE IDEA / TOPIC</label>
+      <textarea id="topic">How AI saves contractors 10 hrs/week</textarea>
+    </div>
+
+    <div class="field-group">
+      <label>BRAND VOICE</label>
+      <select id="voice">
+        <option>Expert &amp; Direct</option>
+        <option selected>Conversational &amp; Bold</option>
+        <option>Witty &amp; Casual</option>
+        <option>Authoritative &amp; Data-driven</option>
+      </select>
+    </div>
+
+    <div class="field-group">
+      <label>TARGET AUDIENCE</label>
+      <input type="text" id="audience" value="General contractors, trades business owners"/>
+    </div>
+
+    <div class="field-group">
+      <label>PLATFORMS</label>
+      <div class="platform-toggles">
+        <button class="ptog active" onclick="togPlatform(this)"><span class="ptog-icon">in</span>LinkedIn</button>
+        <button class="ptog active" onclick="togPlatform(this)"><span class="ptog-icon">📸</span>Instagram</button>
+        <button class="ptog active" onclick="togPlatform(this)"><span class="ptog-icon">𝕏</span>X / Twitter</button>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label>CONTENT GOAL</label>
+      <select id="goal">
+        <option selected>Generate leads</option>
+        <option>Build authority</option>
+        <option>Drive website traffic</option>
+        <option>Grow followers</option>
+      </select>
+    </div>
+
+    <button class="btn-grad" onclick="generateWeek()">Generate Week</button>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="right-panel" id="rightPanel">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">📅</div>
+      <p>Enter your topic and click<br/><strong>Generate Week</strong> to build your calendar.</p>
+    </div>
+
+    <div class="loading-state" id="loadingState">
+      <div class="orb"></div>
+      <ul class="checklist" id="checklist">
+        <li id="c1"><span class="check-icon"></span>Analyzing topic angle</li>
+        <li id="c2"><span class="check-icon"></span>Drafting hooks per platform</li>
+        <li id="c3"><span class="check-icon"></span>Writing captions &amp; hashtags</li>
+        <li id="c4"><span class="check-icon"></span>Scheduling 5-day calendar</li>
+      </ul>
+    </div>
+
+    <div class="result-state" id="resultState">
+      <div class="result-header">
+        <h3>5-Day Content Calendar</h3>
+        <span class="repurposed-badge">Repurposed from 1 idea</span>
+      </div>
+
+      <div class="calendar">
+
+        <div class="day-row">
+          <div class="day-label">Monday · Day 1</div>
+          <div class="post-cards">
+            <div class="post-card">
+              <div class="post-platform pp-li">in</div>
+              <div class="post-body">
+                <div class="post-hook">I gave AI our scheduling chaos. It saved us 11 hours in the first week.</div>
+                <div class="post-caption">We were losing half a day every week to rescheduling, chasing invoices, and writing the same emails. Here's the 3-tool stack that changed everything for our crew...</div>
+                <div class="post-meta">
+                  <span class="hashtags">#ContractorLife #AITools #TradesBusiness</span>
+                  <span class="visual-pill">Visual: split before/after time log</span>
+                </div>
+              </div>
+            </div>
+            <div class="post-card">
+              <div class="post-platform pp-ig">📸</div>
+              <div class="post-body">
+                <div class="post-hook">10 hours back. Every. Single. Week.</div>
+                <div class="post-caption">Contractors are running leaner than ever. The ones winning aren't working harder. They're automating the admin. Swipe to see what that actually looks like.</div>
+                <div class="post-meta">
+                  <span class="hashtags">#ContractorTips #SmallBusiness #Automation</span>
+                  <span class="visual-pill">Visual: carousel, 5 tasks automated</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="day-row">
+          <div class="day-label">Tuesday · Day 2</div>
+          <div class="post-cards">
+            <div class="post-card">
+              <div class="post-platform pp-tw">𝕏</div>
+              <div class="post-body">
+                <div class="post-hook">Contractors spending 10+ hrs/week on admin are paying themselves $0 to do a robot's job.</div>
+                <div class="post-caption">Thread: the 4 tasks AI handles better than any office manager, and costs less than your phone plan.</div>
+                <div class="post-meta">
+                  <span class="hashtags">#Contractors #AI #ProductivityHack</span>
+                  <span class="visual-pill">Visual: stat graphic, $0/hr admin cost</span>
+                </div>
+              </div>
+            </div>
+            <div class="post-card">
+              <div class="post-platform pp-li">in</div>
+              <div class="post-body">
+                <div class="post-hook">The real cost of doing estimates manually (most contractors never calculate this).</div>
+                <div class="post-caption">A GC spending 3 hours on estimates 4x/week is burning $18,000/year in time (conservatively). AI cut that to 40 minutes for our clients. Here's how.</div>
+                <div class="post-meta">
+                  <span class="hashtags">#GC #ConstructionBusiness #TimeIsMoneyTools</span>
+                  <span class="visual-pill">Visual: cost calculator graphic</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="day-row">
+          <div class="day-label">Wednesday · Day 3</div>
+          <div class="post-cards">
+            <div class="post-card">
+              <div class="post-platform pp-ig">📸</div>
+              <div class="post-body">
+                <div class="post-hook">What does 10 hours back actually look like on a job site?</div>
+                <div class="post-caption">More site visits. Faster quotes. Less time in the truck on calls. Here are 3 contractors who plugged AI into their workflow this quarter and what changed.</div>
+                <div class="post-meta">
+                  <span class="hashtags">#FieldOps #ContractorTools #WorkSmarter</span>
+                  <span class="visual-pill">Visual: testimonial collage, candid job site</span>
+                </div>
+              </div>
+            </div>
+            <div class="post-card">
+              <div class="post-platform pp-tw">𝕏</div>
+              <div class="post-body">
+                <div class="post-hook">Unpopular opinion: most contractors don't have a sales problem. They have a follow-up problem.</div>
+                <div class="post-caption">AI can follow up every lead within 90 seconds of inquiry, 24/7. Your competitor isn't doing that yet.</div>
+                <div class="post-meta">
+                  <span class="hashtags">#LeadGen #SalesAutomation #Trades</span>
+                  <span class="visual-pill">Visual: response-time comparison chart</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="day-row">
+          <div class="day-label">Thursday · Day 4</div>
+          <div class="post-cards">
+            <div class="post-card">
+              <div class="post-platform pp-li">in</div>
+              <div class="post-body">
+                <div class="post-hook">We built a 3-minute AI onboarding flow for a roofing company. Their no-show rate dropped 40%.</div>
+                <div class="post-caption">Automated confirmation texts, job-day reminders, and a pre-visit checklist, all triggered the moment a lead books. No extra staff. No extra cost. Here's the full flow.</div>
+                <div class="post-meta">
+                  <span class="hashtags">#Roofing #ClientExperience #AutomationWins</span>
+                  <span class="visual-pill">Visual: automation flowchart diagram</span>
+                </div>
+              </div>
+            </div>
+            <div class="post-card">
+              <div class="post-platform pp-ig">📸</div>
+              <div class="post-body">
+                <div class="post-hook">Your competitors are already using this. Are you?</div>
+                <div class="post-caption">AI in construction isn't coming. It's here. The contractors adopting it now are quoting faster, closing more, and working fewer nights. Tag someone who needs to hear this.</div>
+                <div class="post-meta">
+                  <span class="hashtags">#FutureOfConstruction #AIForContractors #BuildSmart</span>
+                  <span class="visual-pill">Visual: bold text card, dark background</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="day-row">
+          <div class="day-label">Friday · Day 5</div>
+          <div class="post-cards">
+            <div class="post-card">
+              <div class="post-platform pp-tw">𝕏</div>
+              <div class="post-body">
+                <div class="post-hook">One idea. Five days. Fifteen posts. Zero writer's block.</div>
+                <div class="post-caption">That's what a content system built on AI looks like. DM me "SYSTEM" if you want to see how we build this for trades businesses.</div>
+                <div class="post-meta">
+                  <span class="hashtags">#ContentMarketing #AIMarketing #Contractors</span>
+                  <span class="visual-pill">Visual: week recap grid, all 5 days</span>
+                </div>
+              </div>
+            </div>
+            <div class="post-card">
+              <div class="post-platform pp-li">in</div>
+              <div class="post-body">
+                <div class="post-hook">Week wrap: 5 ways AI saved contractors time this week (and the numbers behind it).</div>
+                <div class="post-caption">From lead follow-up to estimate generation to client onboarding: here's a data recap of what AI-powered trades businesses accomplished this week. Save this for your ops review.</div>
+                <div class="post-meta">
+                  <span class="hashtags">#WeeklyWrap #OperationsAutomation #TradesMarketing</span>
+                  <span class="visual-pill">Visual: infographic summary card</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>Built by TRIVOX · AI automation that runs your business</footer>
+
+<script>
+function togPlatform(el){el.classList.toggle('active');}
+
+function generateWeek(){
+  const empty=document.getElementById('emptyState');
+  const loading=document.getElementById('loadingState');
+  const result=document.getElementById('resultState');
+
+  empty.style.display='none';
+  result.style.display='none';
+  loading.style.display='flex';
+
+  const items=['c1','c2','c3','c4'];
+  items.forEach(id=>{
+    const li=document.getElementById(id);
+    li.classList.remove('done');
+    li.querySelector('.check-icon').textContent='';
+  });
+
+  let i=0;
+  function tick(){
+    if(i<items.length){
+      const li=document.getElementById(items[i]);
+      li.classList.add('done');
+      li.querySelector('.check-icon').textContent='✓';
+      i++;
+      setTimeout(tick,440);
+    } else {
+      setTimeout(()=>{
+        loading.style.display='none';
+        result.style.display='flex';
+      },300);
+    }
+  }
+  setTimeout(tick,280);
+}
+</script>
+</body>
+</html>

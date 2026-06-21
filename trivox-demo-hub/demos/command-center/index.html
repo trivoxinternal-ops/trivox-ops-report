@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trivox AI — Real-Time Project Command Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#070b18; --bg2:#0d1426; --surface:#121b30; --surface2:#16203a; --border:#1e2a44;
+  --text:#eaf0ff; --muted:#8a97b5;
+  --brand:#2e61fe; --brand2:#00f0ff; --grad:linear-gradient(135deg,#2e61fe,#00f0ff);
+  --good:#22c55e; --warn:#fbbf24; --bad:#ef4444;
+  --radius:16px; --shadow:0 10px 40px rgba(0,0,0,.45);
+}
+*{box-sizing:border-box} html,body{margin:0}
+body{background:radial-gradient(1200px 600px at 70% -10%,#13224a 0,transparent 60%),var(--bg);color:var(--text);font-family:'Sora',system-ui,sans-serif;line-height:1.5;-webkit-font-smoothing:antialiased}
+.tvx-btn{background:var(--grad);color:#04122e;border:0;border-radius:12px;padding:12px 20px;font-weight:700;font-family:inherit;cursor:pointer;transition:.2s}
+.tvx-btn:hover{filter:brightness(1.08);transform:translateY(-1px)}
+.tvx-btn:disabled{opacity:.5;cursor:default;transform:none}
+.tvx-card{background:linear-gradient(180deg,var(--surface),var(--bg2));border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+.tvx-badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:999px;background:rgba(46,97,254,.15);color:#7fa8ff;border:1px solid rgba(46,97,254,.35)}
+
+/* Layout */
+.wrap{max-width:1480px;margin:0 auto;padding:0 28px}
+header.appbar{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);background:rgba(7,11,24,.72);border-bottom:1px solid var(--border)}
+.appbar-inner{display:flex;align-items:center;justify-content:space-between;padding:14px 0;gap:18px}
+.brand{display:inline-flex;align-items:center;gap:10px;font-weight:800;font-size:20px;letter-spacing:-.02em}
+.demo-title{font-size:13px;color:var(--muted);font-weight:500;border-left:1px solid var(--border);padding-left:16px;margin-left:4px}
+.demo-title strong{color:var(--text);font-weight:600}
+.appbar-right{display:flex;align-items:center;gap:18px}
+.livedot{display:inline-flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);font-weight:500}
+.livedot .dot{width:8px;height:8px;border-radius:50%;background:var(--good);box-shadow:0 0 0 0 rgba(34,197,94,.6);animation:pulse 2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(34,197,94,.55)}70%{box-shadow:0 0 0 8px rgba(34,197,94,0)}100%{box-shadow:0 0 0 0 rgba(34,197,94,0)}}
+.clock{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--grad);display:grid;place-items:center;color:#04122e;font-weight:700;font-size:13px}
+
+.page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;margin:26px 0 18px;flex-wrap:wrap}
+.page-head h1{font-size:26px;margin:0;letter-spacing:-.02em;font-weight:700}
+.page-head p{margin:6px 0 0;color:var(--muted);font-size:14px}
+.head-actions{display:flex;gap:10px;align-items:center}
+.ghost-btn{background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:11px 16px;font-weight:600;font-family:inherit;cursor:pointer;font-size:13px;transition:.18s}
+.ghost-btn:hover{border-color:#33457a;background:#1a2440}
+
+/* KPI cards */
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);gap:16px;margin-bottom:22px}
+.kpi{padding:18px 18px 16px;position:relative;overflow:hidden}
+.kpi .label{font-size:11.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600;display:flex;align-items:center;gap:7px}
+.kpi .ico{width:26px;height:26px;border-radius:8px;display:grid;place-items:center;background:rgba(46,97,254,.14);border:1px solid rgba(46,97,254,.3)}
+.kpi .val{font-size:27px;font-weight:700;margin-top:12px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.kpi .sub{font-size:12px;margin-top:5px;color:var(--muted);display:flex;align-items:center;gap:6px}
+.trend{font-weight:600;font-size:11.5px;padding:1px 7px;border-radius:999px}
+.trend.up{color:var(--good);background:rgba(34,197,94,.12)}
+.trend.down{color:var(--bad);background:rgba(239,68,68,.12)}
+.trend.flat{color:var(--warn);background:rgba(251,191,36,.12)}
+.kpi .spark{position:absolute;bottom:0;left:0;right:0;height:34px;opacity:.55}
+.flash{animation:flash .8s ease}
+@keyframes flash{0%{color:var(--brand2)}100%{}}
+
+/* Main grid */
+.grid{display:grid;grid-template-columns:1fr 380px;gap:20px;align-items:start;padding-bottom:50px}
+
+/* Projects table card */
+.panel{padding:0;overflow:hidden}
+.panel-head{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--border)}
+.panel-head h2{font-size:16px;margin:0;font-weight:600;display:flex;align-items:center;gap:9px}
+.panel-head .meta{font-size:12px;color:var(--muted)}
+.tabs{display:flex;gap:4px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:3px}
+.tab{font-size:12px;font-weight:600;color:var(--muted);padding:6px 12px;border-radius:7px;cursor:pointer;transition:.16s;border:0;background:transparent;font-family:inherit}
+.tab.active{background:var(--surface2);color:var(--text)}
+
+table{width:100%;border-collapse:collapse}
+thead th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;text-align:left;padding:13px 16px;border-bottom:1px solid var(--border)}
+thead th.num{text-align:right}
+tbody td{padding:15px 16px;border-bottom:1px solid rgba(30,42,68,.55);font-size:13.5px;vertical-align:middle}
+tbody tr{transition:background .16s;cursor:pointer}
+tbody tr:hover{background:rgba(46,97,254,.06)}
+tbody tr:last-child td{border-bottom:0}
+.proj-name{font-weight:600;font-size:14px}
+.proj-sub{font-size:11.5px;color:var(--muted);margin-top:2px}
+.num{text-align:right;font-variant-numeric:tabular-nums}
+.prog-wrap{display:flex;align-items:center;gap:10px;min-width:150px}
+.prog{flex:1;height:7px;background:var(--bg);border-radius:999px;overflow:hidden;border:1px solid var(--border)}
+.prog span{display:block;height:100%;border-radius:999px;background:var(--grad);transition:width .9s cubic-bezier(.2,.8,.2,1)}
+.prog-pct{font-size:12px;color:var(--muted);width:34px;text-align:right;font-variant-numeric:tabular-nums}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;padding:4px 10px;border-radius:999px;white-space:nowrap}
+.chip .cdot{width:6px;height:6px;border-radius:50%}
+.chip.ontrack{color:#86efac;background:rgba(34,197,94,.12);border:1px solid rgba(34,197,94,.28)}
+.chip.ontrack .cdot{background:var(--good)}
+.chip.atrisk{color:#fde68a;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.3)}
+.chip.atrisk .cdot{background:var(--warn)}
+.chip.delayed{color:#fca5a5;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3)}
+.chip.delayed .cdot{background:var(--bad)}
+.budget-cell{font-variant-numeric:tabular-nums}
+.budget-cell .over{color:#fca5a5}
+.budget-cell .under{color:#86efac}
+.budget-cell .b-sub{font-size:11px;color:var(--muted)}
+
+/* AI insights side panel */
+.side{display:flex;flex-direction:column;gap:20px}
+.ai-panel{padding:0;overflow:hidden;position:relative}
+.ai-head{padding:17px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,rgba(46,97,254,.13),rgba(0,240,255,.05))}
+.ai-head .t{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px}
+.ai-orb{width:30px;height:30px;border-radius:9px;background:var(--grad);display:grid;place-items:center;box-shadow:0 0 18px rgba(0,240,255,.35)}
+.ai-orb svg{display:block}
+.ai-body{padding:14px}
+.insight{border:1px solid var(--border);border-radius:13px;padding:13px 14px;margin-bottom:11px;background:var(--bg2);position:relative;overflow:hidden;opacity:0;transform:translateY(8px);animation:rise .5s forwards}
+.insight:last-child{margin-bottom:0}
+@keyframes rise{to{opacity:1;transform:none}}
+.insight .top{display:flex;align-items:center;gap:8px;margin-bottom:7px}
+.sev{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:3px 8px;border-radius:6px}
+.sev.high{color:#fca5a5;background:rgba(239,68,68,.13)}
+.sev.med{color:#fde68a;background:rgba(251,191,36,.13)}
+.sev.low{color:#7fd6ff;background:rgba(0,240,255,.1)}
+.insight . proj-tag,.insight .proj-tag{font-size:11.5px;color:var(--muted);font-weight:500}
+.insight .body{font-size:13px;color:#dbe3ff;line-height:1.5}
+.insight .body b{color:#fff;font-weight:600}
+.insight .actions{display:flex;gap:8px;margin-top:11px}
+.mini-btn{font-size:11.5px;font-weight:600;padding:6px 11px;border-radius:8px;cursor:pointer;font-family:inherit;border:1px solid var(--border);background:var(--surface2);color:var(--text);transition:.16s}
+.mini-btn:hover{border-color:#33457a}
+.mini-btn.primary{background:var(--grad);color:#04122e;border:0}
+.mini-btn.done{opacity:.55;cursor:default}
+.edge{position:absolute;left:0;top:0;bottom:0;width:3px}
+.edge.high{background:var(--bad)} .edge.med{background:var(--warn)} .edge.low{background:var(--brand2)}
+
+/* AI working overlay inside panel */
+.ai-working{padding:30px 18px;text-align:center}
+.ai-working .scan{height:3px;width:100%;background:linear-gradient(90deg,transparent,var(--brand2),transparent);border-radius:2px;animation:scan 1.4s infinite;margin:0 0 18px}
+@keyframes scan{0%{transform:translateX(-40%);opacity:.3}50%{opacity:1}100%{transform:translateX(40%);opacity:.3}}
+.dots{display:inline-flex;gap:6px;margin-top:6px}
+.dots i{width:8px;height:8px;border-radius:50%;background:var(--brand2);animation:bob 1s infinite}
+.dots i:nth-child(2){animation-delay:.15s}.dots i:nth-child(3){animation-delay:.3s}
+@keyframes bob{0%,100%{opacity:.3;transform:translateY(0)}50%{opacity:1;transform:translateY(-5px)}}
+.stream-line{font-size:13px;color:var(--muted);margin-top:14px;min-height:20px}
+.cursor{display:inline-block;width:7px;height:14px;background:var(--brand2);margin-left:2px;vertical-align:middle;animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+
+/* Cashflow mini chart card */
+.chart-card{padding:18px}
+.chart-card h3{font-size:14px;margin:0 0 3px;font-weight:600}
+.chart-card .csub{font-size:12px;color:var(--muted);margin-bottom:14px}
+.legend{display:flex;gap:16px;margin-top:12px;font-size:11.5px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+
+/* Toast */
+.toast-wrap{position:fixed;right:22px;bottom:22px;z-index:200;display:flex;flex-direction:column;gap:10px}
+.toast{background:var(--surface2);border:1px solid var(--border);border-left:3px solid var(--good);border-radius:12px;padding:13px 16px;box-shadow:var(--shadow);font-size:13px;max-width:330px;display:flex;gap:10px;align-items:flex-start;animation:toastin .35s cubic-bezier(.2,.8,.2,1)}
+@keyframes toastin{from{opacity:0;transform:translateX(20px)}to{opacity:1}}
+.toast .ti{color:var(--good);font-size:16px;line-height:1.2}
+.toast b{display:block;margin-bottom:2px}
+.toast small{color:var(--muted)}
+
+/* Modal */
+.modal-bg{position:fixed;inset:0;background:rgba(4,8,20,.7);backdrop-filter:blur(6px);z-index:150;display:none;align-items:center;justify-content:center;padding:24px}
+.modal-bg.show{display:flex}
+.modal{width:560px;max-width:100%;max-height:88vh;overflow:auto;padding:0}
+.modal-head{display:flex;align-items:flex-start;justify-content:space-between;padding:20px 22px;border-bottom:1px solid var(--border)}
+.modal-head h3{margin:0;font-size:18px;font-weight:600}
+.modal-head .ms{font-size:12.5px;color:var(--muted);margin-top:3px}
+.x{cursor:pointer;color:var(--muted);font-size:22px;line-height:1;background:none;border:0;font-family:inherit}
+.modal-body{padding:20px 22px}
+.mrow{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid rgba(30,42,68,.55);font-size:13.5px}
+.mrow:last-child{border-bottom:0}
+.mrow .k{color:var(--muted)}
+.mrow .v{font-weight:600;font-variant-numeric:tabular-nums}
+
+footer{border-top:1px solid var(--border);padding:22px 0;color:var(--muted);font-size:12.5px;text-align:center}
+footer b{color:var(--text);font-weight:600}
+
+@media(max-width:1180px){.kpis{grid-template-columns:repeat(3,1fr)}.grid{grid-template-columns:1fr}}
+@media(max-width:720px){
+  .wrap{padding:0 16px}.kpis{grid-template-columns:repeat(2,1fr)}
+  .demo-title{display:none}.page-head h1{font-size:21px}
+  thead th:nth-child(3),tbody td:nth-child(3){display:none}
+}
+</style>
+</head>
+<body>
+
+<header class="appbar">
+  <div class="wrap appbar-inner">
+    <div style="display:flex;align-items:center;gap:16px">
+      <span class="brand">
+        <svg width="30" height="30" viewBox="0 0 48 48" fill="none"><defs><linearGradient id="tvx_command_center" x1="0" y1="0" x2="48" y2="48"><stop offset="0" stop-color="#2e61fe"/><stop offset="1" stop-color="#00f0ff"/></linearGradient></defs><path d="M5 9 L24 41 L43 9 L33 9 L24 25 L15 9 Z" fill="url(#tvx_command_center)"/><path d="M16 9 L24 22 L32 9 L24 9 Z" fill="url(#tvx_command_center)" opacity=".5"/></svg>
+        Trivox<span style="color:var(--brand2)">AI</span>
+      </span>
+      <span class="demo-title">Project <strong>Command Center</strong></span>
+    </div>
+    <div class="appbar-right">
+      <span class="livedot"><span class="dot"></span> Live · syncing</span>
+      <span class="clock" id="clock">--:--:--</span>
+      <span class="avatar">DO</span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="page-head">
+    <div>
+      <h1>Portfolio Command Center</h1>
+      <p>Real-time health across 6 active projects · Greater Toronto Area · Connected to Sage 300 &amp; Procore</p>
+    </div>
+    <div class="head-actions">
+      <button class="ghost-btn" id="syncBtn">⟳ Sync accounting</button>
+      <button class="tvx-btn" id="briefBtn">Generate AI briefing</button>
+    </div>
+  </div>
+
+  <!-- KPI cards -->
+  <div class="kpis" id="kpis"></div>
+
+  <div class="grid">
+    <!-- Projects table -->
+    <div>
+      <div class="tvx-card panel">
+        <div class="panel-head">
+          <h2>Active Projects</h2>
+          <div style="display:flex;align-items:center;gap:14px">
+            <span class="meta" id="updStamp">Updated just now</span>
+            <div class="tabs">
+              <button class="tab active" data-f="all">All</button>
+              <button class="tab" data-f="risk">At Risk</button>
+              <button class="tab" data-f="track">On Track</button>
+            </div>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Project</th>
+              <th>Progress</th>
+              <th class="num">Contract</th>
+              <th class="num">Budget vs Actual</th>
+              <th>Schedule</th>
+              <th class="num">RFIs</th>
+            </tr>
+          </thead>
+          <tbody id="projBody"></tbody>
+        </table>
+      </div>
+
+      <!-- Cashflow chart -->
+      <div class="tvx-card chart-card" style="margin-top:20px">
+        <h3>Portfolio Cash Flow — Rolling 8 Months</h3>
+        <div class="csub">Receipts vs. disbursements across all active jobs (CAD, incl. HST)</div>
+        <svg id="cashSvg" viewBox="0 0 720 220" width="100%" height="220" preserveAspectRatio="none" style="display:block"></svg>
+        <div class="legend">
+          <span><i style="background:#2e61fe"></i> Receipts</span>
+          <span><i style="background:#00f0ff"></i> Disbursements</span>
+          <span><i style="background:#22c55e"></i> Net position</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- AI insights -->
+    <div class="side">
+      <div class="tvx-card ai-panel">
+        <div class="ai-head">
+          <span class="t">
+            <span class="ai-orb">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 2l2.2 5.6L20 9.5l-4.5 3.6L17 19l-5-3.2L7 19l1.5-5.9L4 9.5l5.8-1.9z" fill="#04122e"/></svg>
+            </span>
+            AI Risk Insights
+          </span>
+          <span class="tvx-badge" id="insBadge">4 flags</span>
+        </div>
+        <div class="ai-body" id="aiBody"></div>
+      </div>
+
+      <div class="tvx-card chart-card">
+        <h3>Schedule Performance Index</h3>
+        <div class="csub">SPI across portfolio · 1.0 = on plan</div>
+        <div id="spiRing" style="display:flex;align-items:center;gap:18px"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <b>TRIVOX AI</b> — Automation Infrastructure &nbsp;·&nbsp; Command Center v2.4 &nbsp;·&nbsp; Data refreshed in real time
+</footer>
+
+<!-- Modal -->
+<div class="modal-bg" id="modalBg">
+  <div class="tvx-card modal" id="modal"></div>
+</div>
+
+<div class="toast-wrap" id="toasts"></div>
+
+<script>
+(function(){
+  "use strict";
+  var CAD = function(n){ return "$" + Math.round(n).toLocaleString("en-CA"); };
+  var CADk = function(n){
+    if(n>=1e6) return "$" + (n/1e6).toFixed(2) + "M";
+    if(n>=1e3) return "$" + (n/1e3).toFixed(0) + "K";
+    return "$" + Math.round(n);
+  };
+
+  /* ---------- MOCK DATA ---------- */
+  var projects = [
+    {id:"BLR", name:"Bloor St Mixed-Use", loc:"Bloor & Ossington · 14-storey residential", contract:48200000, pct:62, budget:29900000, actual:30410000, status:"atrisk", rfi:7, spi:0.96, gc:"Trivox Build Group"},
+    {id:"VGH", name:"Vaughan Warehouse TI", loc:"Hwy 7 · 180k sqft tenant fit-out", contract:9650000, pct:78, budget:6100000, actual:6589000, status:"delayed", rfi:11, spi:0.88, gc:"North Metro Const."},
+    {id:"MIS", name:"Mississauga Civic Centre", loc:"Burnhamthorpe · public assembly reno", contract:22400000, pct:41, budget:8200000, actual:8050000, status:"ontrack", rfi:3, spi:1.02, gc:"Trivox Build Group"},
+    {id:"SCB", name:"Scarborough Transit Hub", loc:"Eglinton E · LRT connection", contract:67800000, pct:34, budget:21100000, actual:21940000, status:"atrisk", rfi:9, spi:0.94, gc:"Lakeshore Civil JV"},
+    {id:"OAK", name:"Oakville Medical Tower", loc:"Trafalgar Rd · 9-storey MOB", contract:31500000, pct:55, budget:16400000, actual:16210000, status:"ontrack", rfi:2, spi:1.01, gc:"Trivox Build Group"},
+    {id:"DTC", name:"King West Data Centre", loc:"King & Spadina · Tier III shell", contract:54300000, pct:27, budget:13900000, actual:13620000, status:"ontrack", rfi:4, spi:1.03, gc:"Apex Mechanical"}
+  ];
+
+  var statusMeta = {
+    ontrack:{cls:"ontrack", label:"On Track"},
+    atrisk:{cls:"atrisk", label:"At Risk"},
+    delayed:{cls:"delayed", label:"Delayed"}
+  };
+
+  var insights = [
+    {sev:"high", proj:"Vaughan Warehouse TI", body:"Trending <b>8.0% over</b> on materials — structural steel POs exceeded budget by <b>$489K</b>. Recommend reallocating contingency or issuing a change order before drywall.", cta:"Draft change order"},
+    {sev:"high", proj:"Scarborough Transit Hub", body:"<b>9 open RFIs</b>, 3 aged &gt;14 days on the LRT tie-in. Critical-path schedule slip of ~6 days projected if unresolved this week.", cta:"Escalate to PM"},
+    {sev:"med", proj:"Bloor St Mixed-Use", body:"Budget burn at <b>63%</b> against <b>62%</b> completion — marginally hot. Concrete pricing on next pour is locked, monitor labour productivity.", cta:"View cost forecast"},
+    {sev:"low", proj:"Portfolio", body:"Cash position improved <b>+$1.2M</b> WoW as Mississauga Civic progress draw cleared. Float covers next 47 days of disbursements.", cta:"View cash plan"}
+  ];
+
+  /* ---------- KPI CARDS ---------- */
+  function computeKpis(){
+    var totalContract=0, totalBudget=0, totalActual=0, onSched=0, rfis=0;
+    projects.forEach(function(p){
+      totalContract+=p.contract; totalBudget+=p.budget; totalActual+=p.actual;
+      if(p.status==="ontrack") onSched++; rfis+=p.rfi;
+    });
+    return {
+      contract: totalContract,
+      burn: (totalActual/totalBudget)*100,
+      sched: (onSched/projects.length)*100,
+      rfis: rfis,
+      cash: 4.82e6
+    };
+  }
+
+  function sparkPath(seed){
+    var pts=[], n=16, x;
+    for(var i=0;i<n;i++){
+      x = i/(n-1)*100;
+      var y = 28 - (Math.sin(i*0.7+seed)*8 + 14 + (Math.random()*4-2));
+      pts.push(x.toFixed(1)+","+y.toFixed(1));
+    }
+    return "M0,34 L"+pts.join(" L")+" L100,34 Z";
+  }
+  function sparkLine(seed){
+    var pts=[], n=16, x;
+    for(var i=0;i<n;i++){
+      x=i/(n-1)*100;
+      var y=28-(Math.sin(i*0.7+seed)*8+14+(Math.random()*4-2));
+      pts.push(x.toFixed(1)+","+y.toFixed(1));
+    }
+    return "M"+pts.join(" L");
+  }
+
+  function renderKpis(){
+    var k = computeKpis();
+    var cards = [
+      {label:"Total Contract Value", icon:"◆", val:"$233.9M", sub:'<span class="trend up">▲ 2 awards</span> 6 active jobs', seed:1, raw:k.contract},
+      {label:"Budget Burn", icon:"▤", id:"burn", val:k.burn.toFixed(1)+"%", sub:'<span class="trend flat">vs 51.4% planned</span>', seed:2},
+      {label:"On-Schedule", icon:"◷", id:"sched", val:Math.round(k.sched)+"%", sub:'<span class="trend down">▼ Vaughan slipped</span>', seed:3},
+      {label:"Open RFIs", icon:"✎", id:"rfi", val:String(k.rfis), sub:'<span class="trend down">3 aged &gt;14d</span>', seed:4},
+      {label:"Cash Position", icon:"$", id:"cash", val:"$4.82M", sub:'<span class="trend up">▲ +$1.2M WoW</span>', seed:5}
+    ];
+    var grad = "var(--good)";
+    var html = cards.map(function(c){
+      return '<div class="tvx-card kpi">'
+        + '<div class="label"><span class="ico">'+c.icon+'</span>'+c.label+'</div>'
+        + '<div class="val" '+(c.id?'id="kpi-'+c.id+'"':'')+'>'+c.val+'</div>'
+        + '<div class="sub">'+c.sub+'</div>'
+        + '<svg class="spark" viewBox="0 0 100 34" preserveAspectRatio="none">'
+        +   '<path d="'+sparkPath(c.seed)+'" fill="rgba(46,97,254,.16)"/>'
+        +   '<path d="'+sparkLine(c.seed)+'" fill="none" stroke="url(#tvx_command_center)" stroke-width="1.5"/>'
+        + '</svg></div>';
+    }).join("");
+    document.getElementById("kpis").innerHTML = html;
+  }
+
+  /* ---------- PROJECTS TABLE ---------- */
+  var currentFilter="all";
+  function renderProjects(){
+    var rows = projects.filter(function(p){
+      if(currentFilter==="risk") return p.status!=="ontrack";
+      if(currentFilter==="track") return p.status==="ontrack";
+      return true;
+    });
+    var html = rows.map(function(p){
+      var sm = statusMeta[p.status];
+      var over = p.actual>p.budget;
+      var diff = Math.abs(p.actual-p.budget);
+      var pctDiff = ((p.actual-p.budget)/p.budget*100);
+      return '<tr data-id="'+p.id+'">'
+        + '<td><div class="proj-name">'+p.name+'</div><div class="proj-sub">'+p.loc+'</div></td>'
+        + '<td><div class="prog-wrap"><div class="prog"><span data-pct style="width:'+p.pct+'%"></span></div><span class="prog-pct" data-pctlabel>'+p.pct+'%</span></div></td>'
+        + '<td class="num">'+CADk(p.contract)+'</td>'
+        + '<td class="num budget-cell"><div data-actual>'+CADk(p.actual)+'</div>'
+        +   '<div class="b-sub '+(over?"over":"under")+'">'+(over?"+":"−")+CADk(diff)+' ('+(over?"+":"")+pctDiff.toFixed(1)+'%)</div></td>'
+        + '<td><span class="chip '+sm.cls+'"><span class="cdot"></span>'+sm.label+'</span></td>'
+        + '<td class="num" data-rfi>'+p.rfi+'</td>'
+        + '</tr>';
+    }).join("");
+    var body = document.getElementById("projBody");
+    body.innerHTML = html;
+    [].forEach.call(body.querySelectorAll("tr"), function(tr){
+      tr.addEventListener("click", function(){ openProject(tr.getAttribute("data-id")); });
+    });
+  }
+
+  /* ---------- AI INSIGHTS ---------- */
+  function renderInsights(){
+    var body = document.getElementById("aiBody");
+    var sevLabel = {high:"High Risk", med:"Watch", low:"Positive"};
+    body.innerHTML = insights.map(function(ins,i){
+      return '<div class="insight" style="animation-delay:'+(i*0.09)+'s">'
+        + '<span class="edge '+ins.sev+'"></span>'
+        + '<div class="top"><span class="sev '+ins.sev+'">'+sevLabel[ins.sev]+'</span>'
+        +   '<span class="proj-tag">'+ins.proj+'</span></div>'
+        + '<div class="body">'+ins.body+'</div>'
+        + '<div class="actions"><button class="mini-btn primary" data-act="'+i+'">'+ins.cta+'</button>'
+        +   '<button class="mini-btn" data-dismiss="'+i+'">Dismiss</button></div>'
+        + '</div>';
+    }).join("");
+    document.getElementById("insBadge").textContent = insights.length + " flags";
+    [].forEach.call(body.querySelectorAll("[data-act]"), function(b){
+      b.addEventListener("click", function(){
+        var ins = insights[+b.getAttribute("data-act")];
+        b.classList.add("done"); b.textContent = "✓ Sent to PM";
+        toast("Action queued", ins.cta + " · " + ins.proj);
+      });
+    });
+    [].forEach.call(body.querySelectorAll("[data-dismiss]"), function(b){
+      b.addEventListener("click", function(){
+        var card = b.closest(".insight");
+        card.style.transition="opacity .3s,transform .3s,margin .3s,padding .3s,height .3s";
+        card.style.opacity="0"; card.style.transform="translateX(20px)";
+        setTimeout(function(){ card.style.height="0";card.style.padding="0";card.style.margin="0"; },200);
+      });
+    });
+  }
+
+  function runAiInsights(callback){
+    var body = document.getElementById("aiBody");
+    var lines = [
+      "Pulling live cost data from Sage 300…",
+      "Reconciling committed vs. actual across 6 jobs…",
+      "Scanning RFI logs &amp; schedule float…",
+      "Ranking risks by dollar impact…"
+    ];
+    body.innerHTML = '<div class="ai-working">'
+      + '<div class="scan"></div>'
+      + '<div style="font-weight:600;font-size:14px">AI analyzing portfolio</div>'
+      + '<div class="dots"><i></i><i></i><i></i></div>'
+      + '<div class="stream-line" id="streamLine"></div></div>';
+    var sl = document.getElementById("streamLine");
+    var li=0, ci=0;
+    var iv = setInterval(function(){
+      if(li>=lines.length){ clearInterval(iv); renderInsights(); if(callback) callback(); return; }
+      var full = lines[li];
+      sl.innerHTML = full.substring(0,ci) + '<span class="cursor"></span>';
+      ci+=2;
+      if(ci>=full.length){ li++; ci=0; }
+    }, 38);
+  }
+
+  /* ---------- CASH FLOW CHART ---------- */
+  function renderCash(){
+    var svg = document.getElementById("cashSvg");
+    var months=["Nov","Dec","Jan","Feb","Mar","Apr","May","Jun"];
+    var receipts=[6.1,5.4,7.2,6.8,8.1,7.6,9.2,8.8];
+    var disburse=[5.6,5.9,6.4,6.1,7.0,7.4,7.9,7.6];
+    var W=720,H=220,padL=44,padB=28,padT=14;
+    var max=10;
+    var bw=(W-padL-12)/months.length;
+    var s="";
+    // grid + y labels
+    for(var g=0;g<=5;g++){
+      var gy=padT+(H-padT-padB)*(g/5);
+      var val=(max*(1-g/5)).toFixed(0);
+      s+='<line x1="'+padL+'" y1="'+gy+'" x2="'+W+'" y2="'+gy+'" stroke="#1e2a44" stroke-width="1"/>';
+      s+='<text x="'+(padL-8)+'" y="'+(gy+4)+'" fill="#8a97b5" font-size="10" text-anchor="end">$'+val+'M</text>';
+    }
+    function yOf(v){ return padT+(H-padT-padB)*(1-v/max); }
+    var netPts=[];
+    months.forEach(function(m,i){
+      var x=padL+i*bw+bw*0.5;
+      var rh=H-padB-yOf(receipts[i]);
+      var dh=H-padB-yOf(disburse[i]);
+      // receipts bar
+      s+='<rect x="'+(x-14)+'" y="'+yOf(receipts[i])+'" width="12" height="'+rh+'" rx="3" fill="#2e61fe" opacity=".9"/>';
+      // disburse bar
+      s+='<rect x="'+(x+2)+'" y="'+yOf(disburse[i])+'" width="12" height="'+dh+'" rx="3" fill="#00f0ff" opacity=".75"/>';
+      s+='<text x="'+x+'" y="'+(H-9)+'" fill="#8a97b5" font-size="10" text-anchor="middle">'+m+'</text>';
+      var net=receipts[i]-disburse[i];
+      netPts.push((x)+","+yOf(net+ (max*0)+ 0));
+    });
+    // net line (cumulative-ish: use net*scaled offset baseline)
+    var lpts = months.map(function(m,i){
+      var x=padL+i*bw+bw*0.5;
+      var net=receipts[i]-disburse[i];
+      return x+","+yOf(net+ 0.3);
+    });
+    s+='<polyline points="'+lpts.join(" ")+'" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round"/>';
+    months.forEach(function(m,i){
+      var x=padL+i*bw+bw*0.5;
+      var net=receipts[i]-disburse[i];
+      s+='<circle cx="'+x+'" cy="'+yOf(net+0.3)+'" r="3" fill="#22c55e"/>';
+    });
+    svg.innerHTML=s;
+  }
+
+  /* ---------- SPI RING ---------- */
+  function renderSpi(){
+    var avg=0; projects.forEach(function(p){avg+=p.spi;}); avg/=projects.length;
+    var pct=Math.min(1,avg/1.1);
+    var R=42, C=2*Math.PI*R, off=C*(1-pct);
+    var color = avg>=1?"#22c55e":(avg>=0.95?"#fbbf24":"#ef4444");
+    document.getElementById("spiRing").innerHTML =
+      '<svg width="110" height="110" viewBox="0 0 110 110">'
+      + '<circle cx="55" cy="55" r="42" fill="none" stroke="#1e2a44" stroke-width="10"/>'
+      + '<circle cx="55" cy="55" r="42" fill="none" stroke="'+color+'" stroke-width="10" stroke-linecap="round" '
+      +   'stroke-dasharray="'+C.toFixed(1)+'" stroke-dashoffset="'+off.toFixed(1)+'" transform="rotate(-90 55 55)" style="transition:stroke-dashoffset .9s"/>'
+      + '<text x="55" y="52" text-anchor="middle" fill="#eaf0ff" font-size="22" font-weight="700">'+avg.toFixed(2)+'</text>'
+      + '<text x="55" y="70" text-anchor="middle" fill="#8a97b5" font-size="10">SPI avg</text>'
+      + '</svg>'
+      + '<div style="flex:1;font-size:12.5px;color:var(--muted);line-height:1.7">'
+      +   '<div><span style="color:#22c55e">●</span> 3 jobs at or above plan</div>'
+      +   '<div><span style="color:#fbbf24">●</span> 2 jobs marginally behind</div>'
+      +   '<div><span style="color:#ef4444">●</span> Vaughan TI driving drag</div>'
+      + '</div>';
+  }
+
+  /* ---------- MODAL ---------- */
+  function openProject(id){
+    var p = projects.find(function(x){return x.id===id;});
+    if(!p) return;
+    var sm=statusMeta[p.status];
+    var over=p.actual>p.budget;
+    var hst = p.actual*0.13;
+    var mb = document.getElementById("modalBg");
+    document.getElementById("modal").innerHTML =
+      '<div class="modal-head"><div><h3>'+p.name+'</h3><div class="ms">'+p.loc+' · GC: '+p.gc+'</div></div>'
+      + '<button class="x" id="modalX">×</button></div>'
+      + '<div class="modal-body">'
+      + '<div style="margin-bottom:14px"><span class="chip '+sm.cls+'"><span class="cdot"></span>'+sm.label+'</span> '
+      +   '<span class="tvx-badge" style="margin-left:6px">SPI '+p.spi.toFixed(2)+'</span></div>'
+      + row("Original contract value", CAD(p.contract))
+      + row("Completion", p.pct+"%")
+      + row("Approved budget (to date)", CAD(p.budget))
+      + row("Actual cost (to date)", '<span style="color:'+(over?"#fca5a5":"#86efac")+'">'+CAD(p.actual)+'</span>')
+      + row("Variance", '<span style="color:'+(over?"#fca5a5":"#86efac")+'">'+(over?"+":"−")+CAD(Math.abs(p.actual-p.budget))+'</span>')
+      + row("HST (13%) on actuals", CAD(hst))
+      + row("Open RFIs", String(p.rfi))
+      + row("Est. cost to complete", CAD((p.contract*0.78)-p.actual>0?(p.contract*0.78)-p.actual:p.contract*0.18))
+      + '<div style="margin-top:18px;display:flex;gap:10px">'
+      +   '<button class="tvx-btn" id="mAi">Run AI cost forecast</button>'
+      +   '<button class="ghost-btn" id="mClose">Close</button></div>'
+      + '<div id="mResult"></div>'
+      + '</div>';
+    mb.classList.add("show");
+    document.getElementById("modalX").onclick=closeModal;
+    document.getElementById("mClose").onclick=closeModal;
+    document.getElementById("mAi").onclick=function(){ runForecast(p); };
+  }
+  function row(k,v){ return '<div class="mrow"><span class="k">'+k+'</span><span class="v">'+v+'</span></div>'; }
+  function closeModal(){ document.getElementById("modalBg").classList.remove("show"); }
+  document.getElementById("modalBg").addEventListener("click", function(e){
+    if(e.target===this) closeModal();
+  });
+
+  function runForecast(p){
+    var r=document.getElementById("mResult");
+    var btn=document.getElementById("mAi"); btn.disabled=true;
+    r.innerHTML='<div class="ai-working" style="padding:22px 0 6px"><div class="scan"></div>'
+      +'<div style="font-weight:600;font-size:13.5px">Forecasting final cost at completion…</div>'
+      +'<div class="dots"><i></i><i></i><i></i></div></div>';
+    setTimeout(function(){
+      var burnRate=p.actual/(p.pct/100);
+      var eac=burnRate; // estimate at completion
+      var over=eac>p.budget/(p.pct/100);
+      var margin=p.contract-eac;
+      var marginPct=(margin/p.contract*100);
+      r.innerHTML='<div class="tvx-card" style="margin-top:16px;padding:15px;background:var(--bg2)">'
+        +'<div style="font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-bottom:10px">AI Forecast · Estimate at Completion</div>'
+        +row("Projected final cost (EAC)", CAD(eac))
+        +row("Projected margin", '<span style="color:'+(margin>0?"#86efac":"#fca5a5")+'">'+CAD(margin)+' ('+marginPct.toFixed(1)+'%)</span>')
+        +row("Confidence", (p.status==="ontrack"?"High (91%)":p.status==="atrisk"?"Moderate (74%)":"Guarded (61%)"))
+        +'<div style="font-size:12.5px;color:#dbe3ff;margin-top:10px;line-height:1.55">'
+        + (margin>0
+            ? '✓ Job is forecast to land <b>'+marginPct.toFixed(1)+'%</b> margin. Maintain current cost controls.'
+            : '⚠ Job is forecast to erode margin. AI recommends a recovery plan and change-order review.')
+        +'</div></div>';
+      btn.disabled=false;
+      toast("Forecast complete", p.name + " · EAC " + CADk(eac));
+    }, 1900);
+  }
+
+  /* ---------- TOASTS ---------- */
+  function toast(title, sub){
+    var w=document.getElementById("toasts");
+    var t=document.createElement("div");
+    t.className="toast";
+    t.innerHTML='<span class="ti">✓</span><div><b>'+title+'</b><small>'+sub+'</small></div>';
+    w.appendChild(t);
+    setTimeout(function(){ t.style.transition="opacity .4s,transform .4s"; t.style.opacity="0"; t.style.transform="translateX(20px)"; setTimeout(function(){ t.remove(); },400); }, 3600);
+  }
+
+  /* ---------- TABS ---------- */
+  [].forEach.call(document.querySelectorAll(".tab"), function(tab){
+    tab.addEventListener("click", function(){
+      document.querySelector(".tab.active").classList.remove("active");
+      tab.classList.add("active");
+      currentFilter=tab.getAttribute("data-f");
+      renderProjects();
+    });
+  });
+
+  /* ---------- BUTTONS ---------- */
+  document.getElementById("briefBtn").addEventListener("click", function(){
+    var btn=this; btn.disabled=true; var orig=btn.textContent; btn.textContent="Analyzing…";
+    runAiInsights(function(){
+      btn.disabled=false; btn.textContent=orig;
+      toast("AI briefing ready", insights.length+" risks flagged across portfolio");
+    });
+  });
+  document.getElementById("syncBtn").addEventListener("click", function(){
+    var btn=this; btn.disabled=true; var orig=btn.textContent; btn.textContent="⟳ Syncing…";
+    document.querySelector(".livedot").innerHTML='<span class="dot"></span> Syncing Sage 300…';
+    setTimeout(function(){
+      btn.disabled=false; btn.textContent=orig;
+      document.querySelector(".livedot").innerHTML='<span class="dot"></span> Live · syncing';
+      bumpData(true);
+      toast("Accounting synced", "Sage 300 · 6 jobs · "+new Date().toLocaleTimeString("en-CA",{hour:"2-digit",minute:"2-digit"}));
+    }, 1700);
+  });
+
+  /* ---------- LIVE UPDATES ---------- */
+  function bumpData(force){
+    // nudge a couple of projects' actuals & rfis slightly
+    projects.forEach(function(p){
+      if(Math.random()<(force?0.7:0.35)){
+        p.actual += Math.round((Math.random()-0.35)*p.actual*0.004);
+        if(Math.random()<0.18){ p.rfi += (Math.random()<0.5?1:-1); if(p.rfi<0)p.rfi=0; }
+        if(Math.random()<0.15 && p.pct<99){ p.pct = Math.min(99, p.pct+1); }
+      }
+    });
+    renderProjects();
+    renderKpis();
+    renderSpi();
+    var u=document.getElementById("updStamp");
+    u.textContent="Updated just now"; u.classList.remove("flash"); void u.offsetWidth; u.classList.add("flash");
+    // flash a kpi
+    var burn=document.getElementById("kpi-burn");
+    if(burn){ burn.classList.remove("flash"); void burn.offsetWidth; burn.classList.add("flash"); }
+  }
+
+  /* ---------- CLOCK ---------- */
+  function tick(){
+    document.getElementById("clock").textContent = new Date().toLocaleTimeString("en-CA",{hour12:false});
+  }
+
+  /* ---------- INIT ---------- */
+  renderKpis();
+  renderProjects();
+  renderInsights();
+  renderCash();
+  renderSpi();
+  tick();
+  setInterval(tick, 1000);
+  setInterval(function(){ bumpData(false); }, 5200);
+
+})();
+</script>
+</body>
+</html>

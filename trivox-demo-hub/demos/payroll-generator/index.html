@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Payroll & Paystub Generator — TRIVOX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070b18;--bg2:#0d1426;--surface:#121b30;--surface2:#16203a;--border:#1e2a44;--text:#eaf0ff;--muted:#8a97b5;--brand:#2e61fe;--brand2:#00f0ff;--grad:linear-gradient(135deg,#2e61fe,#00f0ff);--good:#22c55e;--warn:#fbbf24;--bad:#ef4444;--radius:16px;--shadow:0 10px 40px rgba(0,0,0,.45);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(7,11,24,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;}
+.nav-brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.1rem;letter-spacing:-.02em;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.nav-pill{background:var(--grad);color:#fff;font-size:.65rem;font-weight:700;padding:3px 8px;border-radius:999px;letter-spacing:.08em;-webkit-text-fill-color:#fff;}
+.nav-back{color:var(--muted);text-decoration:none;font-size:.85rem;font-weight:500;transition:color .2s;}
+.nav-back:hover{color:var(--text);}
+
+/* HERO */
+.hero{padding:64px 32px 48px;max-width:1200px;margin:0 auto;}
+.eyebrow{font-size:.72rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--brand2);margin-bottom:14px;}
+h1{font-size:clamp(28px,4vw,40px);font-family:'DM Serif Display',serif;font-weight:400;letter-spacing:-.01em;line-height:1.15;margin-bottom:16px;}
+.subhead{color:var(--muted);font-size:.95rem;line-height:1.65;max-width:640px;margin-bottom:36px;}
+.stats{display:flex;gap:12px;flex-wrap:wrap;}
+.stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:8px 18px;font-size:.78rem;font-weight:600;display:flex;align-items:center;gap:7px;}
+.stat-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--grad);flex-shrink:0;}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:1200px;margin:0 auto;padding:0 32px 80px;}
+@media(max-width:900px){.grid{grid-template-columns:1fr;}}
+
+/* PANELS */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);}
+.panel-title{font-size:.78rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:20px;}
+
+/* TABLE */
+.emp-table{width:100%;border-collapse:collapse;margin-bottom:20px;font-size:.85rem;}
+.emp-table th{color:var(--muted);font-weight:600;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;padding:8px 10px;border-bottom:1px solid var(--border);text-align:left;}
+.emp-table td{padding:10px 10px;border-bottom:1px solid rgba(30,42,68,.6);}
+.emp-table input{background:var(--bg2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'Sora',sans-serif;font-size:.82rem;padding:6px 10px;width:100%;outline:none;transition:border-color .2s;}
+.emp-table input:focus{border-color:var(--brand);}
+.emp-table tr:last-child td{border-bottom:none;}
+
+.btn-primary{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px;background:var(--grad);border:none;border-radius:10px;color:#fff;font-family:'Sora',sans-serif;font-size:.9rem;font-weight:700;cursor:pointer;letter-spacing:.01em;transition:opacity .2s,transform .15s;}
+.btn-primary:hover{opacity:.9;transform:translateY(-1px);}
+.btn-primary:active{transform:translateY(0);}
+
+/* RIGHT PANEL */
+.right-panel{min-height:480px;display:flex;flex-direction:column;gap:0;}
+
+/* EMPTY STATE */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;min-height:440px;gap:16px;color:var(--muted);text-align:center;}
+.empty-icon{width:56px;height:56px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:1.4rem;}
+
+/* ORB / WORKING */
+.working-state{display:none;flex-direction:column;align-items:center;justify-content:center;flex:1;min-height:440px;gap:24px;}
+.orb{width:72px;height:72px;border-radius:50%;background:var(--grad);box-shadow:0 0 40px rgba(46,97,254,.5);animation:pulse 1.4s ease-in-out infinite;}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.12);opacity:.8;}}
+.checklist{list-style:none;display:flex;flex-direction:column;gap:10px;font-size:.85rem;}
+.checklist li{display:flex;align-items:center;gap:10px;color:var(--muted);transition:color .3s;}
+.checklist li.done{color:var(--text);}
+.check-icon{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:.6rem;transition:all .3s;}
+.checklist li.done .check-icon{background:var(--good);border-color:var(--good);color:#fff;}
+
+/* RESULT */
+.result-state{display:none;flex-direction:column;gap:16px;}
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.summary-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+.summary-label{font-size:.68rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;}
+.summary-value{font-size:1.2rem;font-weight:700;}
+.summary-value.green{color:var(--good);}
+.summary-value.warn{color:var(--warn);}
+.summary-value.blue{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+.paystub-list{display:flex;flex-direction:column;gap:10px;margin-top:4px;}
+.paystub-card{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;}
+.paystub-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.paystub-name{font-weight:700;font-size:.9rem;}
+.paystub-badge{font-size:.65rem;font-weight:700;padding:3px 9px;border-radius:999px;background:rgba(34,197,94,.15);color:var(--good);letter-spacing:.06em;}
+.paystub-rows{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;font-size:.78rem;}
+.paystub-row-label{color:var(--muted);}
+.paystub-row-val{text-align:right;font-weight:600;}
+.paystub-row-val.neg{color:var(--warn);}
+.paystub-divider{border:none;border-top:1px solid var(--border);margin:8px 0;}
+.paystub-net{display:flex;justify-content:space-between;font-weight:700;font-size:.88rem;}
+.paystub-net .net-val{color:var(--good);}
+
+.btn-download{display:flex;align-items:center;gap:6px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:'Sora',sans-serif;font-size:.72rem;font-weight:600;padding:6px 12px;cursor:pointer;transition:all .2s;margin-top:8px;}
+.btn-download:hover{border-color:var(--brand);color:var(--text);}
+.result-title{font-size:.78rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:4px;}
+
+/* FOOTER */
+footer{text-align:center;padding:28px;color:var(--muted);font-size:.75rem;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">TRIVOX <span class="nav-pill">AI</span></div>
+  <a class="nav-back" href="../../portfolio.html">← All Demos</a>
+</nav>
+
+<section class="hero">
+  <div class="eyebrow">Operations / Finance</div>
+  <h1>Payroll &amp; Paystub Generator</h1>
+  <p class="subhead">Enter hours worked and rates — get compliant paystubs, deduction breakdowns, and employer cost summaries in under 90 seconds. No spreadsheets. No errors.</p>
+  <div class="stats">
+    <div class="stat-chip"><span class="dot"></span>Payroll in 90s</div>
+    <div class="stat-chip"><span class="dot"></span>Tax-accurate</div>
+    <div class="stat-chip"><span class="dot"></span>3 employees / run</div>
+  </div>
+</section>
+
+<div class="grid">
+  <!-- LEFT -->
+  <div class="panel">
+    <div class="panel-title">Employee Hours</div>
+    <table class="emp-table">
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Hours</th>
+          <th>Rate ($/hr)</th>
+        </tr>
+      </thead>
+      <tbody id="emp-body">
+        <tr>
+          <td><input type="text" value="Sarah Mitchell" id="n0"></td>
+          <td><input type="number" value="42" id="h0" min="0" max="168"></td>
+          <td><input type="number" value="28.50" id="r0" min="0" step="0.01"></td>
+        </tr>
+        <tr>
+          <td><input type="text" value="James Okafor" id="n1"></td>
+          <td><input type="number" value="38" id="h1" min="0" max="168"></td>
+          <td><input type="number" value="34.00" id="r1" min="0" step="0.01"></td>
+        </tr>
+        <tr>
+          <td><input type="text" value="Priya Sharma" id="n2"></td>
+          <td><input type="number" value="40" id="h2" min="0" max="168"></td>
+          <td><input type="number" value="22.75" id="r2" min="0" step="0.01"></td>
+        </tr>
+      </tbody>
+    </table>
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:.8rem;color:var(--muted);">
+      <strong style="color:var(--text);">Period:</strong> Jun 1 – Jun 15, 2026 &nbsp;·&nbsp;
+      <strong style="color:var(--text);">Province:</strong> Ontario, CA &nbsp;·&nbsp;
+      <strong style="color:var(--text);">OT rate:</strong> 1.5×
+    </div>
+    <button class="btn-primary" onclick="runPayroll()">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+      Run Payroll
+    </button>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="panel right-panel" id="right-panel">
+    <div class="empty-state" id="empty-state">
+      <div class="empty-icon">💼</div>
+      <div style="font-size:.88rem;font-weight:600;">Ready to process</div>
+      <div style="font-size:.8rem;max-width:220px;">Fill in hours &amp; rates on the left, then click Run Payroll.</div>
+    </div>
+    <div class="working-state" id="working-state">
+      <div class="orb"></div>
+      <ul class="checklist" id="checklist">
+        <li id="c0"><span class="check-icon"></span> Reading employee records</li>
+        <li id="c1"><span class="check-icon"></span> Calculating gross pay &amp; overtime</li>
+        <li id="c2"><span class="check-icon"></span> Applying federal &amp; provincial tax</li>
+        <li id="c3"><span class="check-icon"></span> Computing CPP &amp; EI deductions</li>
+        <li id="c4"><span class="check-icon"></span> Generating paystubs</li>
+      </ul>
+    </div>
+    <div class="result-state" id="result-state">
+      <div class="result-title">Payroll Summary — Jun 1–15, 2026</div>
+      <div class="summary-grid" id="summary-grid"></div>
+      <div class="result-title" style="margin-top:8px;">Paystubs</div>
+      <div class="paystub-list" id="paystub-list"></div>
+    </div>
+  </div>
+</div>
+
+<footer>Built by TRIVOX · AI automation that runs your business</footer>
+
+<script>
+function fmt(n){return '$'+n.toLocaleString('en-CA',{minimumFractionDigits:2,maximumFractionDigits:2});}
+
+function calcEmployee(name,hours,rate){
+  const reg=Math.min(hours,40);
+  const ot=Math.max(0,hours-40);
+  const gross=reg*rate+ot*rate*1.5;
+  // Ontario 2026 simplified rates
+  const fedTax=gross*0.155;
+  const provTax=gross*0.0505;
+  const cpp=Math.min(gross*0.0595,3867.50/26);
+  const ei=Math.min(gross*0.0166,1049.12/26);
+  const totalDed=fedTax+provTax+cpp+ei;
+  const net=gross-totalDed;
+  const employerCPP=cpp;
+  const employerEI=ei*1.4;
+  return{name,hours,rate,reg,ot,gross,fedTax,provTax,cpp,ei,totalDed,net,employerCPP,employerEI};
+}
+
+function runPayroll(){
+  const employees=[];
+  for(let i=0;i<3;i++){
+    const name=document.getElementById('n'+i).value.trim()||'Employee '+(i+1);
+    const hours=parseFloat(document.getElementById('h'+i).value)||0;
+    const rate=parseFloat(document.getElementById('r'+i).value)||0;
+    employees.push(calcEmployee(name,hours,rate));
+  }
+
+  // show working
+  document.getElementById('empty-state').style.display='none';
+  document.getElementById('result-state').style.display='none';
+  const ws=document.getElementById('working-state');
+  ws.style.display='flex';
+
+  const checks=document.querySelectorAll('#checklist li');
+  checks.forEach(c=>{c.classList.remove('done');c.querySelector('.check-icon').textContent='';});
+
+  let i=0;
+  const tick=setInterval(()=>{
+    if(i<checks.length){
+      checks[i].classList.add('done');
+      checks[i].querySelector('.check-icon').textContent='✓';
+      i++;
+    } else {
+      clearInterval(tick);
+      setTimeout(()=>showResult(employees),200);
+    }
+  },360);
+}
+
+function showResult(emps){
+  document.getElementById('working-state').style.display='none';
+  const rs=document.getElementById('result-state');
+  rs.style.display='flex';
+
+  const totalGross=emps.reduce((a,e)=>a+e.gross,0);
+  const totalNet=emps.reduce((a,e)=>a+e.net,0);
+  const totalDed=emps.reduce((a,e)=>a+e.totalDed,0);
+  const totalEmplCost=emps.reduce((a,e)=>a+e.gross+e.employerCPP+e.employerEI,0);
+
+  const sg=document.getElementById('summary-grid');
+  sg.innerHTML=`
+    <div class="summary-card"><div class="summary-label">Total Gross</div><div class="summary-value blue">${fmt(totalGross)}</div></div>
+    <div class="summary-card"><div class="summary-label">Total Net Pay</div><div class="summary-value green">${fmt(totalNet)}</div></div>
+    <div class="summary-card"><div class="summary-label">Total Deductions</div><div class="summary-value warn">${fmt(totalDed)}</div></div>
+    <div class="summary-card"><div class="summary-label">Employer Total Cost</div><div class="summary-value">${fmt(totalEmplCost)}</div></div>
+  `;
+
+  const pl=document.getElementById('paystub-list');
+  pl.innerHTML='';
+  emps.forEach(e=>{
+    const card=document.createElement('div');
+    card.className='paystub-card';
+    card.innerHTML=`
+      <div class="paystub-header">
+        <div class="paystub-name">${e.name}</div>
+        <div class="paystub-badge">PROCESSED</div>
+      </div>
+      <div class="paystub-rows">
+        <span class="paystub-row-label">Regular (${e.reg}h × ${fmt(e.rate)})</span><span class="paystub-row-val">${fmt(e.reg*e.rate)}</span>
+        <span class="paystub-row-label">Overtime (${e.ot}h × 1.5×)</span><span class="paystub-row-val">${fmt(e.ot*e.rate*1.5)}</span>
+        <span class="paystub-row-label">Gross Pay</span><span class="paystub-row-val">${fmt(e.gross)}</span>
+      </div>
+      <hr class="paystub-divider">
+      <div class="paystub-rows">
+        <span class="paystub-row-label">Federal Tax (15.5%)</span><span class="paystub-row-val neg">-${fmt(e.fedTax)}</span>
+        <span class="paystub-row-label">ON Provincial (5.05%)</span><span class="paystub-row-val neg">-${fmt(e.provTax)}</span>
+        <span class="paystub-row-label">CPP (5.95%)</span><span class="paystub-row-val neg">-${fmt(e.cpp)}</span>
+        <span class="paystub-row-label">EI (1.66%)</span><span class="paystub-row-val neg">-${fmt(e.ei)}</span>
+      </div>
+      <hr class="paystub-divider">
+      <div class="paystub-net"><span>Net Pay</span><span class="net-val">${fmt(e.net)}</span></div>
+      <button class="btn-download" onclick="alert('PDF download would trigger here in production.')">
+        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 16v-8m0 8l-3-3m3 3l3-3M4 20h16"/></svg>
+        Download PDF
+      </button>
+    `;
+    pl.appendChild(card);
+  });
+}
+</script>
+</body>
+</html>

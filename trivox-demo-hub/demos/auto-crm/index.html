@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Dealership CRM — TRIVOX Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070b18;--bg2:#0d1426;--surface:#121b30;--surface2:#16203a;--border:#1e2a44;--text:#eaf0ff;--muted:#8a97b5;--brand:#2e61fe;--brand2:#00f0ff;--grad:linear-gradient(135deg,#2e61fe,#00f0ff);--good:#22c55e;--warn:#fbbf24;--bad:#ef4444;--radius:16px;--shadow:0 10px 40px rgba(0,0,0,.45);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;}
+
+nav{position:sticky;top:0;z-index:100;background:rgba(7,11,24,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.wordmark{font-weight:700;font-size:18px;letter-spacing:.04em;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.ai-pill{background:var(--grad);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.06em;line-height:1.6;}
+.nav-back{color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;transition:color .2s;}
+.nav-back:hover{color:var(--text);}
+
+.hero{padding:60px 32px 40px;max-width:1200px;margin:0 auto;}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--brand2);margin-bottom:14px;}
+.hero h1{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.02em;line-height:1.15;margin-bottom:12px;}
+.hero-sub{color:var(--muted);font-size:15px;max-width:640px;line-height:1.6;margin-bottom:36px;}
+.stats{display:flex;gap:20px;flex-wrap:wrap;}
+.stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 22px;min-width:160px;}
+.stat-num{font-size:22px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2;}
+.stat-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-top:3px;}
+
+.demo-wrap{max-width:1200px;margin:0 auto;padding:0 32px 60px;}
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+@media(max-width:900px){.demo-grid{grid-template-columns:1fr;}}
+
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);}
+.panel-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:22px;}
+
+/* LEAD LIST */
+.lead-list{display:flex;flex-direction:column;gap:10px;margin-bottom:22px;}
+.lead-item{background:var(--bg2);border:1px solid var(--border);border-radius:10px;padding:13px 16px;cursor:pointer;transition:border-color .2s,background .2s;display:flex;align-items:center;justify-content:space-between;}
+.lead-item:hover{border-color:var(--brand);background:var(--surface2);}
+.lead-item.active{border-color:var(--brand);background:rgba(46,97,254,.08);}
+.lead-item-left{display:flex;flex-direction:column;gap:3px;}
+.lead-item-name{font-size:13px;font-weight:600;}
+.lead-item-sub{font-size:11px;color:var(--muted);}
+.stage-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0;}
+.dot-new{background:#8a97b5;}
+.dot-contacted{background:var(--brand2);}
+.dot-testdrive{background:var(--warn);}
+.dot-negotiation{background:#a855f7;}
+.dot-sold{background:var(--good);}
+
+.btn-primary{width:100%;padding:14px;border:none;border-radius:12px;background:var(--grad);color:#fff;font-family:'Sora',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.03em;transition:opacity .2s,transform .1s;}
+.btn-primary:hover{opacity:.92;transform:translateY(-1px);}
+.btn-primary:active{transform:translateY(0);}
+
+/* OUTPUT */
+.output-panel{min-height:480px;display:flex;flex-direction:column;}
+.output-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--muted);}
+.output-empty .icon{font-size:40px;opacity:.3;}
+.output-empty p{font-size:13px;}
+
+.working{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;}
+.orb{width:64px;height:64px;border-radius:50%;background:var(--grad);opacity:.15;animation:pulse 1.2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:.15;}50%{transform:scale(1.18);opacity:.32;}}
+.working-label{font-size:13px;color:var(--muted);}
+
+/* KANBAN */
+.kanban-wrap{display:flex;flex-direction:column;gap:20px;}
+.kanban-cols{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;}
+.kanban-col{flex:0 0 120px;display:flex;flex-direction:column;gap:6px;}
+.col-header{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;padding:5px 8px;border-radius:6px;text-align:center;margin-bottom:4px;}
+.col-new .col-header{color:#8a97b5;background:rgba(138,151,181,.1);}
+.col-contacted .col-header{color:var(--brand2);background:rgba(0,240,255,.1);}
+.col-testdrive .col-header{color:var(--warn);background:rgba(251,191,36,.1);}
+.col-negotiation .col-header{color:#a855f7;background:rgba(168,85,247,.1);}
+.col-sold .col-header{color:var(--good);background:rgba(34,197,94,.1);}
+
+.k-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;font-size:11px;line-height:1.4;}
+.k-card.highlight{border-color:var(--brand);background:rgba(46,97,254,.08);}
+.k-name{font-weight:600;font-size:12px;margin-bottom:3px;}
+.k-vehicle{color:var(--muted);font-size:10px;margin-bottom:6px;}
+.k-price{font-weight:600;font-size:11px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.k-days{font-size:10px;color:var(--muted);margin-top:3px;}
+
+.k-card-appear{animation:cardIn .3s ease forwards;}
+@keyframes cardIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+
+/* AI ACTIONS */
+.ai-block{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.ai-header{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+.ai-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.ai-spark{font-size:14px;}
+.ai-actions{display:flex;flex-direction:column;gap:8px;}
+.ai-action{display:flex;align-items:flex-start;gap:10px;font-size:12px;line-height:1.4;}
+.ai-action-dot{width:6px;height:6px;border-radius:50%;background:var(--brand2);flex-shrink:0;margin-top:4px;}
+.ai-action span{color:var(--text);}
+.ai-action em{color:var(--muted);font-style:normal;}
+
+/* CONVERSION BAR */
+.conv-block{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.conv-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.conv-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
+.conv-pct{font-size:18px;font-weight:700;color:var(--good);}
+.conv-bar-bg{height:8px;background:var(--border);border-radius:8px;overflow:hidden;}
+.conv-bar-fill{height:100%;background:linear-gradient(90deg,var(--brand),var(--good));border-radius:8px;transform:scaleX(0);transform-origin:left;transition:transform .8s ease;}
+
+.hidden{display:none!important;}
+
+footer{text-align:center;padding:28px 16px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="../../portfolio.html">
+    <span class="wordmark">TRIVOX</span>
+    <span class="ai-pill">AI</span>
+  </a>
+  <a class="nav-back" href="../../portfolio.html">← All Demos</a>
+</nav>
+
+<section class="hero">
+  <p class="eyebrow">Automotive</p>
+  <h1>Dealership CRM</h1>
+  <p class="hero-sub">Tracks every lead from first message to sold. AI surfaces today's priority actions so your sales team always knows the next move.</p>
+  <div class="stats">
+    <div class="stat-chip"><div class="stat-num">$340k</div><div class="stat-lbl">Pipeline</div></div>
+    <div class="stat-chip"><div class="stat-num">+22%</div><div class="stat-lbl">Close Rate</div></div>
+    <div class="stat-chip"><div class="stat-num">Every</div><div class="stat-lbl">Lead Tracked</div></div>
+  </div>
+</section>
+
+<div class="demo-wrap">
+  <div class="demo-grid">
+
+    <!-- LEFT -->
+    <div class="panel">
+      <p class="panel-title">Active Leads</p>
+      <div class="lead-list" id="lead-list"></div>
+      <button class="btn-primary" onclick="openPipeline()">Open Pipeline</button>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="panel output-panel" id="output">
+      <div id="state-empty" class="output-empty">
+        <div class="icon">📋</div>
+        <p>Select a lead and click <strong>Open Pipeline</strong></p>
+      </div>
+
+      <div id="state-working" class="working hidden">
+        <div class="orb"></div>
+        <p class="working-label" id="working-label">Loading pipeline...</p>
+      </div>
+
+      <div id="state-results" class="kanban-wrap hidden">
+        <p class="panel-title" id="pipeline-title">Pipeline — All Leads</p>
+        <div class="kanban-cols" id="kanban-cols"></div>
+        <div class="ai-block">
+          <div class="ai-header">
+            <span class="ai-spark">✦</span>
+            <span class="ai-label">AI Priority Actions — Today</span>
+          </div>
+          <div class="ai-actions" id="ai-actions"></div>
+        </div>
+        <div class="conv-block" style="margin-top:14px;">
+          <div class="conv-header">
+            <span class="conv-title">Pipeline Conversion Rate</span>
+            <span class="conv-pct">22%</span>
+          </div>
+          <div class="conv-bar-bg"><div class="conv-bar-fill" id="conv-bar"></div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>Built by TRIVOX · AI automation that runs your business</footer>
+
+<script>
+const LEADS=[
+  {id:0,name:'Sandra L.',vehicle:'2020 Toyota RAV4',price:'$28,900',stage:'negotiation',days:3},
+  {id:1,name:'Mike T.',vehicle:'2019 Honda CR-V',price:'$24,500',stage:'testdrive',days:1},
+  {id:2,name:'Raj P.',vehicle:'Budget $30k SUV',price:'$29,500',stage:'contacted',days:5},
+  {id:3,name:'David C.',vehicle:'2018 Mazda CX-5',price:'$21,000',stage:'new',days:0},
+  {id:4,name:'Emma W.',vehicle:'2021 Nissan Rogue',price:'$26,400',stage:'sold',days:12},
+];
+
+const STAGE_ORDER=['new','contacted','testdrive','negotiation','sold'];
+const STAGE_LABELS={new:'New',contacted:'Contacted',testdrive:'Test Drive',negotiation:'Negotiation',sold:'Sold'};
+const STAGE_DOT={new:'dot-new',contacted:'dot-contacted',testdrive:'dot-testdrive',negotiation:'dot-negotiation',sold:'dot-sold'};
+
+const AI_ACTIONS=[
+  {text:'Call <strong>Sandra L.</strong>', note:'— in negotiation 3 days, offer $500 loyalty discount to close today'},
+  {text:'Follow up <strong>Raj P.</strong>', note:'— 5 days since last contact, send inventory update for new RAV4 stock'},
+  {text:'Book test drive for <strong>Mike T.</strong>', note:'— expressed interest in CR-V, no drive booked yet'},
+  {text:'Send welcome message to <strong>David C.</strong>', note:'— new inquiry, respond within 1 hour for best conversion'},
+];
+
+let selectedId=null;
+
+function renderLeadList(){
+  const el=document.getElementById('lead-list');
+  el.innerHTML='';
+  LEADS.forEach(l=>{
+    const div=document.createElement('div');
+    div.className='lead-item'+(selectedId===l.id?' active':'');
+    div.onclick=()=>selectLead(l.id);
+    div.innerHTML=`
+      <div class="lead-item-left">
+        <span class="lead-item-name">${l.name}</span>
+        <span class="lead-item-sub">${l.vehicle} · ${l.price}</span>
+      </div>
+      <span class="stage-dot ${STAGE_DOT[l.stage]}"></span>`;
+    el.appendChild(div);
+  });
+}
+
+function selectLead(id){
+  selectedId=id;
+  renderLeadList();
+}
+
+function setState(id){
+  ['state-empty','state-working','state-results'].forEach(s=>{
+    document.getElementById(s).classList.toggle('hidden',s!==id);
+  });
+}
+
+function openPipeline(){
+  setState('state-working');
+  const labels=['Loading lead data...','Building pipeline view...','Running AI prioritization...'];
+  let i=0;
+  const iv=setInterval(()=>{
+    document.getElementById('working-label').textContent=labels[i]||labels[labels.length-1];
+    i++;
+    if(i>labels.length){clearInterval(iv);renderPipeline();}
+  },380);
+}
+
+function renderPipeline(){
+  const title=selectedId!==null
+    ?`Pipeline — ${LEADS[selectedId].name}`
+    :'Pipeline — All Leads';
+  document.getElementById('pipeline-title').textContent=title;
+
+  const leadsToShow=selectedId!==null?[LEADS[selectedId]]:LEADS;
+  const cols=document.getElementById('kanban-cols');
+  cols.innerHTML='';
+
+  STAGE_ORDER.forEach(stage=>{
+    const col=document.createElement('div');
+    col.className=`kanban-col col-${stage}`;
+    col.innerHTML=`<div class="col-header">${STAGE_LABELS[stage]}</div>`;
+    const cards=leadsToShow.filter(l=>l.stage===stage);
+    cards.forEach((l,i)=>{
+      const card=document.createElement('div');
+      const isSelected=selectedId===l.id;
+      card.className='k-card k-card-appear'+(isSelected?' highlight':'');
+      card.style.animationDelay=(i*0.08)+'s';
+      card.innerHTML=`
+        <div class="k-name">${l.name}</div>
+        <div class="k-vehicle">${l.vehicle}</div>
+        <div class="k-price">${l.price}</div>
+        ${l.days>0?`<div class="k-days">${l.days}d in stage</div>`:'<div class="k-days">Just arrived</div>'}`;
+      col.appendChild(card);
+    });
+    cols.appendChild(col);
+  });
+
+  const actionsEl=document.getElementById('ai-actions');
+  actionsEl.innerHTML='';
+  const actionsToShow=selectedId!==null
+    ?AI_ACTIONS.filter((_,i)=>i===selectedId).slice(0,2)
+    :AI_ACTIONS;
+  actionsToShow.forEach(a=>{
+    const div=document.createElement('div');
+    div.className='ai-action';
+    div.innerHTML=`<span class="ai-action-dot"></span><span>${a.text} <em>${a.note}</em></span>`;
+    actionsEl.appendChild(div);
+  });
+
+  setState('state-results');
+  setTimeout(()=>{
+    document.getElementById('conv-bar').style.transform='scaleX(0.22)';
+  },200);
+}
+
+renderLeadList();
+</script>
+</body>
+</html>

@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Review Responder | TRIVOX</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070b18;--bg2:#0d1426;--surface:#121b30;--surface2:#16203a;--border:#1e2a44;--text:#eaf0ff;--muted:#8a97b5;--brand:#2e61fe;--brand2:#00f0ff;--grad:linear-gradient(135deg,#2e61fe,#00f0ff);--good:#22c55e;--warn:#fbbf24;--bad:#ef4444;--radius:16px;--shadow:0 10px 40px rgba(0,0,0,.45);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;line-height:1.5;}
+a{color:inherit;text-decoration:none;}
+
+nav{position:sticky;top:0;z-index:100;background:rgba(7,11,24,.85);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 32px;height:58px;display:flex;align-items:center;justify-content:space-between;}
+.nav-brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:18px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.ai-pill{background:var(--grad);-webkit-background-clip:unset;-webkit-text-fill-color:unset;background-clip:unset;color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.06em;}
+.back-link{color:var(--muted);font-size:13px;font-weight:500;transition:color .2s;}
+.back-link:hover{color:var(--text);}
+
+.hero{padding:72px 32px 56px;max-width:1100px;margin:0 auto;}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--brand2);margin-bottom:14px;}
+.hero h1{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.02em;margin-bottom:12px;}
+.hero-sub{color:var(--muted);font-size:15px;max-width:640px;margin-bottom:40px;}
+.stats{display:flex;gap:24px;flex-wrap:wrap;}
+.stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 24px;min-width:140px;}
+.stat-num{font-size:22px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:block;margin-bottom:4px;}
+.stat-label{font-size:10px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+
+.demo-section{padding:0 32px 80px;max-width:1100px;margin:0 auto;}
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+@media(max-width:900px){.demo-grid{grid-template-columns:1fr;}}
+
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);}
+.panel-head{font-size:14px;font-weight:600;margin-bottom:4px;}
+.panel-sub{font-size:12px;color:var(--muted);margin-bottom:22px;}
+
+/* REVIEW INPUT CARDS */
+.review-input{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;}
+.review-input-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.review-meta{display:flex;align-items:center;gap:10px;}
+.reviewer-avatar{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;flex-shrink:0;}
+.reviewer-name{font-size:13px;font-weight:600;}
+.reviewer-platform{font-size:11px;color:var(--muted);}
+.stars{display:flex;gap:2px;}
+.star{font-size:13px;}
+.star.filled{color:var(--warn);}
+.star.empty{color:var(--border);}
+.review-body{font-size:12px;line-height:1.6;color:var(--text);}
+
+.field{margin-bottom:16px;}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.05em;text-transform:uppercase;margin-bottom:6px;}
+.field input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Sora',sans-serif;font-size:13px;padding:11px 14px;outline:none;transition:border-color .2s;}
+.field input:focus{border-color:var(--brand);}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+
+.btn-primary{width:100%;padding:13px;background:var(--grad);border:none;border-radius:10px;color:#fff;font-family:'Sora',sans-serif;font-size:14px;font-weight:700;cursor:pointer;margin-top:6px;transition:opacity .2s;}
+.btn-primary:hover{opacity:.88;}
+
+/* OUTPUT */
+.output-panel{min-height:480px;display:flex;flex-direction:column;}
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:var(--muted);}
+.empty-hint{font-size:13px;text-align:center;max-width:220px;}
+
+.working-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;}
+.orb-wrap{position:relative;width:64px;height:64px;}
+.orb{width:64px;height:64px;border-radius:50%;background:var(--grad);animation:pulse-orb 1.2s ease-in-out infinite;}
+.orb-ring{position:absolute;inset:-10px;border-radius:50%;border:2px solid var(--brand);opacity:.4;animation:pulse-ring 1.2s ease-in-out infinite;}
+@keyframes pulse-orb{0%,100%{transform:scale(1);}50%{transform:scale(1.08);}}
+@keyframes pulse-ring{0%{transform:scale(1);opacity:.4;}100%{transform:scale(1.5);opacity:0;}}
+.checklist{list-style:none;display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px;}
+.check-item{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted);transition:color .3s;}
+.check-item.done{color:var(--text);}
+.check-dot{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .3s;}
+.check-item.done .check-dot{background:var(--good);border-color:var(--good);}
+.check-dot svg{display:none;}
+.check-item.done .check-dot svg{display:block;}
+
+/* RESULT */
+.result-state{flex:1;display:flex;flex-direction:column;gap:14px;}
+
+/* METRICS BAR */
+.metrics-bar{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 18px;display:flex;gap:28px;align-items:center;flex-wrap:wrap;}
+.metric{display:flex;flex-direction:column;gap:2px;}
+.metric-val{font-size:18px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.metric-lbl{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);}
+.metric-div{width:1px;background:var(--border);align-self:stretch;}
+
+/* REVIEW REPLY CARDS */
+.reply-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px;}
+.reply-card-header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.reply-reviewer{display:flex;align-items:center;gap:8px;}
+.reply-badges{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
+.tone-badge{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.04em;}
+.tone-badge.delighted{background:rgba(34,197,94,.15);color:var(--good);border:1px solid rgba(34,197,94,.3);}
+.tone-badge.neutral{background:rgba(251,191,36,.12);color:var(--warn);border:1px solid rgba(251,191,36,.3);}
+.tone-badge.recovery{background:rgba(239,68,68,.12);color:var(--bad);border:1px solid rgba(239,68,68,.3);}
+.escalate-flag{font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;background:rgba(239,68,68,.18);color:var(--bad);border:1px solid rgba(239,68,68,.35);}
+
+.review-original{font-size:12px;color:var(--muted);line-height:1.5;padding:8px 10px;background:rgba(255,255,255,.04);border-radius:8px;border:1px solid var(--border);}
+.reply-label{font-size:10px;font-weight:700;letter-spacing:.05em;color:var(--brand2);margin-bottom:2px;}
+.reply-text{font-size:12px;line-height:1.6;color:var(--text);}
+
+.hidden{display:none!important;}
+footer{text-align:center;padding:28px;font-size:12px;color:var(--muted);border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">TRIVOX <span class="ai-pill">AI</span></div>
+  <a href="../../portfolio.html" class="back-link">← All Demos</a>
+</nav>
+
+<section class="hero">
+  <div class="eyebrow">Marketing &amp; Reputation</div>
+  <h1>Review Responder</h1>
+  <p class="hero-sub">Auto-drafts on-brand replies to every Google and Yelp review, matched to sentiment, with escalation flags for urgent cases.</p>
+  <div class="stats">
+    <div class="stat-chip">
+      <span class="stat-num">100%</span>
+      <span class="stat-label">Reviews answered</span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-num">&lt;1h</span>
+      <span class="stat-label">Response time</span>
+    </div>
+    <div class="stat-chip">
+      <span class="stat-num">+0.4★</span>
+      <span class="stat-label">Avg rating lift</span>
+    </div>
+  </div>
+</section>
+
+<section class="demo-section">
+  <div class="demo-grid">
+    <!-- LEFT -->
+    <div class="panel">
+      <div class="panel-head">Incoming Reviews</div>
+      <div class="panel-sub">Three real reviews across sentiment levels. Add your business details below.</div>
+
+      <!-- 5-star -->
+      <div class="review-input">
+        <div class="review-input-header">
+          <div class="review-meta">
+            <div class="reviewer-avatar" style="background:linear-gradient(135deg,#3730a3,#5b21b6);">A</div>
+            <div>
+              <div class="reviewer-name">Amanda L.</div>
+              <div class="reviewer-platform">Google</div>
+            </div>
+          </div>
+          <div class="stars">
+            <span class="star filled">★</span><span class="star filled">★</span><span class="star filled">★</span><span class="star filled">★</span><span class="star filled">★</span>
+          </div>
+        </div>
+        <div class="review-body">Absolutely incredible experience from start to finish. The team was professional, warm, and genuinely cared about getting every detail right. My wedding photos came out beyond anything I imagined. Already recommending to everyone I know!</div>
+      </div>
+
+      <!-- 3-star -->
+      <div class="review-input">
+        <div class="review-input-header">
+          <div class="review-meta">
+            <div class="reviewer-avatar" style="background:linear-gradient(135deg,#92400e,#78350f);">M</div>
+            <div>
+              <div class="reviewer-name">Marcus T.</div>
+              <div class="reviewer-platform">Yelp</div>
+            </div>
+          </div>
+          <div class="stars">
+            <span class="star filled">★</span><span class="star filled">★</span><span class="star filled">★</span><span class="star empty">★</span><span class="star empty">★</span>
+          </div>
+        </div>
+        <div class="review-body">Good quality work overall but communication during the project was slow. Had to follow up twice to get updates. The final result was nice but the process felt disorganized. Would consider coming back if they improve on that.</div>
+      </div>
+
+      <!-- 1-star -->
+      <div class="review-input">
+        <div class="review-input-header">
+          <div class="review-meta">
+            <div class="reviewer-avatar" style="background:linear-gradient(135deg,#991b1b,#7f1d1d);">J</div>
+            <div>
+              <div class="reviewer-name">Jennifer K.</div>
+              <div class="reviewer-platform">Google</div>
+            </div>
+          </div>
+          <div class="stars">
+            <span class="star filled">★</span><span class="star empty">★</span><span class="star empty">★</span><span class="star empty">★</span><span class="star empty">★</span>
+          </div>
+        </div>
+        <div class="review-body">Extremely disappointed. Paid a deposit and was ghosted for 3 weeks. When I finally got a response the deliverables were nothing like what was agreed on. Had to dispute the charge with my bank. Do not recommend.</div>
+      </div>
+
+      <div class="field-row" style="margin-top:8px;">
+        <div class="field">
+          <label>Business Name</label>
+          <input type="text" value="Lumière Studio Co." id="bizName">
+        </div>
+        <div class="field">
+          <label>Industry</label>
+          <input type="text" value="Wedding Photography" id="industry">
+        </div>
+      </div>
+      <div class="field">
+        <label>Brand Voice</label>
+        <input type="text" value="Warm, professional, grateful — never defensive" id="brandVoice">
+      </div>
+
+      <button class="btn-primary" id="generateBtn" onclick="runDemo()">Draft Replies</button>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="panel output-panel">
+      <!-- EMPTY -->
+      <div class="empty-state" id="stateEmpty">
+        <svg width="52" height="52" viewBox="0 0 52 52" fill="none" style="opacity:.35;">
+          <rect x="4" y="10" width="44" height="32" rx="6" stroke="#8a97b5" stroke-width="2"/>
+          <path d="M14 20h24M14 27h16" stroke="#8a97b5" stroke-width="2" stroke-linecap="round"/>
+          <circle cx="40" cy="36" r="8" fill="#070b18" stroke="#8a97b5" stroke-width="2"/>
+          <path d="M37 36l2 2 4-4" stroke="#8a97b5" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <p class="empty-hint">Add your business details and hit Draft Replies to see AI responses for all 3 reviews.</p>
+      </div>
+
+      <!-- WORKING -->
+      <div class="working-state hidden" id="stateWorking">
+        <div class="orb-wrap">
+          <div class="orb-ring"></div>
+          <div class="orb"></div>
+        </div>
+        <ul class="checklist">
+          <li class="check-item" id="step1">
+            <div class="check-dot"><svg width="10" height="10" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            Reading sentiment on all 3 reviews
+          </li>
+          <li class="check-item" id="step2">
+            <div class="check-dot"><svg width="10" height="10" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            Calibrating brand voice
+          </li>
+          <li class="check-item" id="step3">
+            <div class="check-dot"><svg width="10" height="10" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            Drafting 3 tailored replies
+          </li>
+          <li class="check-item" id="step4">
+            <div class="check-dot"><svg width="10" height="10" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            Flagging escalation risk
+          </li>
+        </ul>
+      </div>
+
+      <!-- RESULT -->
+      <div class="result-state hidden" id="stateResult">
+
+        <div class="metrics-bar">
+          <div class="metric">
+            <span class="metric-val">4.3★</span>
+            <span class="metric-lbl">Avg Rating</span>
+          </div>
+          <div class="metric-div"></div>
+          <div class="metric">
+            <span class="metric-val">100%</span>
+            <span class="metric-lbl">Response Rate</span>
+          </div>
+          <div class="metric-div"></div>
+          <div class="metric">
+            <span class="metric-val">3 / 3</span>
+            <span class="metric-lbl">Drafted Today</span>
+          </div>
+        </div>
+
+        <!-- 5-star reply -->
+        <div class="reply-card">
+          <div class="reply-card-header">
+            <div class="reply-reviewer">
+              <div class="reviewer-avatar" style="width:28px;height:28px;font-size:11px;background:linear-gradient(135deg,#3730a3,#5b21b6);">A</div>
+              <div>
+                <div style="font-size:12px;font-weight:600;">Amanda L.</div>
+                <div style="font-size:12px;color:var(--muted);">Google · 5 stars</div>
+              </div>
+            </div>
+            <div class="reply-badges">
+              <span class="tone-badge delighted">Delighted</span>
+            </div>
+          </div>
+          <div class="review-original">"Absolutely incredible experience from start to finish..."</div>
+          <div>
+            <div class="reply-label">AI REPLY</div>
+            <div class="reply-text">Amanda, thank you so much for these kind words! It means the world to our entire team. Your wedding was such a beautiful day to be part of, and knowing the photos exceeded your expectations is exactly why we do this. We truly appreciate you sharing your experience and for recommending us. Wishing you and your partner a lifetime of happiness!</div>
+          </div>
+        </div>
+
+        <!-- 3-star reply -->
+        <div class="reply-card">
+          <div class="reply-card-header">
+            <div class="reply-reviewer">
+              <div class="reviewer-avatar" style="width:28px;height:28px;font-size:11px;background:linear-gradient(135deg,#92400e,#78350f);">M</div>
+              <div>
+                <div style="font-size:12px;font-weight:600;">Marcus T.</div>
+                <div style="font-size:12px;color:var(--muted);">Yelp · 3 stars</div>
+              </div>
+            </div>
+            <div class="reply-badges">
+              <span class="tone-badge neutral">Neutral</span>
+            </div>
+          </div>
+          <div class="review-original">"Good quality work overall but communication was slow..."</div>
+          <div>
+            <div class="reply-label">AI REPLY</div>
+            <div class="reply-text">Marcus, thank you for taking the time to share your honest feedback. We're glad you were happy with the final result, and we sincerely apologize for the communication gaps during your project. That's not the experience we aim to deliver, and your feedback has been shared directly with our team. We've since improved our update process and would love the chance to show you the difference. Thank you again for giving us a shot.</div>
+          </div>
+        </div>
+
+        <!-- 1-star reply -->
+        <div class="reply-card" style="background:rgba(239,68,68,.05);">
+          <div class="reply-card-header">
+            <div class="reply-reviewer">
+              <div class="reviewer-avatar" style="width:28px;height:28px;font-size:11px;background:linear-gradient(135deg,#991b1b,#7f1d1d);">J</div>
+              <div>
+                <div style="font-size:12px;font-weight:600;">Jennifer K.</div>
+                <div style="font-size:12px;color:var(--muted);">Google · 1 star</div>
+              </div>
+            </div>
+            <div class="reply-badges">
+              <span class="tone-badge recovery">Recovery</span>
+              <span class="escalate-flag">Escalate to Owner</span>
+            </div>
+          </div>
+          <div class="review-original">"Paid a deposit and was ghosted for 3 weeks..."</div>
+          <div>
+            <div class="reply-label">AI REPLY</div>
+            <div class="reply-text">Jennifer, we are truly sorry to read about your experience. This is not representative of our standards and we take this very seriously. We would very much like to speak with you directly to understand what happened and make this right. Please reach out to us at hello@lumierestudio.co at your earliest convenience. We appreciate you bringing this to our attention.</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>Built by TRIVOX — AI automation that runs your business</footer>
+
+<script>
+function runDemo(){
+  const btn = document.getElementById('generateBtn');
+  btn.disabled = true;
+  btn.textContent = 'Generating...';
+
+  document.getElementById('stateEmpty').classList.add('hidden');
+  document.getElementById('stateWorking').classList.remove('hidden');
+  document.getElementById('stateResult').classList.add('hidden');
+
+  const steps = ['step1','step2','step3','step4'];
+  let i = 0;
+  const tick = () => {
+    if(i < steps.length){
+      document.getElementById(steps[i]).classList.add('done');
+      i++;
+      setTimeout(tick, 420);
+    } else {
+      setTimeout(() => {
+        document.getElementById('stateWorking').classList.add('hidden');
+        document.getElementById('stateResult').classList.remove('hidden');
+        btn.disabled = false;
+        btn.textContent = 'Draft Replies';
+      }, 260);
+    }
+  };
+  setTimeout(tick, 300);
+}
+</script>
+</body>
+</html>

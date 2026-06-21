@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Legal Intake AI — TRIVOX Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@700;800&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070b18;--bg2:#0d1426;--surface:#121b30;--surface2:#16203a;--border:#1e2a44;--text:#eaf0ff;--muted:#8a97b5;--brand:#2e61fe;--brand2:#00f0ff;--grad:linear-gradient(135deg,#2e61fe,#00f0ff);--good:#22c55e;--warn:#fbbf24;--bad:#ef4444;--radius:16px;--shadow:0 10px 40px rgba(0,0,0,.45);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;}
+a{text-decoration:none;color:inherit;}
+
+nav{position:sticky;top:0;z-index:100;background:rgba(7,11,24,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;}
+.nav-brand{font-size:18px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;display:flex;align-items:center;gap:8px;}
+.nav-brand .ai-pill{background:var(--grad);-webkit-background-clip:unset;-webkit-text-fill-color:var(--bg);background-clip:unset;color:var(--bg);font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.06em;}
+.nav-back{font-size:13px;color:var(--muted);transition:color .2s;}
+.nav-back:hover{color:var(--text);}
+
+.hero{padding:72px 32px 56px;max-width:1100px;margin:0 auto;}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--brand2);margin-bottom:16px;font-family:'DM Sans',sans-serif;}
+h1{font-size:clamp(28px,4vw,40px);font-weight:800;letter-spacing:-.02em;line-height:1.15;margin-bottom:16px;font-family:'DM Sans',sans-serif;}
+h1 span{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.hero-sub{font-size:16px;color:var(--muted);line-height:1.65;max-width:640px;margin-bottom:36px;}
+.stats{display:flex;flex-wrap:wrap;gap:12px;}
+.stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:40px;padding:8px 18px;font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px;}
+.stat-chip .dot{width:7px;height:7px;border-radius:50%;background:var(--grad);}
+
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:1100px;margin:0 auto;padding:0 32px 80px;}
+@media(max-width:900px){.demo-grid{grid-template-columns:1fr;}}
+
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);}
+.panel-label{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:20px;}
+
+.field-group{margin-bottom:18px;}
+.field-label{font-size:12px;font-weight:500;color:var(--muted);margin-bottom:6px;}
+textarea,input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;color:var(--text);font-family:'Sora',sans-serif;font-size:14px;resize:vertical;outline:none;transition:border-color .2s;}
+textarea:focus,input:focus{border-color:var(--brand);}
+textarea{min-height:120px;}
+.meta-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.btn{width:100%;padding:14px;background:var(--grad);border:none;border-radius:10px;color:#fff;font-family:'Sora',sans-serif;font-size:14px;font-weight:600;cursor:pointer;letter-spacing:.02em;transition:opacity .2s;margin-top:6px;}
+.btn:hover{opacity:.88;}
+.btn:disabled{opacity:.5;cursor:not-allowed;}
+
+.right-panel{min-height:480px;display:flex;flex-direction:column;}
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--muted);}
+.empty-icon{width:48px;height:48px;border-radius:50%;border:2px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:20px;}
+
+.loading-state{flex:1;display:none;flex-direction:column;align-items:center;justify-content:center;gap:24px;}
+.orb{width:64px;height:64px;border-radius:50%;background:var(--grad);animation:pulse 1.2s ease-in-out infinite;box-shadow:0 0 32px rgba(46,97,254,.5);}
+@keyframes pulse{0%,100%{transform:scale(.9);opacity:.7;}50%{transform:scale(1.05);opacity:1;}}
+.checklist{list-style:none;display:flex;flex-direction:column;gap:8px;min-width:240px;}
+.checklist li{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px;transition:color .3s;}
+.checklist li.done{color:var(--text);}
+.check-icon{width:18px;height:18px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0;transition:background .3s,border-color .3s;}
+.checklist li.done .check-icon{background:var(--good);border-color:var(--good);}
+
+.result-state{display:none;flex-direction:column;gap:14px;}
+
+.intake-summary{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.section-title{font-size:11px;font-weight:600;color:var(--brand2);letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px;}
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.summary-field{display:flex;flex-direction:column;gap:3px;}
+.summary-key{font-size:11px;color:var(--muted);font-weight:500;}
+.summary-val{font-size:13px;font-weight:600;}
+.urgency-high{color:var(--bad);}
+.urgency-med{color:var(--warn);}
+
+.verdict-card{border-radius:12px;padding:16px;}
+.verdict-qualified{background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.3);}
+.verdict-title{font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.verdict-title .v-dot{width:8px;height:8px;border-radius:50%;background:var(--good);}
+.verdict-body{font-size:13px;color:var(--muted);line-height:1.6;}
+.verdict-body strong{color:var(--text);}
+
+.conflict-bar{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 16px;display:flex;align-items:center;gap:12px;}
+.conflict-dot{width:10px;height:10px;border-radius:50%;background:var(--good);flex-shrink:0;box-shadow:0 0 8px rgba(34,197,94,.5);}
+.conflict-text{font-size:13px;line-height:1.5;}
+.conflict-text strong{color:var(--good);}
+
+.consult-card{background:var(--surface2);border:1px solid rgba(34,197,94,.25);border-radius:12px;padding:16px;}
+.consult-rows{display:flex;flex-direction:column;gap:6px;}
+.consult-row{display:flex;justify-content:space-between;font-size:13px;}
+.consult-row span:first-child{color:var(--muted);}
+.consult-row span:last-child{font-weight:500;}
+
+.lead-card{background:linear-gradient(135deg,rgba(46,97,254,.1),rgba(0,240,255,.06));border:1px solid rgba(46,97,254,.3);border-radius:12px;padding:16px;}
+.lead-card-title{font-size:11px;font-weight:600;color:var(--brand2);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;}
+.data-row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;}
+.data-row span:first-child{color:var(--muted);}
+.data-row span:last-child{font-weight:500;}
+
+footer{text-align:center;padding:28px;font-size:13px;color:var(--muted);border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">TRIVOX <span class="ai-pill">AI</span></div>
+  <a class="nav-back" href="../../portfolio.html">← All Demos</a>
+</nav>
+
+<div class="hero">
+  <div class="eyebrow">Legal · Professional Services</div>
+  <h1>Legal Intake <span>AI</span></h1>
+  <p class="hero-sub">Qualifies incoming legal leads in under 60 seconds, runs a conflict check, captures structured intake data, and books a consult with the right attorney. Available around the clock.</p>
+  <div class="stats">
+    <div class="stat-chip"><span class="dot"></span>Qualified in 60s</div>
+    <div class="stat-chip"><span class="dot"></span>24/7 intake</div>
+    <div class="stat-chip"><span class="dot"></span>+33% consults booked</div>
+  </div>
+</div>
+
+<div class="demo-grid">
+  <!-- LEFT -->
+  <div class="panel">
+    <div class="panel-label">Prospect Message</div>
+    <div class="field-group">
+      <div class="field-label">Prospect message</div>
+      <textarea id="prospect-msg">Hi, I was in a car accident last week. The other driver ran a red light and hit me. I have some injuries and my car is totaled. Do I have a case?</textarea>
+    </div>
+    <div class="meta-row">
+      <div class="field-group">
+        <div class="field-label">Prospect name</div>
+        <input id="prospect-name" type="text" value="Marcus T.">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Contact</div>
+        <input id="prospect-contact" type="text" value="marcus@email.com">
+      </div>
+    </div>
+    <div class="meta-row">
+      <div class="field-group">
+        <div class="field-label">State / Province</div>
+        <input id="prospect-state" type="text" value="Ontario, Canada">
+      </div>
+      <div class="field-group">
+        <div class="field-label">Incident date</div>
+        <input id="prospect-date" type="text" value="June 12, 2026">
+      </div>
+    </div>
+    <button class="btn" id="run-btn" onclick="runDemo()">Qualify &amp; Route</button>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="panel right-panel">
+    <div class="empty-state" id="empty-state">
+      <div class="empty-icon">⚖️</div>
+      <span style="font-size:14px;">Intake analysis will appear here</span>
+    </div>
+
+    <div class="loading-state" id="loading-state">
+      <div class="orb"></div>
+      <ul class="checklist">
+        <li id="step1"><span class="check-icon"></span>Parsing prospect message</li>
+        <li id="step2"><span class="check-icon"></span>Classifying matter type</li>
+        <li id="step3"><span class="check-icon"></span>Running conflict check</li>
+        <li id="step4"><span class="check-icon"></span>Assessing qualification</li>
+        <li id="step5"><span class="check-icon"></span>Booking consult slot</li>
+      </ul>
+    </div>
+
+    <div class="result-state" id="result-state">
+
+      <div class="intake-summary">
+        <div class="section-title">Intake Summary</div>
+        <div class="summary-grid">
+          <div class="summary-field">
+            <span class="summary-key">Matter type</span>
+            <span class="summary-val">Personal Injury · MVA</span>
+          </div>
+          <div class="summary-field">
+            <span class="summary-key">Jurisdiction</span>
+            <span class="summary-val">Ontario, Canada</span>
+          </div>
+          <div class="summary-field">
+            <span class="summary-key">Incident date</span>
+            <span class="summary-val">June 12, 2026</span>
+          </div>
+          <div class="summary-field">
+            <span class="summary-key">Limitation period</span>
+            <span class="summary-val">2 years (expires Jun 2028)</span>
+          </div>
+          <div class="summary-field">
+            <span class="summary-key">Liability indicators</span>
+            <span class="summary-val">Red-light violation, at-fault third party</span>
+          </div>
+          <div class="summary-field">
+            <span class="summary-key">Urgency</span>
+            <span class="summary-val urgency-med">Medium · injuries reported</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="verdict-card verdict-qualified">
+        <div class="verdict-title"><span class="v-dot"></span>Qualified: Strong personal injury claim</div>
+        <div class="verdict-body">
+          Prospect describes a clear third-party liability scenario: at-fault driver ran a red light, causing property damage and personal injury. Ontario's Insurance Act applies. <strong>Recommend assigning to PI team.</strong> Medical documentation and police report should be requested at consult.
+        </div>
+      </div>
+
+      <div class="conflict-bar">
+        <div class="conflict-dot"></div>
+        <div class="conflict-text"><strong>No conflicts found.</strong> Marcus T. and the opposing party (unknown) return clean against all active client files.</div>
+      </div>
+
+      <div class="consult-card">
+        <div class="section-title">✓ Consult Booked</div>
+        <div class="consult-rows">
+          <div class="consult-row"><span>Prospect</span><span>Marcus T.</span></div>
+          <div class="consult-row"><span>Attorney</span><span>Sarah Okonkwo, PI Division</span></div>
+          <div class="consult-row"><span>Date &amp; Time</span><span>Mon Jun 22 · 10:00 AM</span></div>
+          <div class="consult-row"><span>Format</span><span>Video call (link sent by email)</span></div>
+          <div class="consult-row"><span>Retainer type</span><span>Contingency · no upfront fee</span></div>
+        </div>
+      </div>
+
+      <div class="lead-card">
+        <div class="lead-card-title">Captured Lead Record</div>
+        <div class="data-row"><span>Name</span><span>Marcus T.</span></div>
+        <div class="data-row"><span>Contact</span><span>marcus@email.com</span></div>
+        <div class="data-row"><span>Matter</span><span>Personal Injury · MVA</span></div>
+        <div class="data-row"><span>Conflict check</span><span style="color:var(--good);">Clear</span></div>
+        <div class="data-row"><span>Status</span><span style="color:var(--good);font-weight:600;">Consult booked</span></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<footer>Built by TRIVOX · AI automation that runs your business</footer>
+
+<script>
+function runDemo(){
+  const btn=document.getElementById('run-btn');
+  btn.disabled=true;
+  document.getElementById('empty-state').style.display='none';
+  document.getElementById('loading-state').style.display='flex';
+  document.getElementById('result-state').style.display='none';
+
+  const steps=['step1','step2','step3','step4','step5'];
+  const delays=[300,700,1100,1450,1750];
+  steps.forEach((id,i)=>{
+    setTimeout(()=>{
+      const el=document.getElementById(id);
+      el.classList.add('done');
+      el.querySelector('.check-icon').textContent='✓';
+    },delays[i]);
+  });
+
+  setTimeout(()=>{
+    document.getElementById('loading-state').style.display='none';
+    document.getElementById('result-state').style.display='flex';
+    btn.disabled=false;
+    btn.textContent='Run Again';
+  },2100);
+}
+</script>
+</body>
+</html>

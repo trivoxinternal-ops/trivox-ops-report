@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Car Deals Marketplace — TRIVOX Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#070b18;--bg2:#0d1426;--surface:#121b30;--surface2:#16203a;--border:#1e2a44;--text:#eaf0ff;--muted:#8a97b5;--brand:#2e61fe;--brand2:#00f0ff;--grad:linear-gradient(135deg,#2e61fe,#00f0ff);--good:#22c55e;--warn:#fbbf24;--bad:#ef4444;--radius:16px;--shadow:0 10px 40px rgba(0,0,0,.45);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Sora',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;}
+
+/* NAV */
+nav{position:sticky;top:0;z-index:100;background:rgba(7,11,24,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;}
+.nav-brand{display:flex;align-items:center;gap:10px;text-decoration:none;}
+.wordmark{font-weight:700;font-size:18px;letter-spacing:.04em;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.ai-pill{background:var(--grad);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.06em;line-height:1.6;}
+.nav-back{color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;transition:color .2s;}
+.nav-back:hover{color:var(--text);}
+
+/* HERO */
+.hero{padding:60px 32px 40px;max-width:1100px;margin:0 auto;}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--brand2);margin-bottom:14px;}
+.hero h1{font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.02em;line-height:1.15;margin-bottom:12px;}
+.hero-sub{color:var(--muted);font-size:15px;max-width:640px;line-height:1.6;margin-bottom:36px;}
+.stats{display:flex;gap:20px;flex-wrap:wrap;}
+.stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 22px;min-width:160px;}
+.stat-num{font-size:22px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1.2;}
+.stat-lbl{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-top:3px;}
+
+/* DEMO GRID */
+.demo-wrap{max-width:1100px;margin:0 auto;padding:0 32px 60px;}
+.demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;}
+@media(max-width:900px){.demo-grid{grid-template-columns:1fr;}}
+
+/* PANELS */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);}
+.panel-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:22px;}
+
+/* FORM */
+.form-group{margin-bottom:18px;}
+.form-group label{display:block;font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;}
+.form-group input,.form-group select{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:'Sora',sans-serif;font-size:14px;padding:11px 14px;outline:none;transition:border-color .2s;}
+.form-group input:focus,.form-group select:focus{border-color:var(--brand);}
+.form-group select option{background:var(--bg2);}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.btn-primary{width:100%;margin-top:8px;padding:14px;border:none;border-radius:12px;background:var(--grad);color:#fff;font-family:'Sora',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.03em;transition:opacity .2s,transform .1s;}
+.btn-primary:hover{opacity:.92;transform:translateY(-1px);}
+.btn-primary:active{transform:translateY(0);}
+
+/* OUTPUT */
+.output-panel{min-height:480px;display:flex;flex-direction:column;}
+.output-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--muted);}
+.output-empty .icon{font-size:40px;opacity:.3;}
+.output-empty p{font-size:13px;}
+
+/* WORKING STATE */
+.working{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;}
+.orb{width:72px;height:72px;border-radius:50%;background:var(--grad);opacity:.15;animation:pulse 1.2s ease-in-out infinite;}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:.15;}50%{transform:scale(1.18);opacity:.32;}}
+.checklist{list-style:none;display:flex;flex-direction:column;gap:8px;min-width:220px;}
+.checklist li{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px;transition:color .3s;}
+.checklist li.done{color:var(--good);}
+.checklist li .dot{width:8px;height:8px;border-radius:50%;background:var(--border);flex-shrink:0;transition:background .3s;}
+.checklist li.done .dot{background:var(--good);}
+
+/* RESULTS */
+.results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.results-header h3{font-size:14px;font-weight:600;}
+.badge-count{background:rgba(0,240,255,.1);color:var(--brand2);border:1px solid rgba(0,240,255,.25);border-radius:8px;font-size:11px;font-weight:700;padding:3px 10px;}
+.car-cards{display:flex;flex-direction:column;gap:14px;}
+.car-card{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;gap:14px;align-items:flex-start;}
+.car-img{width:80px;height:60px;border-radius:8px;object-fit:cover;background:linear-gradient(135deg,#1e2a44,#0d1426);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:22px;}
+.car-info{flex:1;min-width:0;}
+.car-name{font-size:14px;font-weight:600;margin-bottom:3px;}
+.car-meta{font-size:12px;color:var(--muted);margin-bottom:8px;}
+.car-bottom{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;}
+.car-price{font-size:15px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.car-finance{font-size:11px;color:var(--muted);}
+.match-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px;}
+.match-high{background:rgba(34,197,94,.15);color:var(--good);border:1px solid rgba(34,197,94,.3);}
+.match-mid{background:rgba(251,191,36,.12);color:var(--warn);border:1px solid rgba(251,191,36,.28);}
+.hidden{display:none!important;}
+
+/* FOOTER */
+footer{text-align:center;padding:28px 16px;color:var(--muted);font-size:12px;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="../../portfolio.html">
+    <span class="wordmark">TRIVOX</span>
+    <span class="ai-pill">AI</span>
+  </a>
+  <a class="nav-back" href="../../portfolio.html">← All Demos</a>
+</nav>
+
+<section class="hero">
+  <p class="eyebrow">Automotive</p>
+  <h1>Car Deals Marketplace</h1>
+  <p class="hero-sub">Auto-updating used-car marketplace that syncs dealer inventory daily and matches buyers to the best listings in seconds.</p>
+  <div class="stats">
+    <div class="stat-chip"><div class="stat-num">1,400+</div><div class="stat-lbl">Listings Synced</div></div>
+    <div class="stat-chip"><div class="stat-num">Daily</div><div class="stat-lbl">Auto-Priced</div></div>
+    <div class="stat-chip"><div class="stat-num">+27%</div><div class="stat-lbl">Lead Capture</div></div>
+  </div>
+</section>
+
+<div class="demo-wrap">
+  <div class="demo-grid">
+
+    <!-- LEFT: Input -->
+    <div class="panel">
+      <p class="panel-title">Buyer Preferences</p>
+      <div class="form-group">
+        <label>Max Budget</label>
+        <select id="budget">
+          <option>$20,000</option>
+          <option selected>$28,000</option>
+          <option>$35,000</option>
+          <option>$45,000</option>
+          <option>$60,000+</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Body Type</label>
+        <select id="body">
+          <option>Sedan</option>
+          <option selected>SUV / Crossover</option>
+          <option>Truck</option>
+          <option>Hatchback</option>
+          <option>Minivan</option>
+          <option>Coupe</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Year (Min)</label>
+          <select id="year-min">
+            <option>2015</option>
+            <option>2016</option>
+            <option>2017</option>
+            <option selected>2018</option>
+            <option>2019</option>
+            <option>2020</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Year (Max)</label>
+          <select id="year-max">
+            <option>2021</option>
+            <option>2022</option>
+            <option selected>2023</option>
+            <option>2024</option>
+            <option>2025</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Max Kilometres</label>
+        <select id="km">
+          <option>50,000 km</option>
+          <option>80,000 km</option>
+          <option selected>120,000 km</option>
+          <option>150,000 km</option>
+          <option>200,000 km</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Location</label>
+        <input type="text" value="Toronto, ON" id="location">
+      </div>
+      <button class="btn-primary" onclick="runSearch()">Find Matches</button>
+    </div>
+
+    <!-- RIGHT: Output -->
+    <div class="panel output-panel" id="output">
+      <div id="state-empty" class="output-empty">
+        <div class="icon">🚗</div>
+        <p>Set your preferences and click <strong>Find Matches</strong></p>
+      </div>
+
+      <div id="state-working" class="working hidden">
+        <div class="orb"></div>
+        <ul class="checklist" id="checklist">
+          <li id="step1"><span class="dot"></span> Scanning 1,400+ listings...</li>
+          <li id="step2"><span class="dot"></span> Filtering by budget &amp; body type...</li>
+          <li id="step3"><span class="dot"></span> Calculating match scores...</li>
+          <li id="step4"><span class="dot"></span> Pulling financing rates...</li>
+        </ul>
+      </div>
+
+      <div id="state-results" class="hidden">
+        <div class="results-header">
+          <h3>12 matches found, <strong>4 best</strong></h3>
+          <span class="badge-count">Top 4</span>
+        </div>
+        <div class="car-cards" id="car-cards"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<footer>Built by TRIVOX · AI automation that runs your business</footer>
+
+<script>
+const CARS = [
+  {emoji:'🚙',name:'2022 Honda CR-V Sport',km:'68,400 km',price:'$27,490',finance:'$389',match:98,tier:'high'},
+  {emoji:'🚗',name:'2021 Toyota RAV4 XLE',km:'74,200 km',price:'$26,900',finance:'$381',match:95,tier:'high'},
+  {emoji:'🚘',name:'2020 Mazda CX-5 GS',km:'89,100 km',price:'$24,750',finance:'$351',match:87,tier:'high'},
+  {emoji:'🛻',name:'2019 Hyundai Tucson Preferred',km:'112,300 km',price:'$21,995',finance:'$312',match:74,tier:'mid'},
+];
+
+function setState(id){
+  ['state-empty','state-working','state-results'].forEach(s=>{
+    document.getElementById(s).classList.toggle('hidden', s!==id);
+  });
+}
+
+function runSearch(){
+  setState('state-working');
+  const steps=['step1','step2','step3','step4'];
+  steps.forEach(s=>document.getElementById(s).classList.remove('done'));
+
+  let i=0;
+  const iv=setInterval(()=>{
+    if(i<steps.length){document.getElementById(steps[i]).classList.add('done');i++;}
+    else{clearInterval(iv);showResults();}
+  },400);
+}
+
+function showResults(){
+  const container=document.getElementById('car-cards');
+  container.innerHTML='';
+  CARS.forEach(c=>{
+    const tier=c.tier==='high'?'match-high':'match-mid';
+    const div=document.createElement('div');
+    div.className='car-card';
+    div.innerHTML=`
+      <div class="car-img">${c.emoji}</div>
+      <div class="car-info">
+        <div class="car-name">${c.name}</div>
+        <div class="car-meta">${c.km} · Certified Pre-Owned</div>
+        <div class="car-bottom">
+          <div>
+            <div class="car-price">${c.price}</div>
+            <div class="car-finance">Financing from ${c.finance}/mo</div>
+          </div>
+          <span class="match-badge ${tier}">${c.match}% match</span>
+        </div>
+      </div>`;
+    container.appendChild(div);
+  });
+  setState('state-results');
+}
+</script>
+</body>
+</html>

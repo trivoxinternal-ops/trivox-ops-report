@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Smart Inventory Tracker - TRIVOX Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{--bg:#070b18;--bg2:#0d1426;--surface:#121b30;--surface2:#16203a;--border:#1e2a44;--text:#eaf0ff;--muted:#8a97b5;--brand:#2e61fe;--brand2:#00f0ff;--grad:linear-gradient(135deg,#2e61fe,#00f0ff);--good:#22c55e;--warn:#fbbf24;--bad:#ef4444;--radius:16px;--shadow:0 10px 40px rgba(0,0,0,.45);}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh;}
+
+nav{position:sticky;top:0;z-index:100;background:rgba(7,11,24,.85);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:0 32px;height:60px;display:flex;align-items:center;justify-content:space-between;}
+.nav-brand{display:flex;align-items:center;gap:10px;font-family:'Sora',sans-serif;font-weight:700;font-size:18px;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.nav-pill{background:var(--grad);color:#fff;font-size:11px;font-weight:600;padding:3px 8px;border-radius:20px;-webkit-text-fill-color:#fff;letter-spacing:.05em;}
+.nav-back{color:var(--muted);text-decoration:none;font-size:13px;font-weight:500;transition:color .2s;}
+.nav-back:hover{color:var(--text);}
+
+.hero{padding:64px 32px 48px;max-width:1100px;margin:0 auto;}
+.eyebrow{font-family:'Sora',sans-serif;font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px;}
+h1{font-family:'Sora',sans-serif;font-size:clamp(28px,4vw,40px);font-weight:700;letter-spacing:-.02em;line-height:1.15;margin-bottom:16px;}
+.subhead{color:var(--muted);font-size:16px;line-height:1.6;max-width:640px;margin-bottom:36px;}
+.stats{display:flex;gap:12px;flex-wrap:wrap;}
+.stat-chip{background:var(--surface);border:1px solid var(--border);border-radius:40px;padding:8px 20px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;}
+.stat-chip span{background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:1100px;margin:0 auto;padding:0 32px 64px;}
+@media(max-width:900px){.grid{grid-template-columns:1fr;}}
+
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);}
+.panel-title{font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:20px;}
+
+.field-label{font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;letter-spacing:.04em;text-transform:uppercase;}
+.select-wrap{position:relative;margin-bottom:20px;}
+select{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px;padding:12px 16px;appearance:none;cursor:pointer;outline:none;transition:border-color .2s;}
+select:focus{border-color:var(--brand);}
+.select-arrow{position:absolute;right:14px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:12px;}
+
+.info-block{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;}
+.info-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;}
+.info-row:last-child{border-bottom:none;padding-bottom:0;}
+.info-key{color:var(--muted);}
+.info-val{font-weight:600;}
+
+.btn-grad{width:100%;margin-top:8px;padding:14px;background:var(--grad);border:none;border-radius:12px;color:#fff;font-family:'Sora',sans-serif;font-size:15px;font-weight:600;cursor:pointer;transition:opacity .2s,transform .1s;}
+.btn-grad:hover{opacity:.9;}
+.btn-grad:active{transform:scale(.98);}
+.btn-grad:disabled{opacity:.5;cursor:not-allowed;}
+
+.right-panel{min-height:480px;display:flex;flex-direction:column;}
+.empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:var(--muted);}
+.empty-icon{font-size:40px;opacity:.35;}
+.empty-text{font-size:14px;text-align:center;max-width:240px;line-height:1.5;}
+
+.orb-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;}
+.orb{width:72px;height:72px;border-radius:50%;background:var(--grad);box-shadow:0 0 40px rgba(46,97,254,.5);animation:pulse 1.4s ease-in-out infinite;}
+@keyframes pulse{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.12);opacity:.8;}}
+.checklist{list-style:none;display:flex;flex-direction:column;gap:10px;min-width:220px;}
+.checklist li{display:flex;align-items:center;gap:10px;font-size:14px;color:var(--muted);}
+.checklist li.done{color:var(--text);}
+.check-icon{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.check-icon.filled{background:var(--good);border-color:var(--good);}
+.check-icon.filled::after{content:'✓';font-size:10px;color:#fff;font-weight:700;}
+
+.result-state{display:flex;flex-direction:column;gap:18px;}
+.section-label{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+
+.inv-table{width:100%;border-collapse:collapse;}
+.inv-table th{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;padding:0 10px 10px;}
+.inv-table td{font-size:13px;padding:10px;border-top:1px solid var(--border);}
+.inv-table tr:first-child td{border-top:none;}
+.badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;}
+.badge-ok{background:rgba(34,197,94,.12);color:var(--good);border:1px solid rgba(34,197,94,.3);}
+.badge-low{background:rgba(251,191,36,.12);color:var(--warn);border:1px solid rgba(251,191,36,.3);}
+.badge-out{background:rgba(239,68,68,.12);color:var(--bad);border:1px solid rgba(239,68,68,.3);}
+
+.reorder-list{display:flex;flex-direction:column;gap:8px;}
+.reorder-item{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;}
+.reorder-name{font-size:13px;font-weight:600;}
+.reorder-meta{font-size:12px;color:var(--muted);margin-top:2px;}
+.reorder-qty{font-size:13px;font-weight:700;background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+
+.bottom-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.metric-tile{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:16px;}
+.metric-label{font-size:11px;color:var(--muted);margin-bottom:6px;}
+.metric-val{font-size:22px;font-weight:700;}
+.metric-val.warn{color:var(--warn);}
+.metric-val.good{color:var(--good);}
+.metric-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+
+footer{text-align:center;padding:28px;color:var(--muted);font-size:13px;border-top:1px solid var(--border);}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">TRIVOX <span class="nav-pill">AI</span></div>
+  <a class="nav-back" href="../../portfolio.html">← All Demos</a>
+</nav>
+
+<section class="hero">
+  <div class="eyebrow">Operations / Retail</div>
+  <h1>Smart Inventory Tracker</h1>
+  <p class="subhead">Real-time stock counts with AI-driven reorder predictions. Low-stock alerts fire automatically so you never face a stockout or tie up cash in excess inventory.</p>
+  <div class="stats">
+    <div class="stat-chip"><span>0</span> stockouts</div>
+    <div class="stat-chip"><span>Auto-reorder</span> alerts</div>
+    <div class="stat-chip"><span>Live</span> counts</div>
+  </div>
+</section>
+
+<div class="grid">
+  <!-- LEFT -->
+  <div class="panel">
+    <div class="panel-title">Check Inventory</div>
+    <div class="field-label">Product Category</div>
+    <div class="select-wrap">
+      <select id="categorySelect">
+        <option value="skincare">Skincare</option>
+        <option value="supplements">Supplements</option>
+        <option value="apparel">Apparel</option>
+        <option value="electronics">Electronics</option>
+      </select>
+      <div class="select-arrow">▼</div>
+    </div>
+
+    <div class="info-block">
+      <div class="info-row"><span class="info-key">Warehouse</span><span class="info-val">Toronto DC-1</span></div>
+      <div class="info-row"><span class="info-key">Last sync</span><span class="info-val">2 min ago</span></div>
+      <div class="info-row"><span class="info-key">SKUs tracked</span><span class="info-val">247</span></div>
+      <div class="info-row"><span class="info-key">Suppliers connected</span><span class="info-val">8</span></div>
+    </div>
+
+    <button class="btn-grad" id="checkBtn" onclick="runDemo()">Check Inventory</button>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="panel right-panel">
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">📦</div>
+      <div class="empty-text">Select a category and click "Check Inventory" to see live stock data</div>
+    </div>
+    <div class="orb-state" id="orbState" style="display:none;">
+      <div class="orb"></div>
+      <ul class="checklist">
+        <li id="ck1"><div class="check-icon"></div>Connecting to warehouse API…</li>
+        <li id="ck2"><div class="check-icon"></div>Pulling live stock counts…</li>
+        <li id="ck3"><div class="check-icon"></div>Running reorder predictions…</li>
+        <li id="ck4"><div class="check-icon"></div>Flagging low-stock items…</li>
+        <li id="ck5"><div class="check-icon"></div>Compiling supplier quotes…</li>
+      </ul>
+    </div>
+    <div class="result-state" id="resultState" style="display:none;"></div>
+  </div>
+</div>
+
+<footer>Built by TRIVOX · AI automation that runs your business</footer>
+
+<script>
+const categories = {
+  skincare: {
+    items: [
+      {name:"Vitamin C Serum 30ml",sku:"SK-001",onHand:142,reorder:100,supplier:"NovaChem",orderQty:200,unitCost:8.40},
+      {name:"Retinol Night Cream",sku:"SK-002",onHand:38,reorder:80,supplier:"NovaChem",orderQty:150,unitCost:11.20},
+      {name:"SPF 50 Sunscreen",sku:"SK-003",onHand:9,reorder:60,supplier:"DermSupply Co",orderQty:120,unitCost:6.80},
+      {name:"Hyaluronic Toner",sku:"SK-004",onHand:215,reorder:75,supplier:"NovaChem",orderQty:0,unitCost:7.50},
+      {name:"Cleansing Balm 100ml",sku:"SK-005",onHand:61,reorder:90,supplier:"DermSupply Co",orderQty:120,unitCost:9.90},
+    ],
+    stockValue: 18640
+  },
+  supplements: {
+    items: [
+      {name:"Omega-3 Softgels 90ct",sku:"SU-011",onHand:304,reorder:150,supplier:"VitaSource",orderQty:0,unitCost:14.20},
+      {name:"Magnesium Glycinate",sku:"SU-012",onHand:47,reorder:100,supplier:"VitaSource",orderQty:200,unitCost:12.60},
+      {name:"Vitamin D3 5000IU",sku:"SU-013",onHand:22,reorder:120,supplier:"PureNutrient",orderQty:250,unitCost:8.10},
+      {name:"Collagen Peptides",sku:"SU-014",onHand:89,reorder:80,supplier:"PureNutrient",orderQty:0,unitCost:18.50},
+      {name:"Probiotic 50B CFU",sku:"SU-015",onHand:0,reorder:60,supplier:"BioFlora",orderQty:100,unitCost:22.00},
+    ],
+    stockValue: 31220
+  },
+  apparel: {
+    items: [
+      {name:"Classic Tee - White M",sku:"AP-021",onHand:188,reorder:100,supplier:"FabricFirst",orderQty:0,unitCost:9.50},
+      {name:"Classic Tee - Black M",sku:"AP-022",onHand:55,reorder:100,supplier:"FabricFirst",orderQty:150,unitCost:9.50},
+      {name:"Jogger Pants - Grey L",sku:"AP-023",onHand:14,reorder:60,supplier:"FabricFirst",orderQty:100,unitCost:18.00},
+      {name:"Zip Hoodie - Navy XL",sku:"AP-024",onHand:72,reorder:50,supplier:"UrbanThread",orderQty:0,unitCost:24.00},
+      {name:"Snapback Cap",sku:"AP-025",onHand:6,reorder:40,supplier:"UrbanThread",orderQty:80,unitCost:11.00},
+    ],
+    stockValue: 22870
+  },
+  electronics: {
+    items: [
+      {name:"USB-C Hub 7-Port",sku:"EL-031",onHand:93,reorder:50,supplier:"TechDistro",orderQty:0,unitCost:28.00},
+      {name:"Wireless Charger 15W",sku:"EL-032",onHand:31,reorder:60,supplier:"TechDistro",orderQty:100,unitCost:19.50},
+      {name:"BT Earbuds Pro",sku:"EL-033",onHand:8,reorder:40,supplier:"AudioLink",orderQty:80,unitCost:44.00},
+      {name:"Smart Plug 4-Pack",sku:"EL-034",onHand:127,reorder:40,supplier:"SmartHome Co",orderQty:0,unitCost:16.00},
+      {name:"Laptop Stand Alu",sku:"EL-035",onHand:0,reorder:30,supplier:"TechDistro",orderQty:60,unitCost:32.00},
+    ],
+    stockValue: 41580
+  }
+};
+
+function getStatus(onHand, reorder) {
+  if (onHand === 0) return {label:'Out of Stock',cls:'badge-out'};
+  if (onHand < reorder) return {label:'Low Stock',cls:'badge-low'};
+  return {label:'In Stock',cls:'badge-ok'};
+}
+
+function tick(id, delay) {
+  return new Promise(r => setTimeout(() => {
+    const el = document.getElementById(id);
+    el.classList.add('done');
+    el.querySelector('.check-icon').classList.add('filled');
+    r();
+  }, delay));
+}
+
+async function runDemo() {
+  const btn = document.getElementById('checkBtn');
+  btn.disabled = true;
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('resultState').style.display = 'none';
+  document.getElementById('orbState').style.display = 'flex';
+
+  // Reset checklist
+  for (let i = 1; i <= 5; i++) {
+    const el = document.getElementById('ck'+i);
+    el.classList.remove('done');
+    el.querySelector('.check-icon').classList.remove('filled');
+  }
+
+  await tick('ck1', 300);
+  await tick('ck2', 650);
+  await tick('ck3', 980);
+  await tick('ck4', 1280);
+  await tick('ck5', 1620);
+  await new Promise(r => setTimeout(r, 180));
+
+  document.getElementById('orbState').style.display = 'none';
+  const result = document.getElementById('resultState');
+  result.style.display = 'flex';
+
+  const cat = document.getElementById('categorySelect').value;
+  const data = categories[cat];
+  const reorderItems = data.items.filter(i => i.orderQty > 0);
+  const lowCount = data.items.filter(i => i.onHand < i.reorder).length;
+
+  let tableRows = data.items.map(item => {
+    const s = getStatus(item.onHand, item.reorder);
+    return `<tr>
+      <td>${item.name}<br><span style="color:var(--muted);font-size:11px;">${item.sku}</span></td>
+      <td style="text-align:center;font-weight:600;">${item.onHand}</td>
+      <td style="text-align:center;color:var(--muted);">${item.reorder}</td>
+      <td><span class="badge ${s.cls}">${s.label}</span></td>
+    </tr>`;
+  }).join('');
+
+  let reorderRows = reorderItems.map(item => `
+    <div class="reorder-item">
+      <div>
+        <div class="reorder-name">${item.name}</div>
+        <div class="reorder-meta">Supplier: ${item.supplier}</div>
+      </div>
+      <div class="reorder-qty">Order ${item.orderQty} units</div>
+    </div>`).join('');
+
+  result.innerHTML = `
+    <div>
+      <div class="section-label">Stock Overview</div>
+      <div style="overflow-x:auto;">
+        <table class="inv-table">
+          <thead><tr>
+            <th>Item</th><th style="text-align:center;">On Hand</th>
+            <th style="text-align:center;">Reorder Pt.</th><th>Status</th>
+          </tr></thead>
+          <tbody>${tableRows}</tbody>
+        </table>
+      </div>
+    </div>
+    <div>
+      <div class="section-label">AI Reorder List (${reorderItems.length} items)</div>
+      <div class="reorder-list">${reorderRows}</div>
+    </div>
+    <div class="bottom-row">
+      <div class="metric-tile">
+        <div class="metric-label">Low-Stock Alerts</div>
+        <div class="metric-val warn">${lowCount}</div>
+        <div class="metric-sub">items need attention</div>
+      </div>
+      <div class="metric-tile">
+        <div class="metric-label">Total Stock Value</div>
+        <div class="metric-val good">$${data.stockValue.toLocaleString()}</div>
+        <div class="metric-sub">at cost</div>
+      </div>
+    </div>`;
+
+  btn.disabled = false;
+}
+</script>
+</body>
+</html>
